@@ -1,8 +1,6 @@
 package s3
 
 import (
-	"context"
-	"fmt"
 	"log"
 	"os"
 
@@ -11,7 +9,7 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
-func GetClient() (*minio.Client, string) {
+func GetClient() (*minio.Client, string, error) {
 	err := godotenv.Load("../.env")
 
 	if err != nil {
@@ -32,32 +30,5 @@ func GetClient() (*minio.Client, string) {
 		log.Fatalln(err)
 	}
 
-	return minioClient, bucketName
-}
-
-func uploadFile() {
-	ctx := context.Background()
-	minioClient, bucketName := GetClient()
-	// Upload the test file
-	// Change the value of filePath if the file is in another location
-	objectName := "docker-compose.yml"
-	filePath := "../docker-compose.yml"
-	contentType := "application/octet-stream"
-
-	// Upload the test file with FPutObject
-	info, err := minioClient.FPutObject(
-		ctx,
-		bucketName,
-		objectName,
-		filePath,
-		minio.PutObjectOptions{
-			ContentType: contentType,
-		},
-	)
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	fmt.Print(objectName, info)
+	return minioClient, bucketName, err
 }

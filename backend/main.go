@@ -3,6 +3,7 @@ package main
 import (
 	"checkpoint/db"
 	"checkpoint/modules/authentication"
+	"checkpoint/modules/upload"
 	"context"
 	"log"
 	"time"
@@ -26,6 +27,12 @@ func main() {
 		authApi.Post("/signin", authentication.SignInController)
 		authApi.Post("/signout", authentication.SignOutController)
 		authApi.Post("/signup", authentication.SignUpController)
+	}
+
+	storageApi := app.Party("/storage")
+	{
+		storageApi.Post("/upload", upload.Upload)
+		storageApi.Post("/get-signed-url", upload.GetSignedURL)
 	}
 
 	idleConnsClosed := make(chan struct{})
