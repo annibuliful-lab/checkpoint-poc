@@ -10,48 +10,29 @@ import (
 	"github.com/kataras/iris/v12"
 )
 
-type Authentication struct {
-	Token        string `json:"token"`
-	RefreshToken string `json:"refreshToken"`
-	UserID       string `json:"userId"`
-}
-
-type SignUpData struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-type SignInData struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-func SignIn(ctx iris.Context) {
+func SignInService(ctx iris.Context) {
 
 }
 
-func SignOut(token string) {
+func SignOutService(token string) {
 
 }
 
-func SignUp(data SignUpData) model.Account {
+func SignUpService(data SignUpData) (model.Account, error) {
 
 	db := db.GetClient()
+	hash, _ := hashPassword(data.Password)
+
+	result := model.Account{}
 	account := model.Account{
 		ID:       uuid.New(),
 		Username: data.Username,
-		Password: data.Password,
+		Password: hash,
 	}
 
-	insertStmt := Account.INSERT(Account.ID, Account.Username, Account.Password).MODEL(account).RETURNING(Account.ID, Account.Username, Account.Password)
-
-	result := model.Account{}
+	insertStmt := Account.INSERT(Account.ID, Account.Username, Account.Password).MODEL(account).RETURNING(Account.AllColumns)
 
 	err := insertStmt.Query(db, &result)
 
-	if err == nil {
-		panic(err.Error())
-	}
-
-	return result
+	return result, err
 }
