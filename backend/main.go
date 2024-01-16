@@ -16,8 +16,9 @@ func main() {
 
 	var authApi = app.Party("/auth")
 	{
-		authApi.Post("/signin", authentication.SignIn)
-		authApi.Post("/signout", authentication.SignOut)
+		authApi.Post("/signin", authentication.SignInController)
+		authApi.Post("/signout", authentication.SignOutController)
+		authApi.Post("/signup", authentication.SignUpController)
 	}
 
 	var idleConnsClosed = make(chan struct{})

@@ -1,0 +1,31 @@
+{
+  "name": "checkpoint",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "backend:run": "cd backend && go run main.go",
+    "backend:db-primary-generate": "jet -dsn=\"postgres://checkpoint:checkpoint@localhost:5432/checkpoint?sslmode=disable\" -path=./backend/.gen",
+    "frontend:dev": "cd frontend && pnpm run dev",
+    "db-primary:migrate": "prisma migrate dev --schema prisma/primary/schema.prisma",
+    "db-primary:generate": "prisma generate --schema prisma/primary/schema.prisma",
+    "db-primary:seed": "ts-node prisma/primary/seed",
+    "load-data:run": "cd load-data && go run main.go"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@commitlint/cli": "18.4.4",
+    "@commitlint/config-conventional": "18.4.4",
+    "@types/node": "20.11.2",
+    "husky": "8.0.3",
+    "prisma": "5.8.1",
+    "ts-node": "10.9.2",
+    "typescript": "5.3.3"
+  },
+  "dependencies": {
+    "@prisma/client": "5.8.1"
+  }
+}
