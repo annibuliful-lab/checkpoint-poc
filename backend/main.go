@@ -4,24 +4,31 @@ import (
 	"checkpoint/db"
 	"checkpoint/modules/authentication"
 	"context"
+	"log"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/kataras/iris/v12"
 )
 
 func main() {
-	var dbClient = db.GetClient()
+	err := godotenv.Load("../.env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
-	var app = iris.New()
+	dbClient := db.GetClient()
 
-	var authApi = app.Party("/auth")
+	app := iris.New()
+
+	authApi := app.Party("/auth")
 	{
 		authApi.Post("/signin", authentication.SignInController)
 		authApi.Post("/signout", authentication.SignOutController)
 		authApi.Post("/signup", authentication.SignUpController)
 	}
 
-	var idleConnsClosed = make(chan struct{})
+	idleConnsClosed := make(chan struct{})
 
 	iris.RegisterOnInterrupt(func() {
 		timeout := 10 * time.Second
