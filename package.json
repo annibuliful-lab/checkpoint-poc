@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "backend:run": "cd backend && go run main.go",
-    "backend:db-primary-generate": "jet -dsn=\"postgres://checkpoint:checkpoint@localhost:5432/checkpoint?sslmode=disable\" -path=./backend/.gen",
+    "backend:db-primary-generate": "jet -dsn=\"postgres://checkpoint:checkpoint@localhost:5432/checkpoint?sslmode=disable\" -path=./backend/.gen && rm -rf backend/.gen/checkpoint/public/table/table_use_schema.go",
     "frontend:dev": "cd frontend && pnpm run dev",
     "db-primary:migrate": "prisma migrate dev --schema prisma/primary/schema.prisma",
     "db-primary:generate": "prisma generate --schema prisma/primary/schema.prisma",
