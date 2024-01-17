@@ -3,15 +3,16 @@ package authentication
 import (
 	"checkpoint/.gen/checkpoint/public/model"
 	. "checkpoint/.gen/checkpoint/public/table"
+	"checkpoint/db"
+	. "checkpoint/jwt"
+	utils "checkpoint/utils"
 	"context"
 	"errors"
 	"fmt"
 	"strings"
 
-	"checkpoint/db"
-	. "checkpoint/jwt"
-
 	. "github.com/go-jet/jet/v2/postgres"
+
 	"github.com/google/uuid"
 )
 
@@ -38,7 +39,7 @@ func SignInService(data SignInData) (SigninResponse, error) {
 	if err != nil {
 
 		fmt.Println(err.Error())
-		return SigninResponse{}, errors.New("internal server error")
+		return SigninResponse{}, errors.New(utils.InternalServerError)
 	}
 
 	if account.AccountConfiguration.IsActive == false {
@@ -55,7 +56,7 @@ func SignInService(data SignInData) (SigninResponse, error) {
 	})
 
 	if err != nil {
-		return SigninResponse{}, errors.New("Sign token is failed")
+		return SigninResponse{}, errors.New(utils.SignTokenFailed)
 	}
 
 	refreshToken, err := SignRefreshToken(SignedTokenParams{
@@ -63,7 +64,7 @@ func SignInService(data SignInData) (SigninResponse, error) {
 	})
 
 	if err != nil {
-		return SigninResponse{}, errors.New("Sign token is failed")
+		return SigninResponse{}, errors.New(utils.SignTokenFailed)
 	}
 
 	return SigninResponse{
@@ -73,8 +74,22 @@ func SignInService(data SignInData) (SigninResponse, error) {
 	}, err
 }
 
-func SignOutService(token string) {
+func SignOutService(token string) error {
+	db := db.GetClient()
 
+	insertStmt := SessionToken.
+		UPDATE(SessionToken.Revoke).
+		SET(model.SessionToken{
+			Revoke: true,
+		}).
+		WHERE(SessionToken.Token.EQ(String(token)))
+
+	_, err := insertStmt.Exec(db)
+	if err != nil {
+		return errors.New(utils.InternalServerError)
+	}
+
+	return nil
 }
 
 func SignUpService(data SignUpData) (model.Account, error) {
@@ -82,16 +97,15 @@ func SignUpService(data SignUpData) (model.Account, error) {
 	db := db.GetClient()
 	hash, _ := hashPassword(data.Password)
 	tx, err := db.Begin()
-	account := model.Account{
-		ID:       uuid.New(),
-		Username: data.Username,
-		Password: hash,
-	}
 
 	accountResult := model.Account{}
 	insertAccountStmt := Account.
 		INSERT(Account.ID, Account.Username, Account.Password).
-		MODEL(account).
+		MODEL(model.Account{
+			ID:       uuid.New(),
+			Username: data.Username,
+			Password: hash,
+		}).
 		RETURNING(Account.AllColumns)
 	err = insertAccountStmt.QueryContext(ctx, tx, &accountResult)
 
@@ -102,22 +116,21 @@ func SignUpService(data SignUpData) (model.Account, error) {
 			return model.Account{}, errors.New("username is already exists")
 		}
 
-		return model.Account{}, errors.New("internal server error")
+		return model.Account{}, errors.New(utils.InternalServerError)
 	}
 
-	accountConfiguration := model.AccountConfiguration{
-		AccountId: accountResult.ID,
-		IsActive:  true,
-	}
 	accountConfigurationResult := model.AccountConfiguration{}
 	insertAccountConfigurationStmt := AccountConfiguration.
 		INSERT(AccountConfiguration.AccountId, AccountConfiguration.IsActive).
-		MODEL(accountConfiguration).
+		MODEL(model.AccountConfiguration{
+			AccountId: accountResult.ID,
+			IsActive:  true,
+		}).
 		RETURNING(AccountConfiguration.AllColumns)
 	err = insertAccountConfigurationStmt.QueryContext(ctx, tx, &accountConfigurationResult)
 	if err != nil {
 		tx.Rollback()
-		return model.Account{}, errors.New("internal server error")
+		return model.Account{}, errors.New(utils.InternalServerError)
 	}
 
 	tx.Commit()

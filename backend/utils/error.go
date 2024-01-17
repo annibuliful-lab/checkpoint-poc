@@ -5,3 +5,8 @@ func PanicOnError(err error) {
 		panic(err)
 	}
 }
+
+const (
+	InternalServerError = "internal server error"
+	SignTokenFailed     = "sign token is failed"
+)
