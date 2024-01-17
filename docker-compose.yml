@@ -1,6 +1,21 @@
 version: '3.8'
 
 services:
+  caddy:
+    image: caddy:<version>
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./site:/srv
+      - caddy_data:/data
+      - caddy_config:/config
+
   postgres:
     container_name: checkpoint-db
     image: postgres:15-alpine

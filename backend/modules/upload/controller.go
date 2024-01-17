@@ -85,10 +85,7 @@ func GetSignedURL(ctx iris.Context) {
 	}
 
 	ctx.JSON(iris.Map{
-		"message": "signed",
-		"data": iris.Map{
-			"url": presignedURL.String(),
-		},
+		"url": presignedURL.String(),
 	})
 
 }

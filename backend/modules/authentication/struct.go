@@ -7,15 +7,20 @@ type Authentication struct {
 }
 
 type SignUpData struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username" validate:"min=8,max=32"`
+	Password string `json:"password" validate:"min=8,max=32"`
 }
 
 type SignInData struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username" validate:"min=8,max=32"`
+	Password string `json:"password" validate:"min=8,max=32"`
 }
 
+type SigninResponse struct {
+	UserId       string `json:"userId"`
+	Token        string `json:"token"`
+	RefreshToken string `json:"refreshToken"`
+}
 type HashPasswordParams struct {
 	memory      uint32
 	iterations  uint32

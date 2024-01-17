@@ -10,11 +10,11 @@ import (
 
 var secretKey = []byte(os.Getenv("JWT_SECRET"))
 
-func signToken(p SignedTokenParams) (string, error) {
+func SignToken(p SignedTokenParams) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
-			"userId": p.UserId,
-			"exp":    time.Now().Add(time.Hour * 24).Unix(),
+			"userId": p.AccountId,
+			"exp":    time.Now().Add(time.Minute * 15).Unix(),
 		})
 
 	tokenString, err := token.SignedString(secretKey)
@@ -26,7 +26,23 @@ func signToken(p SignedTokenParams) (string, error) {
 	return tokenString, nil
 }
 
-func verifyToken(tokenString string) (*JwtPayload, bool) {
+func SignRefreshToken(p SignedTokenParams) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
+		jwt.MapClaims{
+			"userId": p.AccountId,
+			"exp":    time.Now().Add(time.Hour * 72).Unix(),
+		})
+
+	tokenString, err := token.SignedString(secretKey)
+
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
+}
+
+func VerifyToken(tokenString string) (*JwtPayload, bool) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return secretKey, nil
 	})

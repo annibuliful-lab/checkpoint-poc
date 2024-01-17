@@ -26,6 +26,7 @@ func SignUpController(ctx iris.Context) {
 	ctx.JSON(iris.Map{
 		"message": "created",
 		"data": iris.Map{
+			"id":        account.ID,
 			"createdAt": account.CreatedAt,
 			"updatedAt": account.UpdatedAt,
 		},
@@ -33,6 +34,36 @@ func SignUpController(ctx iris.Context) {
 }
 
 func SignInController(ctx iris.Context) {
+	var data SignInData
+	err := ctx.ReadJSON(&data)
+	if err != nil {
+		ctx.StatusCode(500)
+		ctx.JSON(iris.Map{
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	}
+
+	response, err := SignInService(SignInData{
+		Username: data.Username,
+		Password: data.Password,
+	})
+
+	if err != nil {
+		ctx.StatusCode(500)
+		ctx.JSON(iris.Map{
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	}
+
+	ctx.StatusCode(iris.StatusOK)
+	ctx.JSON(iris.Map{
+		"message": "signed",
+		"data":    response,
+	})
 
 }
 
