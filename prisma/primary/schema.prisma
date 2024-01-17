@@ -38,20 +38,32 @@ model Permission {
 }
 
 model Account {
-  id              String           @id @default(uuid()) @db.Uuid
-  username        String           @db.VarChar(24)
-  password        String
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime?
-  projectAccounts ProjectAccount[]
-  essionTokens    SessionToken[]
+  id                   String                @id @default(uuid()) @db.Uuid
+  username             String                @db.VarChar(24)
+  password             String
+  projectAccounts      ProjectAccount[]
+  essionTokens         SessionToken[]
+  accountConfiguration AccountConfiguration?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime?
+  projects             Project[]
 
   @@unique([username])
   @@map("account")
 }
 
+model AccountConfiguration {
+  accountId String  @id @db.Uuid
+  account   Account @relation(fields: [accountId], references: [id])
+  isActive  Boolean @default(true)
+
+  @@map("account_configuration")
+}
+
 model Project {
   id                     String                  @id @default(uuid()) @db.Uuid
+  ownerId                String                  @db.Uuid
+  owner                  Account                 @relation(fields: [ownerId], references: [id])
   title                  String
   createdAt              DateTime                @default(now())
   updatedAt              DateTime?
