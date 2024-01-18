@@ -4,17 +4,11 @@ import (
 	"log"
 	"os"
 
-	"github.com/joho/godotenv"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
 func GetClient() (*minio.Client, string, error) {
-	err := godotenv.Load("../.env")
-
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
 
 	accessKey := os.Getenv("S3_ACCESS_KEY")
 	secretKey := os.Getenv("S3_SECRET_KEY")

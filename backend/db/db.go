@@ -10,12 +10,12 @@ import (
 )
 
 var (
-	_db  *sql.DB
-	once sync.Once
+	_db    *sql.DB
+	onceDb sync.Once
 )
 
-func GetClient() *sql.DB {
-	once.Do(func() {
+func GetPrimaryClient() *sql.DB {
+	onceDb.Do(func() {
 
 		connectString := os.Getenv("PRIMARY_DATABASE_URL")
 		database, err := sql.Open("postgres", connectString)

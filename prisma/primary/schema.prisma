@@ -18,12 +18,13 @@ enum PermissionAction {
 }
 
 model SessionToken {
-  token     String    @id
-  revoke    Boolean   @default(false)
-  accountId String    @db.Uuid
-  account   Account   @relation(fields: [accountId], references: [id])
-  createdAt DateTime  @default(now())
-  updatedAt DateTime?
+  token          String    @id
+  revoke         Boolean   @default(false)
+  isRefreshToken Boolean   @default(false)
+  accountId      String    @db.Uuid
+  account        Account   @relation(fields: [accountId], references: [id])
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime?
 
   @@map("session_token")
 }
@@ -46,7 +47,6 @@ model Account {
   accountConfiguration AccountConfiguration?
   createdAt            DateTime              @default(now())
   updatedAt            DateTime?
-  projects             Project[]
 
   @@unique([username])
   @@map("account")
@@ -62,8 +62,6 @@ model AccountConfiguration {
 
 model Project {
   id                     String                  @id @default(uuid()) @db.Uuid
-  ownerId                String                  @db.Uuid
-  owner                  Account                 @relation(fields: [ownerId], references: [id])
   title                  String
   createdAt              DateTime                @default(now())
   updatedAt              DateTime?

@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	. "github.com/go-jet/jet/v2/postgres"
@@ -17,7 +18,9 @@ import (
 )
 
 func SignInService(data SignInData) (SigninResponse, error) {
-	db := db.GetClient()
+	dbClient := db.GetPrimaryClient()
+	redisClient := db.GetRedisClient()
+	ctx := context.Background()
 
 	var account struct {
 		model.Account
@@ -35,19 +38,24 @@ func SignInService(data SignInData) (SigninResponse, error) {
 		WHERE(Account.Username.EQ(String(data.Username))).
 		LIMIT(1)
 
-	err := selectStmt.Query(db, &account)
+	err := selectStmt.Query(dbClient, &account)
 	if err != nil {
-
 		fmt.Println(err.Error())
 		return SigninResponse{}, errors.New(utils.InternalServerError)
 	}
 
-	if account.AccountConfiguration.IsActive == false {
+	if !account.AccountConfiguration.IsActive {
 		return SigninResponse{}, errors.New("please contact project owner")
 	}
 
 	match, err := comparePasswordAndHash(data.Password, account.Password)
-	if match == false {
+
+	if err != nil {
+		log.Println(err.Error())
+		return SigninResponse{}, errors.New("username or password is incorrect")
+
+	}
+	if !match {
 		return SigninResponse{}, errors.New("username or password is incorrect")
 	}
 
@@ -56,6 +64,7 @@ func SignInService(data SignInData) (SigninResponse, error) {
 	})
 
 	if err != nil {
+		log.Println(err.Error())
 		return SigninResponse{}, errors.New(utils.SignTokenFailed)
 	}
 
@@ -64,7 +73,38 @@ func SignInService(data SignInData) (SigninResponse, error) {
 	})
 
 	if err != nil {
+		log.Println(err.Error())
 		return SigninResponse{}, errors.New(utils.SignTokenFailed)
+	}
+
+	insertSessionTokenStmt := SessionToken.
+		INSERT(SessionToken.AccountId, SessionToken.Token, SessionToken.IsRefreshToken).
+		MODEL(model.SessionToken{
+			AccountId:      account.ID,
+			Token:          token,
+			IsRefreshToken: false,
+		}).
+		MODEL(model.SessionToken{
+			AccountId:      account.ID,
+			Token:          refreshToken,
+			IsRefreshToken: true,
+		})
+
+	_, err = insertSessionTokenStmt.Exec(dbClient)
+	if err != nil {
+		log.Println(err.Error())
+		return SigninResponse{}, errors.New(utils.InternalServerError)
+	}
+
+	err = redisClient.
+		Set(ctx, token, fmt.Sprintf("%+v", model.Account{
+			ID: account.ID,
+		}), 0).
+		Err()
+
+	if err != nil {
+		log.Println(err.Error())
+		return SigninResponse{}, errors.New(utils.InternalServerError)
 	}
 
 	return SigninResponse{
@@ -75,17 +115,29 @@ func SignInService(data SignInData) (SigninResponse, error) {
 }
 
 func SignOutService(token string) error {
-	db := db.GetClient()
+	dbClient := db.GetPrimaryClient()
+	redisClient := db.GetRedisClient()
+	ctx := context.Background()
 
-	insertStmt := SessionToken.
+	updateStmt := SessionToken.
 		UPDATE(SessionToken.Revoke).
 		SET(model.SessionToken{
 			Revoke: true,
 		}).
 		WHERE(SessionToken.Token.EQ(String(token)))
 
-	_, err := insertStmt.Exec(db)
+	_, err := updateStmt.Exec(dbClient)
 	if err != nil {
+		log.Println(err.Error())
+		return errors.New(utils.InternalServerError)
+	}
+
+	err = redisClient.
+		Del(ctx, token).
+		Err()
+
+	if err != nil {
+		log.Println(err.Error())
 		return errors.New(utils.InternalServerError)
 	}
 
@@ -93,10 +145,15 @@ func SignOutService(token string) error {
 }
 
 func SignUpService(data SignUpData) (model.Account, error) {
+	dbClient := db.GetPrimaryClient()
 	ctx := context.Background()
-	db := db.GetClient()
 	hash, _ := hashPassword(data.Password)
-	tx, err := db.Begin()
+	tx, err := dbClient.Begin()
+
+	if err != nil {
+		log.Println(err.Error())
+		return model.Account{}, errors.New(utils.InternalServerError)
+	}
 
 	accountResult := model.Account{}
 	insertAccountStmt := Account.

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/kataras/iris/v12"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -103,4 +104,14 @@ func decodeHash(encodedHash string) (p *HashPasswordParams, salt, hash []byte, e
 	p.keyLength = uint32(len(hash))
 
 	return p, salt, hash, nil
+}
+
+func GetAuthenticationHeaders(ctx iris.Context) AuthenticationHeader {
+	authorizationToken := ctx.GetHeader("authorization")
+	projectId := ctx.GetHeader("x-project-id")
+
+	return AuthenticationHeader{
+		Authorization: authorizationToken,
+		ProjectId:     projectId,
+	}
 }

@@ -1,11 +1,11 @@
 package main
 
 import (
+	router "checkpoint/Router"
 	"checkpoint/db"
-	"checkpoint/modules/authentication"
-	"checkpoint/modules/upload"
 	"context"
 	"log"
+	"os"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -18,22 +18,11 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	dbClient := db.GetClient()
+	dbClient := db.GetPrimaryClient()
 
 	app := iris.New()
 
-	authApi := app.Party("/auth")
-	{
-		authApi.Post("/signin", authentication.SignInController)
-		authApi.Post("/signout", authentication.SignOutController)
-		authApi.Post("/signup", authentication.SignUpController)
-	}
-
-	storageApi := app.Party("/storage")
-	{
-		storageApi.Post("/upload", upload.Upload)
-		storageApi.Post("/get-signed-url", upload.GetSignedURL)
-	}
+	router.Router(app)
 
 	idleConnsClosed := make(chan struct{})
 
@@ -42,13 +31,12 @@ func main() {
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
 
-		// close all hosts.
 		dbClient.Close()
 		app.Shutdown(ctx)
 		close(idleConnsClosed)
 	})
 
-	app.Listen(":8080", iris.WithoutInterruptHandler, iris.WithoutServerError(iris.ErrServerClosed))
+	app.Listen(os.Getenv("BACKEND_LISTEN"), iris.WithoutInterruptHandler, iris.WithoutServerError(iris.ErrServerClosed))
 
 	<-idleConnsClosed
 }
