@@ -2,8 +2,7 @@ version: '3.8'
 
 services:
   caddy:
-    image: caddy:<version>
-    restart: unless-stopped
+    image: caddy:alpine
     cap_add:
       - NET_ADMIN
     ports:
@@ -11,8 +10,8 @@ services:
       - '443:443'
       - '443:443/udp'
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - ./site:/srv
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./caddy/site:/srv
       - caddy_data:/data
       - caddy_config:/config
 
@@ -58,3 +57,8 @@ services:
     ports:
       - ${RABBITMQ_PORT_ONE}:5672
       - ${RABBITMQ_PORT_TWO}:15672
+
+volumes:
+  caddy_data:
+    external: true
+  caddy_config:
