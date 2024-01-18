@@ -68,6 +68,9 @@ model Project {
   projectRoles           ProjectRole[]
   projectRolePermissions ProjectRolePermission[]
   inspectionLocations    InspectionLocation[]
+  imsiCatchersList       ImsiCatcher[]
+  LicensePlate           LicensePlate[]
+  Vehicle                Vehicle[]
 
   @@map("project")
 }
@@ -124,6 +127,78 @@ model InspectionLocation {
   deletedAt   DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime?
+  vehicles    Vehicle[]
 
   @@map("inspection_location")
+}
+
+model LicensePlate {
+  id                   String    @id @default(uuid()) @db.Uuid
+  projectId            String    @db.Uuid
+  project              Project   @relation(fields: [projectId], references: [id])
+  licensePlate         String    @db.VarChar(24)
+  licensePlateProvince String
+  isBlacklist          Boolean   @default(false)
+  Vehicle              Vehicle[]
+
+  @@index([licensePlate])
+  @@index([licensePlateProvince])
+  @@map("license_plate")
+}
+
+model Vehicle {
+  id                   String             @id @default(uuid()) @db.Uuid
+  projectId            String             @db.Uuid
+  project              Project            @relation(fields: [projectId], references: [id])
+  inspectionLocationId String             @db.Uuid
+  inspectionLocation   InspectionLocation @relation(fields: [inspectionLocationId], references: [id])
+  licensePlateId       String             @db.Uuid
+  licensePlate         LicensePlate       @relation(fields: [licensePlateId], references: [id])
+  brand                String
+  color                String
+  country              String?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime?
+  images               VehicleImage[]
+  VehicleImsi          VehicleImsi[]
+
+  @@map("vehicle")
+}
+
+model VehicleImage {
+  id        String   @id @default(uuid()) @db.Uuid
+  vehicleId String   @db.Uuid
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id])
+  s3Key     String
+  createdAt DateTime @default(now())
+
+  @@map("vehicle_image")
+}
+
+model VehicleImsi {
+  id               String      @id @default(uuid()) @db.Uuid
+  imsiCatcherId    String      @db.Uuid
+  vehicleId        String      @db.Uuid
+  vehicle          Vehicle     @relation(fields: [vehicleId], references: [id])
+  imsi             ImsiCatcher @relation(fields: [imsiCatcherId], references: [id])
+  imei             String      @db.VarChar(24)
+  signalStrength   Float
+  registerDateTime DateTime
+  createdAt        DateTime    @default(now())
+
+  @@index([imei])
+  @@map("vehivle_imsi")
+}
+
+model ImsiCatcher {
+  id          String        @id @default(uuid()) @db.Uuid
+  projectId   String        @db.Uuid
+  project     Project       @relation(fields: [projectId], references: [id])
+  imsi        String        @db.VarChar(24)
+  isBlacklist Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  VehicleImsi VehicleImsi[]
+
+  @@index([imsi])
+  @@map("imsi_catcher")
 }
