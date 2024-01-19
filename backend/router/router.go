@@ -1,6 +1,7 @@
 package router
 
 import (
+	"checkpoint/middleware"
 	"checkpoint/modules/authentication"
 	"checkpoint/modules/upload"
 
@@ -19,6 +20,17 @@ func Router(app *iris.Application) {
 	{
 		storageApi.Post("/upload", upload.Upload)
 		storageApi.Post("/get-signed-url", upload.GetSignedURL)
+	}
+
+	testMiddlewareApi := app.Party("/test-auth-middleware")
+	testMiddlewareApi.Use(middleware.AuthMiddleware(nil))
+	{
+		testMiddlewareApi.Get("/", func(ctx iris.Context) {
+
+			ctx.JSON(iris.Map{
+				"M": "b",
+			})
+		})
 	}
 
 }

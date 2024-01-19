@@ -4,7 +4,7 @@ import (
 	"checkpoint/.gen/checkpoint/public/model"
 	. "checkpoint/.gen/checkpoint/public/table"
 	"checkpoint/db"
-	. "checkpoint/jwt"
+	jwt "checkpoint/jwt"
 	utils "checkpoint/utils"
 	"context"
 	"errors"
@@ -12,7 +12,7 @@ import (
 	"log"
 	"strings"
 
-	. "github.com/go-jet/jet/v2/postgres"
+	pg "github.com/go-jet/jet/v2/postgres"
 
 	"github.com/google/uuid"
 )
@@ -27,7 +27,7 @@ func SignInService(data SignInData) (SigninResponse, error) {
 		model.AccountConfiguration
 	}
 
-	selectStmt := SELECT(Account.AllColumns, AccountConfiguration.AllColumns).
+	selectStmt := pg.SELECT(Account.AllColumns, AccountConfiguration.AllColumns).
 		FROM(
 			Account.
 				INNER_JOIN(
@@ -35,12 +35,12 @@ func SignInService(data SignInData) (SigninResponse, error) {
 					Account.ID.EQ(AccountConfiguration.AccountId),
 				),
 		).
-		WHERE(Account.Username.EQ(String(data.Username))).
+		WHERE(Account.Username.EQ(pg.String(data.Username))).
 		LIMIT(1)
 
 	err := selectStmt.Query(dbClient, &account)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		return SigninResponse{}, errors.New(utils.InternalServerError)
 	}
 
@@ -59,7 +59,7 @@ func SignInService(data SignInData) (SigninResponse, error) {
 		return SigninResponse{}, errors.New("username or password is incorrect")
 	}
 
-	token, err := SignToken(SignedTokenParams{
+	token, err := jwt.SignToken(jwt.SignedTokenParams{
 		AccountId: account.ID.String(),
 	})
 
@@ -68,7 +68,7 @@ func SignInService(data SignInData) (SigninResponse, error) {
 		return SigninResponse{}, errors.New(utils.SignTokenFailed)
 	}
 
-	refreshToken, err := SignRefreshToken(SignedTokenParams{
+	refreshToken, err := jwt.SignRefreshToken(jwt.SignedTokenParams{
 		AccountId: account.ID.String(),
 	})
 
@@ -121,10 +121,10 @@ func SignOutService(token string) error {
 
 	updateStmt := SessionToken.
 		UPDATE(SessionToken.Revoke).
-		SET(model.SessionToken{
+		MODEL(model.SessionToken{
 			Revoke: true,
 		}).
-		WHERE(SessionToken.Token.EQ(String(token)))
+		WHERE(SessionToken.Token.EQ(pg.String(token)))
 
 	_, err := updateStmt.Exec(dbClient)
 	if err != nil {
@@ -184,6 +184,7 @@ func SignUpService(data SignUpData) (model.Account, error) {
 			IsActive:  true,
 		}).
 		RETURNING(AccountConfiguration.AllColumns)
+
 	err = insertAccountConfigurationStmt.QueryContext(ctx, tx, &accountConfigurationResult)
 	if err != nil {
 		tx.Rollback()

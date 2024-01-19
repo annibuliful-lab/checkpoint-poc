@@ -1,14 +1,16 @@
 package main
 
 import (
-	router "checkpoint/Router"
 	"checkpoint/db"
+	"checkpoint/router"
 	"context"
 	"log"
 	"os"
 	"time"
 
+	"github.com/iris-contrib/middleware/cors"
 	"github.com/joho/godotenv"
+
 	"github.com/kataras/iris/v12"
 )
 
@@ -21,6 +23,12 @@ func main() {
 	dbClient := db.GetPrimaryClient()
 
 	app := iris.New()
+
+	app.UseRouter(cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: true,
+	}))
+	app.Use(iris.Compression)
 
 	router.Router(app)
 

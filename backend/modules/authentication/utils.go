@@ -1,14 +1,13 @@
 package authentication
 
 import (
+	"checkpoint/utils"
 	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/kataras/iris/v12"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -19,11 +18,6 @@ var p = &HashPasswordParams{
 	saltLength:  16,
 	keyLength:   32,
 }
-
-var (
-	ErrInvalidHash         = errors.New("the encoded hash is not in the correct format")
-	ErrIncompatibleVersion = errors.New("incompatible version of argon2")
-)
 
 func hashPassword(password string) (encodedHash string, err error) {
 
@@ -73,7 +67,7 @@ func comparePasswordAndHash(password, encodedHash string) (match bool, err error
 func decodeHash(encodedHash string) (p *HashPasswordParams, salt, hash []byte, err error) {
 	vals := strings.Split(encodedHash, "$")
 	if len(vals) != 6 {
-		return nil, nil, nil, ErrInvalidHash
+		return nil, nil, nil, utils.ErrInvalidHash
 	}
 
 	var version int
@@ -82,7 +76,7 @@ func decodeHash(encodedHash string) (p *HashPasswordParams, salt, hash []byte, e
 		return nil, nil, nil, err
 	}
 	if version != argon2.Version {
-		return nil, nil, nil, ErrIncompatibleVersion
+		return nil, nil, nil, utils.ErrIncompatibleVersion
 	}
 
 	p = &HashPasswordParams{}
@@ -104,14 +98,4 @@ func decodeHash(encodedHash string) (p *HashPasswordParams, salt, hash []byte, e
 	p.keyLength = uint32(len(hash))
 
 	return p, salt, hash, nil
-}
-
-func GetAuthenticationHeaders(ctx iris.Context) AuthenticationHeader {
-	authorizationToken := ctx.GetHeader("authorization")
-	projectId := ctx.GetHeader("x-project-id")
-
-	return AuthenticationHeader{
-		Authorization: authorizationToken,
-		ProjectId:     projectId,
-	}
 }

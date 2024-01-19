@@ -1,6 +1,8 @@
 package jwt
 
 import (
+	"checkpoint/utils"
+	"errors"
 	"log"
 	"os"
 	"time"
@@ -42,19 +44,35 @@ func SignRefreshToken(p SignedTokenParams) (string, error) {
 	return tokenString, nil
 }
 
-func VerifyToken(tokenString string) (*JwtPayload, bool) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+func VerifyToken(tokenString string) (*JwtPayload, error) {
+	// Parse token with custom claims
+	token, err := jwt.ParseWithClaims(tokenString, &JwtPayload{}, func(token *jwt.Token) (interface{}, error) {
 		return secretKey, nil
 	})
 
 	if err != nil {
-		return nil, false
+		log.Println(err.Error())
+		return nil, errors.New(utils.InternalServerError)
 	}
 
-	if claims, ok := token.Claims.(*JwtPayload); ok && token.Valid {
-		return claims, true
-	} else {
-		log.Printf("Invalid JWT Token")
-		return nil, false
+	// Check if the token is valid
+	if !token.Valid {
+		return nil, errors.New(utils.InvalidToken)
 	}
+
+	// Extract custom claims
+	claims, ok := token.Claims.(*JwtPayload)
+
+	if !ok {
+		return nil, errors.New(utils.InvalidToken)
+	}
+
+	expirationTime := time.Unix(claims.ExpiresAt, 0)
+
+	// Compare the expiration time with the current time
+	if expirationTime.Before(time.Now()) {
+		return nil, errors.New(utils.TokenExpire)
+	}
+
+	return claims, nil
 }

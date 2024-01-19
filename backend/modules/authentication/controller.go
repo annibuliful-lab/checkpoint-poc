@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"checkpoint/jwt"
+	"checkpoint/utils"
 	"strings"
 
 	"github.com/kataras/iris/v12"
@@ -85,19 +86,19 @@ func SignOutController(ctx iris.Context) {
 	if authorizationToken == "" {
 		ctx.StatusCode(iris.StatusForbidden)
 		ctx.JSON(iris.Map{
-			"message": "invalid token",
+			"message": utils.InvalidToken,
 		})
 		return
 	}
 
 	token := strings.Replace(authorizationToken, "Bearer", "", 1)
 
-	_, match := jwt.VerifyToken(token)
+	_, jwtError := jwt.VerifyToken(token)
 
-	if !match {
+	if jwtError != nil {
 		ctx.StatusCode(iris.StatusForbidden)
 		ctx.JSON(iris.Map{
-			"message": "invalid token",
+			"message": utils.InvalidToken,
 		})
 		return
 	}

@@ -1,10 +1,5 @@
 package authentication
 
-type AuthenticationHeader struct {
-	Authorization string `header:"Authentication"`
-	ProjectId     string `header:"x-project-id"`
-}
-
 type Authentication struct {
 	Token        string `json:"token"`
 	RefreshToken string `json:"refreshToken"`

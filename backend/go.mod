@@ -27,9 +27,12 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/flosch/pongo2/v4 v4.0.2 // indirect
+	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gomarkdown/markdown v0.0.0-20231222211730-1d6d20845b47 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
+	github.com/iris-contrib/middleware/cors v0.0.0-20240111010557-e34016a4d6ee // indirect
+	github.com/iris-contrib/middleware/jwt v0.0.0-20240111010557-e34016a4d6ee // indirect
 	github.com/iris-contrib/schema v0.0.6 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
