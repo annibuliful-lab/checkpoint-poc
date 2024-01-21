@@ -7,8 +7,8 @@ import (
 	jwt "checkpoint/jwt"
 	utils "checkpoint/utils"
 	"context"
+	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"strings"
 
@@ -17,7 +17,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func SignInService(data SignInData) (SigninResponse, error) {
+func SignInService(data SignInData) (SigninResponse, int, error) {
 	dbClient := db.GetPrimaryClient()
 	redisClient := db.GetRedisClient()
 	ctx := context.Background()
@@ -41,22 +41,22 @@ func SignInService(data SignInData) (SigninResponse, error) {
 	err := selectStmt.Query(dbClient, &account)
 	if err != nil {
 		log.Println(err.Error())
-		return SigninResponse{}, errors.New(utils.InternalServerError)
-	}
-
-	if !account.AccountConfiguration.IsActive {
-		return SigninResponse{}, errors.New("please contact project owner")
+		return SigninResponse{}, 500, utils.InternalServerError
 	}
 
 	match, err := comparePasswordAndHash(data.Password, account.Password)
 
 	if err != nil {
 		log.Println(err.Error())
-		return SigninResponse{}, errors.New("username or password is incorrect")
+		return SigninResponse{}, 401, errors.New("username or password is incorrect")
 
 	}
 	if !match {
-		return SigninResponse{}, errors.New("username or password is incorrect")
+		return SigninResponse{}, 401, errors.New("username or password is incorrect")
+	}
+
+	if !account.AccountConfiguration.IsActive {
+		return SigninResponse{}, 403, errors.New("please contact project owner")
 	}
 
 	token, err := jwt.SignToken(jwt.SignedTokenParams{
@@ -65,7 +65,7 @@ func SignInService(data SignInData) (SigninResponse, error) {
 
 	if err != nil {
 		log.Println(err.Error())
-		return SigninResponse{}, errors.New(utils.SignTokenFailed)
+		return SigninResponse{}, 500, utils.SignTokenFailed
 	}
 
 	refreshToken, err := jwt.SignRefreshToken(jwt.SignedTokenParams{
@@ -74,7 +74,7 @@ func SignInService(data SignInData) (SigninResponse, error) {
 
 	if err != nil {
 		log.Println(err.Error())
-		return SigninResponse{}, errors.New(utils.SignTokenFailed)
+		return SigninResponse{}, 500, utils.SignTokenFailed
 	}
 
 	insertSessionTokenStmt := SessionToken.
@@ -93,25 +93,31 @@ func SignInService(data SignInData) (SigninResponse, error) {
 	_, err = insertSessionTokenStmt.Exec(dbClient)
 	if err != nil {
 		log.Println(err.Error())
-		return SigninResponse{}, errors.New(utils.InternalServerError)
+		return SigninResponse{}, 500, utils.InternalServerError
 	}
 
-	err = redisClient.
-		Set(ctx, token, fmt.Sprintf("%+v", model.Account{
-			ID: account.ID,
-		}), 0).
-		Err()
+	jsonData, err := json.Marshal(utils.AuthorizationData{
+		AccountId: account.AccountId,
+		IsActive:  account.IsActive,
+	})
+
+	if err != nil {
+		log.Println("Json-error", err.Error())
+		return SigninResponse{}, 500, utils.InternalServerError
+	}
+
+	err = redisClient.Set(ctx, token, jsonData, 0).Err()
 
 	if err != nil {
 		log.Println(err.Error())
-		return SigninResponse{}, errors.New(utils.InternalServerError)
+		return SigninResponse{}, 500, utils.InternalServerError
 	}
 
 	return SigninResponse{
 		UserId:       account.ID.String(),
 		Token:        token,
 		RefreshToken: refreshToken,
-	}, err
+	}, 200, err
 }
 
 func SignOutService(token string) error {
@@ -129,7 +135,7 @@ func SignOutService(token string) error {
 	_, err := updateStmt.Exec(dbClient)
 	if err != nil {
 		log.Println(err.Error())
-		return errors.New(utils.InternalServerError)
+		return utils.InternalServerError
 	}
 
 	err = redisClient.
@@ -138,13 +144,13 @@ func SignOutService(token string) error {
 
 	if err != nil {
 		log.Println(err.Error())
-		return errors.New(utils.InternalServerError)
+		return utils.InternalServerError
 	}
 
 	return nil
 }
 
-func SignUpService(data SignUpData) (model.Account, error) {
+func SignUpService(data SignUpData) (model.Account, int, error) {
 	dbClient := db.GetPrimaryClient()
 	ctx := context.Background()
 	hash, _ := hashPassword(data.Password)
@@ -152,7 +158,7 @@ func SignUpService(data SignUpData) (model.Account, error) {
 
 	if err != nil {
 		log.Println(err.Error())
-		return model.Account{}, errors.New(utils.InternalServerError)
+		return model.Account{}, 500, utils.InternalServerError
 	}
 
 	accountResult := model.Account{}
@@ -170,10 +176,10 @@ func SignUpService(data SignUpData) (model.Account, error) {
 		tx.Rollback()
 
 		if strings.Contains(err.Error(), "duplicate") {
-			return model.Account{}, errors.New("username is already exists")
+			return model.Account{}, 409, errors.New("username is already exists")
 		}
 
-		return model.Account{}, errors.New(utils.InternalServerError)
+		return model.Account{}, 500, utils.InternalServerError
 	}
 
 	accountConfigurationResult := model.AccountConfiguration{}
@@ -188,10 +194,10 @@ func SignUpService(data SignUpData) (model.Account, error) {
 	err = insertAccountConfigurationStmt.QueryContext(ctx, tx, &accountConfigurationResult)
 	if err != nil {
 		tx.Rollback()
-		return model.Account{}, errors.New(utils.InternalServerError)
+		return model.Account{}, 500, utils.InternalServerError
 	}
 
 	tx.Commit()
 
-	return accountResult, err
+	return accountResult, 200, err
 }

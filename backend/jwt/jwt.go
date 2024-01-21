@@ -2,7 +2,6 @@ package jwt
 
 import (
 	"checkpoint/utils"
-	"errors"
 	"log"
 	"os"
 	"time"
@@ -52,26 +51,26 @@ func VerifyToken(tokenString string) (*JwtPayload, error) {
 
 	if err != nil {
 		log.Println(err.Error())
-		return nil, errors.New(utils.InternalServerError)
+		return nil, utils.InternalServerError
 	}
 
 	// Check if the token is valid
 	if !token.Valid {
-		return nil, errors.New(utils.InvalidToken)
+		return nil, utils.InvalidToken
 	}
 
 	// Extract custom claims
 	claims, ok := token.Claims.(*JwtPayload)
 
 	if !ok {
-		return nil, errors.New(utils.InvalidToken)
+		return nil, utils.InvalidToken
 	}
 
 	expirationTime := time.Unix(claims.ExpiresAt, 0)
 
 	// Compare the expiration time with the current time
 	if expirationTime.Before(time.Now()) {
-		return nil, errors.New(utils.TokenExpire)
+		return nil, utils.TokenExpire
 	}
 
 	return claims, nil

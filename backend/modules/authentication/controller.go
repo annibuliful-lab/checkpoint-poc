@@ -21,13 +21,10 @@ func SignUpController(ctx iris.Context) {
 		return
 	}
 
-	account, err := SignUpService(SignUpData{
-		Username: data.Username,
-		Password: data.Password,
-	})
+	account, code, err := SignUpService(data)
 
 	if err != nil {
-		ctx.StatusCode(500)
+		ctx.StatusCode(code)
 		ctx.JSON(iris.Map{
 			"message": err.Error(),
 			"data":    nil,
@@ -58,13 +55,13 @@ func SignInController(ctx iris.Context) {
 		return
 	}
 
-	response, err := SignInService(SignInData{
+	response, code, err := SignInService(SignInData{
 		Username: data.Username,
 		Password: data.Password,
 	})
 
 	if err != nil {
-		ctx.StatusCode(500)
+		ctx.StatusCode(code)
 		ctx.JSON(iris.Map{
 			"message": err.Error(),
 			"data":    nil,

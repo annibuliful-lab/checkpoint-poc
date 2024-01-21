@@ -35,6 +35,7 @@ model Permission {
   action                 PermissionAction
   projectRolePermissions ProjectRolePermission[]
 
+  @@unique([subject, action])
   @@map("permission")
 }
 
@@ -71,7 +72,11 @@ model Project {
   imsiCatchersList       ImsiCatcher[]
   LicensePlate           LicensePlate[]
   Vehicle                Vehicle[]
+  projectAccounts        ProjectAccount[]
+  deletedAt              DateTime?
+  deleteBy               String?
 
+  @@unique([title])
   @@map("project")
 }
 
@@ -82,9 +87,11 @@ model ProjectRole {
   title                  String
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @default(now()) @updatedAt
+  deletedAt              DateTime?
   projectRolePermissions ProjectRolePermission[]
   projectAccounts        ProjectAccount[]
 
+  @@unique([projectId, title])
   @@map("project_role")
 }
 
@@ -97,11 +104,14 @@ model ProjectRolePermission {
   permissionId String
   permission   Permission  @relation(fields: [permissionId], references: [id])
 
+  @@unique([roleId, permissionId])
   @@map("project_role_permission")
 }
 
 model ProjectAccount {
   id        String      @id @default(uuid()) @db.Uuid
+  projectId String      @db.Uuid
+  project   Project     @relation(fields: [projectId], references: [id])
   accountId String      @db.Uuid
   account   Account     @relation(fields: [accountId], references: [id])
   roleId    String      @db.Uuid

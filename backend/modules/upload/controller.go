@@ -12,7 +12,7 @@ import (
 
 const maxSize = 8 * iris.MB
 
-func Upload(ctx iris.Context) {
+func UploadController(ctx iris.Context) {
 	ctx.SetMaxRequestBodySize(maxSize)
 
 	file, info, err := ctx.FormFile("file")
@@ -60,7 +60,7 @@ func Upload(ctx iris.Context) {
 	})
 }
 
-func GetSignedURL(ctx iris.Context) {
+func GetSignedURLController(ctx iris.Context) {
 
 	objectName := ctx.PostValue("objectName")
 
