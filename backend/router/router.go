@@ -3,7 +3,9 @@ package router
 import (
 	"checkpoint/middleware"
 	"checkpoint/modules/authentication"
+	"checkpoint/modules/project"
 	"checkpoint/modules/upload"
+	"checkpoint/utils"
 
 	"github.com/kataras/iris/v12"
 )
@@ -17,20 +19,27 @@ func Router(app *iris.Application) {
 	}
 
 	storageApi := app.Party("/storage")
+	storageApi.Use(middleware.AuthMiddleware())
 	{
-		storageApi.Post("/upload", upload.Upload)
-		storageApi.Post("/get-signed-url", upload.GetSignedURL)
+		storageApi.Post("/upload", upload.UploadController)
+		storageApi.Post("/get-signed-url", upload.GetSignedURLController)
 	}
 
-	testMiddlewareApi := app.Party("/test-auth-middleware")
-	testMiddlewareApi.Use(middleware.AuthMiddleware(nil))
+	projectApi := app.Party("/projects")
+	projectApi.Use(middleware.AuthMiddleware())
 	{
-		testMiddlewareApi.Get("/", func(ctx iris.Context) {
+		projectApi.Post("/", middleware.VerifyAuthorizationMiddleware(utils.AuthorizationPermissionData{
+			PermissionSubject: "project",
+			PermissionAction:  "CREATE",
+		}), project.CreateProjectController)
 
-			ctx.JSON(iris.Map{
-				"M": "b",
-			})
-		})
+		projectApi.Patch("/{id:uuid}", middleware.VerifyAuthorizationMiddleware(utils.AuthorizationPermissionData{
+			PermissionSubject: "project",
+			PermissionAction:  "UPDATE",
+		}), project.UpdateProjectController)
+
+		projectApi.Get("/{id:uuid}", project.GetProjectByIdController)
+		projectApi.Delete("/{id:uuid}", project.DeleteProjectByIdController)
 	}
 
 }

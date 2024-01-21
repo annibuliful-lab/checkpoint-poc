@@ -4,6 +4,7 @@ import (
 	"checkpoint/db"
 	"checkpoint/router"
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -26,8 +27,10 @@ func main() {
 
 	app.UseRouter(cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "DELETE", "PATCH"},
 		AllowCredentials: true,
 	}))
+
 	app.Use(iris.Compression)
 
 	router.Router(app)
@@ -44,7 +47,14 @@ func main() {
 		close(idleConnsClosed)
 	})
 
-	app.Listen(os.Getenv("BACKEND_LISTEN"), iris.WithoutInterruptHandler, iris.WithoutServerError(iris.ErrServerClosed))
+	routes := app.GetRoutes()
+
+	app.Listen(os.Getenv("BACKEND_LISTEN"), iris.WithoutInterruptHandler, iris.WithoutServerError(iris.ErrServerClosed), func(a *iris.Application) {
+		fmt.Println("All routes")
+		for _, route := range routes {
+			fmt.Println(route)
+		}
+	})
 
 	<-idleConnsClosed
 }
