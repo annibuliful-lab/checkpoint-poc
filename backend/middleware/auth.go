@@ -151,6 +151,14 @@ func VerifyAuthorizationMiddleware(param utils.AuthorizationPermissionData) iris
 			return
 		}
 
+		if headers.ProjectId == "" {
+			ctx.StatusCode(iris.StatusForbidden)
+			ctx.JSON(iris.Map{
+				"message": "project id is required",
+			})
+			return
+		}
+
 		payload, _ := jwt.VerifyToken(headers.Token)
 
 		key := "accountId:" + payload.AccountId.String() + "," + "projectId" + headers.ProjectId
