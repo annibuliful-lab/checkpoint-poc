@@ -11,8 +11,7 @@
     "frontend:dev": "cd frontend && pnpm run dev",
     "db-primary:migrate": "prisma migrate dev --schema prisma/primary/schema.prisma && pnpm run backend:db-primary-generate",
     "db-primary:generate": "prisma generate --schema prisma/primary/schema.prisma",
-    "db-primary:seed": "ts-node prisma/primary/seed",
-    "load-data:run": "cd load-data && go run main.go"
+    "db-primary:seed": "ts-node prisma/primary/seed"
   },
   "keywords": [],
   "author": "",
