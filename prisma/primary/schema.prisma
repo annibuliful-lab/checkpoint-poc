@@ -151,7 +151,7 @@ model ImsiConfiguration {
   status    DeviceCaptureStatus
 
   @@unique([imsi])
-  @@map("imsi_catcher")
+  @@map("imsi_configuration")
 }
 
 model ImeiConfiguration {
@@ -164,7 +164,7 @@ model ImeiConfiguration {
   updatedAt DateTime?
 
   @@index([imei])
-  @@map("imei_catcher")
+  @@map("imei_configuration")
 }
 
 model InspectionLocation {
@@ -199,7 +199,7 @@ model LicensePlateConfiguration {
 
   @@index([number, prefix])
   @@index([number, prefix, province])
-  @@map("license_plate")
+  @@map("license_plate_configuration")
 }
 
 model Vehicle {
