@@ -54,11 +54,21 @@ func CreateProjectController(ctx iris.Context) {
 
 func UpdateProjectController(ctx iris.Context) {
 	headers := utils.GetAuthenticationHeaders(ctx)
-	id := ctx.Params().Get("id")
+	id, err := uuid.Parse(ctx.Params().Get("id"))
+
+	if err != nil {
+		ctx.StatusCode(iris.StatusBadRequest)
+		ctx.JSON(iris.Map{
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	}
+
 	payload, _ := jwt.VerifyToken(headers.Token)
 
 	match := verifyOwner(VerifyProjectAccountData{
-		ID:        uuid.MustParse(id),
+		ID:        id,
 		AccountId: payload.AccountId,
 	})
 
@@ -73,7 +83,7 @@ func UpdateProjectController(ctx iris.Context) {
 
 	var data UpdateProjectData
 
-	err := ctx.ReadJSON(&data)
+	err = ctx.ReadJSON(&data)
 	if err != nil {
 		ctx.StatusCode(iris.StatusBadRequest)
 		ctx.JSON(iris.Map{
@@ -84,7 +94,7 @@ func UpdateProjectController(ctx iris.Context) {
 	}
 
 	project, code, err := UpdateProject(UpdateProjectData{
-		ID:    uuid.MustParse(ctx.Params().Get("id")),
+		ID:    id,
 		Title: data.Title,
 	})
 
@@ -104,11 +114,21 @@ func UpdateProjectController(ctx iris.Context) {
 
 func GetProjectByIdController(ctx iris.Context) {
 	headers := utils.GetAuthenticationHeaders(ctx)
-	id := ctx.Params().Get("id")
+	id, err := uuid.Parse(ctx.Params().Get("id"))
+
+	if err != nil {
+		ctx.StatusCode(iris.StatusBadRequest)
+		ctx.JSON(iris.Map{
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	}
+
 	payload, _ := jwt.VerifyToken(headers.Token)
 
 	match := verifyAccount(VerifyProjectAccountData{
-		ID:        uuid.MustParse(id),
+		ID:        id,
 		AccountId: payload.AccountId,
 	})
 
@@ -122,7 +142,7 @@ func GetProjectByIdController(ctx iris.Context) {
 	}
 
 	project, code, err := GetProjectById(GetProjectData{
-		ID: uuid.MustParse(id),
+		ID: id,
 	})
 
 	if err != nil {
@@ -141,11 +161,21 @@ func GetProjectByIdController(ctx iris.Context) {
 
 func DeleteProjectByIdController(ctx iris.Context) {
 	headers := utils.GetAuthenticationHeaders(ctx)
-	id := ctx.Params().Get("id")
+	id, err := uuid.Parse(ctx.Params().Get("id"))
+
+	if err != nil {
+		ctx.StatusCode(iris.StatusBadRequest)
+		ctx.JSON(iris.Map{
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	}
+
 	payload, _ := jwt.VerifyToken(headers.Token)
 
 	match := verifyOwner(VerifyProjectAccountData{
-		ID:        uuid.MustParse(id),
+		ID:        id,
 		AccountId: payload.AccountId,
 	})
 
@@ -160,7 +190,7 @@ func DeleteProjectByIdController(ctx iris.Context) {
 	accountId := payload.AccountId.String()
 
 	code, err := DeleteProjectById(DeleteProjectData{
-		ID:        uuid.MustParse(id),
+		ID:        id,
 		AccountId: &accountId,
 	})
 
