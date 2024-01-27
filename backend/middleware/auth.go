@@ -190,6 +190,16 @@ func VerifyAuthorizationMiddleware(param utils.AuthorizationPermissionData) iris
 			ctx.Next()
 		}
 
+		projectId, err := uuid.Parse(headers.ProjectId)
+
+		if err != nil {
+			ctx.StatusCode(iris.StatusForbidden)
+			ctx.JSON(iris.Map{
+				"message": "project id is required",
+			})
+			return
+		}
+
 		var projectAccount struct {
 			model.ProjectAccount
 			model.ProjectRole
@@ -207,7 +217,7 @@ func VerifyAuthorizationMiddleware(param utils.AuthorizationPermissionData) iris
 			).
 			WHERE(
 				ProjectAccount.AccountId.EQ(pg.UUID(payload.AccountId)).
-					AND(ProjectAccount.ProjectId.EQ(pg.UUID(uuid.MustParse(headers.ProjectId)))))
+					AND(ProjectAccount.ProjectId.EQ(pg.UUID(projectId))))
 
 		err = selectProjectAccountStmt.Query(dbClient, &projectAccount)
 
@@ -261,9 +271,17 @@ func VerifyAuthorizationMiddleware(param utils.AuthorizationPermissionData) iris
 			return
 		}
 
+		if err != nil {
+			ctx.StatusCode(iris.StatusForbidden)
+			ctx.JSON(iris.Map{
+				"message": "project id is required",
+			})
+			return
+		}
+
 		data := utils.AuthorizationWithPermissionsData{
 			AccountId: payload.AccountId,
-			ProjectId: uuid.MustParse(headers.ProjectId),
+			ProjectId: projectId,
 			Permissions: lo.Map(accountPermissions, func(item struct{ model.Permission }, index int) utils.AuthorizationPermissionData {
 				return utils.AuthorizationPermissionData{
 					PermissionSubject: item.Subject,
