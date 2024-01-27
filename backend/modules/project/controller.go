@@ -67,7 +67,7 @@ func UpdateProjectController(ctx iris.Context) {
 
 	payload, _ := jwt.VerifyToken(headers.Token)
 
-	match := verifyOwner(VerifyProjectAccountData{
+	match := VerifyOwner(VerifyProjectAccountData{
 		ID:        id,
 		AccountId: payload.AccountId,
 	})
@@ -127,7 +127,7 @@ func GetProjectByIdController(ctx iris.Context) {
 
 	payload, _ := jwt.VerifyToken(headers.Token)
 
-	match := verifyAccount(VerifyProjectAccountData{
+	match := VerifyAccount(VerifyProjectAccountData{
 		ID:        id,
 		AccountId: payload.AccountId,
 	})
@@ -174,7 +174,7 @@ func DeleteProjectByIdController(ctx iris.Context) {
 
 	payload, _ := jwt.VerifyToken(headers.Token)
 
-	match := verifyOwner(VerifyProjectAccountData{
+	match := VerifyOwner(VerifyProjectAccountData{
 		ID:        id,
 		AccountId: payload.AccountId,
 	})

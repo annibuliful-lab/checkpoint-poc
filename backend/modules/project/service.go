@@ -197,7 +197,7 @@ func DeleteProjectById(data DeleteProjectData) (int, error) {
 	return 200, nil
 }
 
-func verifyAccount(data VerifyProjectAccountData) bool {
+func VerifyAccount(data VerifyProjectAccountData) bool {
 	dbClient := db.GetPrimaryClient()
 	selectProjectAdminStmt := pg.
 		SELECT(ProjectAccount.AccountId).
@@ -217,7 +217,7 @@ func verifyAccount(data VerifyProjectAccountData) bool {
 	return rowsAffected != 0
 }
 
-func verifyOwner(data VerifyProjectAccountData) bool {
+func VerifyOwner(data VerifyProjectAccountData) bool {
 	dbClient := db.GetPrimaryClient()
 
 	selectProjectAdminStmt := pg.
@@ -231,6 +231,7 @@ func verifyOwner(data VerifyProjectAccountData) bool {
 	result, err := selectProjectAdminStmt.Exec(dbClient)
 
 	if err != nil {
+		log.Println("verify-owner", err.Error())
 		return false
 	}
 
