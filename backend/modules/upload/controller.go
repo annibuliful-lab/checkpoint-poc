@@ -3,7 +3,6 @@ package upload
 import (
 	"checkpoint/s3"
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/kataras/iris/v12"
@@ -31,7 +30,7 @@ func UploadController(ctx iris.Context) {
 	minioClient, bucketName, err := s3.GetClient()
 
 	if err != nil {
-		ctx.JSON(iris.Map{"error": "Failed to upload file to MinIO"})
+		ctx.JSON(iris.Map{"error": "Failed to upload file"})
 	}
 
 	// Upload the file to MinIO
@@ -39,9 +38,10 @@ func UploadController(ctx iris.Context) {
 
 	if err != nil {
 		ctx.StatusCode(iris.StatusInternalServerError)
-		ctx.JSON(iris.Map{"error": "Failed to upload file to MinIO"})
+		ctx.JSON(iris.Map{"error": "Failed to upload file"})
 		return
 	}
+
 	url, err := signedUrl(ctx, objectName)
 
 	if err != nil {
@@ -62,30 +62,28 @@ func UploadController(ctx iris.Context) {
 
 func GetSignedURLController(ctx iris.Context) {
 
-	objectName := ctx.PostValue("objectName")
+	objectName := ctx.URLParam("name")
 
 	if objectName == "" {
 		ctx.StatusCode(iris.StatusBadRequest)
-		ctx.JSON(iris.Map{"error": "Invalid file"})
-	}
-
-	minioClient, bucketName, err := s3.GetClient()
-
-	if err != nil {
-		ctx.JSON(iris.Map{"error": "Failed to contect Storage"})
-		return
+		ctx.JSON(iris.Map{"error": "Invalid file object"})
 	}
 
 	// Generate a signed URL for the object
-	presignedURL, err := minioClient.PresignedPutObject(ctx, bucketName, objectName, 15*time.Minute)
+	presignedURL, err := signedUrl(ctx, objectName)
 
 	if err != nil {
+		ctx.StatusCode(iris.StatusInternalServerError)
 		ctx.JSON(iris.Map{"error": "Failed to get file"})
+	}
 
+	if presignedURL == nil {
+		ctx.StatusCode(iris.StatusNotFound)
+		ctx.JSON(iris.Map{"error": "file not found"})
 	}
 
 	ctx.JSON(iris.Map{
-		"url": presignedURL.String(),
+		"url": presignedURL,
 	})
 
 }

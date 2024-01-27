@@ -22,7 +22,7 @@ func Router(app *iris.Application) {
 	storageApi.Use(middleware.AuthMiddleware())
 	{
 		storageApi.Post("/upload", upload.UploadController)
-		storageApi.Post("/get-signed-url", upload.GetSignedURLController)
+		storageApi.Get("/get-signed-url", upload.GetSignedURLController)
 	}
 
 	projectApi := app.Party("/projects")
