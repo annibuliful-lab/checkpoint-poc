@@ -49,7 +49,7 @@ func main() {
 
 	routes := app.GetRoutes()
 
-	app.Listen(os.Getenv("BACKEND_LISTEN"), iris.WithoutInterruptHandler, iris.WithoutServerError(iris.ErrServerClosed), func(a *iris.Application) {
+	app.Listen(os.Getenv("BACKEND_PORT"), iris.WithoutInterruptHandler, iris.WithoutServerError(iris.ErrServerClosed), func(a *iris.Application) {
 		fmt.Println("All routes")
 		for _, route := range routes {
 			fmt.Println(route)
