@@ -8,7 +8,6 @@ import (
 	"checkpoint/utils"
 	"encoding/json"
 	"log"
-	"strings"
 
 	"github.com/google/uuid"
 	lo "github.com/samber/lo"
@@ -221,7 +220,7 @@ func VerifyAuthorizationMiddleware(param utils.AuthorizationPermissionData) iris
 
 		err = selectProjectAccountStmt.Query(dbClient, &projectAccount)
 
-		if err != nil && strings.Contains(err.Error(), "no rows") {
+		if err != nil && db.HasNoRow(err) {
 			log.Println(err.Error())
 			ctx.StatusCode(iris.StatusForbidden)
 			ctx.JSON(iris.Map{

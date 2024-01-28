@@ -81,7 +81,7 @@ func UpdateProjectController(ctx iris.Context) {
 		return
 	}
 
-	var data UpdateProjectData
+	data := UpdateProjectData{}
 
 	err = ctx.ReadJSON(&data)
 	if err != nil {

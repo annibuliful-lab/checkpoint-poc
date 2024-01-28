@@ -13,14 +13,14 @@ import (
 	"strings"
 
 	pg "github.com/go-jet/jet/v2/postgres"
+	"github.com/thanhpk/randstr"
 
 	"github.com/google/uuid"
 )
 
-func SignInService(data SignInData) (SigninResponse, int, error) {
+func SignInService(data SignInData) (*SigninResponse, int, error) {
 	dbClient := db.GetPrimaryClient()
 	redisClient := db.GetRedisClient()
-	ctx := context.Background()
 
 	var account struct {
 		model.Account
@@ -39,42 +39,57 @@ func SignInService(data SignInData) (SigninResponse, int, error) {
 		LIMIT(1)
 
 	err := selectStmt.Query(dbClient, &account)
+
+	if err != nil && db.HasNoRow(err) {
+		log.Println(err.Error())
+		return nil, 404, errors.New("username or password is incorrect")
+	}
+
 	if err != nil {
 		log.Println(err.Error())
-		return SigninResponse{}, 500, utils.InternalServerError
+		return nil, 500, utils.InternalServerError
 	}
 
 	match, err := comparePasswordAndHash(data.Password, account.Password)
 
 	if err != nil {
 		log.Println(err.Error())
-		return SigninResponse{}, 401, errors.New("username or password is incorrect")
+		return nil, 401, errors.New("username or password is incorrect")
 
 	}
 	if !match {
-		return SigninResponse{}, 401, errors.New("username or password is incorrect")
+		return nil, 401, errors.New("username or password is incorrect")
 	}
 
 	if !account.AccountConfiguration.IsActive {
-		return SigninResponse{}, 403, errors.New("please contact project owner")
+		return nil, 403, errors.New("please contact project owner")
 	}
 
 	token, err := jwt.SignToken(jwt.SignedTokenParams{
 		AccountId: account.ID.String(),
+		Nounce:    randstr.Hex(16),
 	})
 
 	if err != nil {
 		log.Println(err.Error())
-		return SigninResponse{}, 500, utils.SignTokenFailed
+		return nil, 500, utils.SignTokenFailed
 	}
 
 	refreshToken, err := jwt.SignRefreshToken(jwt.SignedTokenParams{
 		AccountId: account.ID.String(),
+		Nounce:    randstr.Hex(16),
 	})
 
 	if err != nil {
 		log.Println(err.Error())
-		return SigninResponse{}, 500, utils.SignTokenFailed
+		return nil, 500, utils.SignTokenFailed
+	}
+
+	tx, err := dbClient.Begin()
+
+	if err != nil {
+		log.Println("init-db-tx", err.Error())
+		return nil, 500, utils.InternalServerError
 	}
 
 	insertSessionTokenStmt := SessionToken.
@@ -90,10 +105,14 @@ func SignInService(data SignInData) (SigninResponse, int, error) {
 			IsRefreshToken: true,
 		})
 
-	_, err = insertSessionTokenStmt.Exec(dbClient)
+	ctx := context.Background()
+
+	_, err = insertSessionTokenStmt.ExecContext(ctx, tx)
+
 	if err != nil {
-		log.Println(err.Error())
-		return SigninResponse{}, 500, utils.InternalServerError
+		log.Println("insert-error: ", err.Error())
+		tx.Rollback()
+		return nil, 500, utils.InternalServerError
 	}
 
 	jsonData, err := json.Marshal(utils.AuthorizationData{
@@ -102,22 +121,26 @@ func SignInService(data SignInData) (SigninResponse, int, error) {
 	})
 
 	if err != nil {
-		log.Println("Json-error", err.Error())
-		return SigninResponse{}, 500, utils.InternalServerError
+		log.Println("json-error: ", err.Error())
+		tx.Rollback()
+		return nil, 500, utils.InternalServerError
 	}
 
 	err = redisClient.Set(ctx, token, jsonData, 0).Err()
 
 	if err != nil {
-		log.Println(err.Error())
-		return SigninResponse{}, 500, utils.InternalServerError
+		log.Println("redis-error: ", err.Error())
+		tx.Rollback()
+		return nil, 500, utils.InternalServerError
 	}
 
-	return SigninResponse{
+	tx.Commit()
+
+	return &SigninResponse{
 		UserId:       account.ID.String(),
 		Token:        token,
 		RefreshToken: refreshToken,
-	}, 200, err
+	}, 200, nil
 }
 
 func SignOutService(token string) error {
@@ -157,7 +180,7 @@ func SignUpService(data SignUpData) (model.Account, int, error) {
 	tx, err := dbClient.Begin()
 
 	if err != nil {
-		log.Println(err.Error())
+		log.Println("init-db-tx", err.Error())
 		return model.Account{}, 500, utils.InternalServerError
 	}
 
@@ -170,6 +193,7 @@ func SignUpService(data SignUpData) (model.Account, int, error) {
 			Password: hash,
 		}).
 		RETURNING(Account.AllColumns)
+
 	err = insertAccountStmt.QueryContext(ctx, tx, &accountResult)
 
 	if err != nil {
@@ -182,7 +206,7 @@ func SignUpService(data SignUpData) (model.Account, int, error) {
 		return model.Account{}, 500, utils.InternalServerError
 	}
 
-	accountConfigurationResult := model.AccountConfiguration{}
+	accountConfiguration := model.AccountConfiguration{}
 	insertAccountConfigurationStmt := AccountConfiguration.
 		INSERT(AccountConfiguration.AccountId, AccountConfiguration.IsActive).
 		MODEL(model.AccountConfiguration{
@@ -191,7 +215,7 @@ func SignUpService(data SignUpData) (model.Account, int, error) {
 		}).
 		RETURNING(AccountConfiguration.AllColumns)
 
-	err = insertAccountConfigurationStmt.QueryContext(ctx, tx, &accountConfigurationResult)
+	err = insertAccountConfigurationStmt.QueryContext(ctx, tx, &accountConfiguration)
 	if err != nil {
 		tx.Rollback()
 		return model.Account{}, 500, utils.InternalServerError
@@ -200,4 +224,125 @@ func SignUpService(data SignUpData) (model.Account, int, error) {
 	tx.Commit()
 
 	return accountResult, 200, err
+}
+
+func GetAuthenticationTokenByRefreshToken(data RefreshTokenData) (*SigninResponse, int, error) {
+	dbClient := db.GetPrimaryClient()
+	redisClient := db.GetRedisClient()
+
+	selectSessionTokenStmt := SessionToken.
+		UPDATE(SessionToken.Revoke).
+		MODEL(model.SessionToken{Revoke: true}).
+		WHERE(pg.
+			AND(SessionToken.IsRefreshToken.EQ(pg.Bool(true)),
+				SessionToken.Revoke.NOT_EQ(pg.Bool(true)),
+				SessionToken.Token.EQ(pg.String(data.RefreshToken))),
+		).
+		RETURNING(SessionToken.AllColumns)
+
+	sessionToken := model.SessionToken{}
+
+	err := selectSessionTokenStmt.Query(dbClient, &sessionToken)
+
+	if err != nil && db.HasNoRow(err) {
+		return nil, 403, utils.ForbiddenOperation
+	}
+
+	if err != nil {
+		log.Println(err.Error())
+		return nil, 500, utils.InternalServerError
+	}
+
+	accountId := sessionToken.AccountId.String()
+
+	selectAccountConfigurationStmt := pg.
+		SELECT(AccountConfiguration.IsActive, AccountConfiguration.AccountId).
+		FROM(AccountConfiguration).
+		WHERE(AccountConfiguration.AccountId.EQ(pg.UUID(uuid.MustParse(accountId))))
+
+	var accountConfiguration struct {
+		model.AccountConfiguration
+	}
+
+	err = selectAccountConfigurationStmt.Query(dbClient, &accountConfiguration)
+
+	if err != nil {
+		log.Println("select-account-error: ", err.Error())
+		return nil, 500, utils.InternalServerError
+	}
+
+	token, err := jwt.SignToken(jwt.SignedTokenParams{
+		AccountId: accountId,
+		Nounce:    randstr.Hex(16),
+	})
+
+	if err != nil {
+		log.Println(err.Error())
+		return nil, 500, utils.SignTokenFailed
+	}
+
+	refreshToken, err := jwt.SignRefreshToken(jwt.SignedTokenParams{
+		AccountId: accountId,
+		Nounce:    randstr.Hex(16),
+	})
+
+	if err != nil {
+		log.Println(err.Error())
+		return nil, 500, utils.SignTokenFailed
+	}
+
+	tx, err := dbClient.Begin()
+
+	if err != nil {
+		log.Println("init-db-tx", err.Error())
+		return nil, 500, utils.InternalServerError
+	}
+
+	insertSessionTokenStmt := SessionToken.
+		INSERT(SessionToken.AccountId, SessionToken.Token, SessionToken.IsRefreshToken).
+		MODEL(model.SessionToken{
+			AccountId:      sessionToken.AccountId,
+			Token:          token,
+			IsRefreshToken: false,
+		}).
+		MODEL(model.SessionToken{
+			AccountId:      sessionToken.AccountId,
+			Token:          refreshToken,
+			IsRefreshToken: true,
+		})
+	ctx := context.Background()
+
+	_, err = insertSessionTokenStmt.ExecContext(ctx, tx)
+	if err != nil {
+		log.Println("insert-token: ", err.Error())
+		tx.Rollback()
+		return nil, 500, utils.InternalServerError
+	}
+
+	jsonData, err := json.Marshal(utils.AuthorizationData{
+		AccountId: accountConfiguration.AccountId,
+		IsActive:  accountConfiguration.IsActive,
+	})
+
+	if err != nil {
+		log.Println("json-error: ", err.Error())
+		tx.Rollback()
+		return nil, 500, utils.InternalServerError
+	}
+
+	err = redisClient.Set(ctx, token, jsonData, 0).Err()
+
+	if err != nil {
+		log.Println("redis-error: ", err.Error())
+		tx.Rollback()
+		return nil, 500, utils.InternalServerError
+	}
+
+	tx.Commit()
+
+	return &SigninResponse{
+		UserId:       sessionToken.AccountId.String(),
+		Token:        token,
+		RefreshToken: refreshToken,
+	}, 200, nil
 }

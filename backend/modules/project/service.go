@@ -26,9 +26,7 @@ func CreateProject(data CreateProjectData) (*ProjectResponse, int, error) {
 		return nil, iris.StatusInternalServerError, utils.InternalServerError
 	}
 
-	var project struct {
-		model.Project
-	}
+	project := model.Project{}
 
 	insertProjectStmt := Project.
 		INSERT(Project.ID, Project.Title).
@@ -50,9 +48,7 @@ func CreateProject(data CreateProjectData) (*ProjectResponse, int, error) {
 		return nil, iris.StatusInternalServerError, utils.InternalServerError
 	}
 
-	var projectRole struct {
-		model.ProjectRole
-	}
+	projectRole := model.ProjectRole{}
 
 	insertProjectRoleStmt := ProjectRole.
 		INSERT(ProjectRole.ID, ProjectRole.Title, ProjectRole.ProjectId).
@@ -132,9 +128,7 @@ func UpdateProject(data UpdateProjectData) (*ProjectResponse, int, error) {
 		WHERE(Project.ID.EQ(pg.UUID(data.ID))).
 		RETURNING(Project.AllColumns)
 
-	var project struct {
-		model.Project
-	}
+	project := model.Project{}
 
 	err = updateProjectStmt.Query(dbClient, &project)
 	if err != nil {
@@ -158,9 +152,7 @@ func GetProjectById(data GetProjectData) (*ProjectResponse, int, error) {
 		WHERE(Project.ID.EQ(pg.UUID(data.ID))).
 		LIMIT(1)
 
-	var project struct {
-		model.Project
-	}
+	project := model.Project{}
 
 	err := selectProjectStmt.Query(dbClient, &project)
 	if err != nil {
