@@ -3,7 +3,6 @@ package authentication
 import (
 	"checkpoint/jwt"
 	"checkpoint/utils"
-	"strings"
 
 	"github.com/kataras/iris/v12"
 )
@@ -77,6 +76,49 @@ func SignInController(ctx iris.Context) {
 
 }
 
+func RefreshTokenController(ctx iris.Context) {
+	refreshToken := ctx.GetHeader("authorization")
+
+	if refreshToken == "" {
+		ctx.StatusCode(iris.StatusForbidden)
+		ctx.JSON(iris.Map{
+			"message": utils.InvalidToken,
+		})
+		return
+	}
+
+	token := utils.GetAuthToken(refreshToken)
+	_, jwtError := jwt.VerifyToken(token)
+
+	if jwtError != nil {
+		ctx.StatusCode(iris.StatusForbidden)
+		ctx.JSON(iris.Map{
+			"message": utils.InvalidToken,
+		})
+		return
+	}
+
+	response, code, err := GetAuthenticationTokenByRefreshToken(RefreshTokenData{
+		RefreshToken: token,
+	})
+
+	if err != nil {
+		ctx.StatusCode(code)
+		ctx.JSON(iris.Map{
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	}
+
+	ctx.StatusCode(iris.StatusOK)
+	ctx.JSON(iris.Map{
+		"message": "signed",
+		"data":    response,
+	})
+
+}
+
 func SignOutController(ctx iris.Context) {
 	authorizationToken := ctx.GetHeader("authorization")
 
@@ -88,7 +130,7 @@ func SignOutController(ctx iris.Context) {
 		return
 	}
 
-	token := strings.Replace(authorizationToken, "Bearer", "", 1)
+	token := utils.GetAuthToken(authorizationToken)
 
 	_, jwtError := jwt.VerifyToken(token)
 

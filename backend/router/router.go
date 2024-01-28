@@ -16,6 +16,7 @@ func Router(app *iris.Application) {
 		authApi.Post("/signin", authentication.SignInController)
 		authApi.Post("/signout", authentication.SignOutController)
 		authApi.Post("/signup", authentication.SignUpController)
+		authApi.Post("/refresh-token", authentication.RefreshTokenController)
 	}
 
 	storageApi := app.Party("/storage")

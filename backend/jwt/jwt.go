@@ -15,6 +15,7 @@ func SignToken(p SignedTokenParams) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"userId": p.AccountId,
+			"nounce": p.Nounce,
 			"exp":    time.Now().Add(time.Minute * 15).Unix(),
 		})
 
@@ -31,6 +32,7 @@ func SignRefreshToken(p SignedTokenParams) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"userId": p.AccountId,
+			"nounce": p.Nounce,
 			"exp":    time.Now().Add(time.Hour * 72).Unix(),
 		})
 

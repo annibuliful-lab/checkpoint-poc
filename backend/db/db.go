@@ -23,7 +23,7 @@ func GetPrimaryClient() *sql.DB {
 		if err != nil {
 			log.Fatal(err)
 		}
-		database.SetMaxOpenConns(5)
+		database.SetMaxOpenConns(10)
 		database.SetMaxIdleConns(5)
 		_db = database
 

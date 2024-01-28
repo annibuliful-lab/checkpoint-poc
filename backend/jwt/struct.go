@@ -7,6 +7,7 @@ import (
 
 type SignedTokenParams struct {
 	AccountId string `json:"userId"`
+	Nounce    string
 }
 
 type JwtPayload struct {

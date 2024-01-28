@@ -21,6 +21,11 @@ type SigninResponse struct {
 	Token        string `json:"token"`
 	RefreshToken string `json:"refreshToken"`
 }
+
+type RefreshTokenData struct {
+	RefreshToken string `json:"refreshToken"`
+}
+
 type HashPasswordParams struct {
 	memory      uint32
 	iterations  uint32
