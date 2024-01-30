@@ -19,7 +19,7 @@ enum PermissionAction {
   READ
 }
 
-enum DeviceCaptureStatus {
+enum DeviceCaptureLabel {
   WHITELIST
   BLACKLIST
 }
@@ -48,7 +48,7 @@ model SessionToken {
 }
 
 model Permission {
-  id                     String                  @id @default(uuid())
+  id                     String                  @id @db.Uuid
   subject                String
   action                 PermissionAction
   projectRolePermissions ProjectRolePermission[]
@@ -58,12 +58,16 @@ model Permission {
 }
 
 model Account {
-  id                   String                @id @default(uuid()) @db.Uuid
+  id                   String                @id @db.Uuid
   username             String                @db.VarChar(24)
   password             String
   projectAccounts      ProjectAccount[]
-  essionTokens         SessionToken[]
+  sessionTokens        SessionToken[]
   accountConfiguration AccountConfiguration?
+  createdBy            String
+  updatedBy            String?
+  deleteBy             String?
+  deletedAt            DateTime?
   createdAt            DateTime              @default(now())
   updatedAt            DateTime?
 
@@ -80,27 +84,30 @@ model AccountConfiguration {
 }
 
 model Project {
-  id                         String                      @id @default(uuid()) @db.Uuid
+  id                         String                      @id @db.Uuid
   title                      String
-  createdAt                  DateTime                    @default(now())
-  updatedAt                  DateTime?
   projectRoles               ProjectRole[]
   projectRolePermissions     ProjectRolePermission[]
   inspectionLocations        InspectionLocation[]
   Vehicle                    Vehicle[]
   projectAccounts            ProjectAccount[]
-  deletedAt                  DateTime?
-  deleteBy                   String?
   imsiConfiguration          ImsiConfiguration[]
   imeiConfiguration          ImeiConfiguration[]
   licensePlatesConfiguration LicensePlateConfiguration[]
+  mobileDeviceConfiguration  MobileDeviceConfiguration[]
+  createdBy                  String
+  updatedBy                  String?
+  deleteBy                   String?
+  deletedAt                  DateTime?
+  createdAt                  DateTime                    @default(now())
+  updatedAt                  DateTime?
 
   @@unique([title])
   @@map("project")
 }
 
 model ProjectRole {
-  id                     String                  @id @default(uuid()) @db.Uuid
+  id                     String                  @id @db.Uuid
   projectId              String                  @db.Uuid
   project                Project                 @relation(fields: [projectId], references: [id])
   title                  String
@@ -115,12 +122,12 @@ model ProjectRole {
 }
 
 model ProjectRolePermission {
-  id           String      @id @default(uuid()) @db.Uuid
+  id           String      @id @db.Uuid
   projectId    String      @db.Uuid
   project      Project     @relation(fields: [projectId], references: [id])
   roleId       String      @db.Uuid
   role         ProjectRole @relation(fields: [roleId], references: [id])
-  permissionId String
+  permissionId String      @db.Uuid
   permission   Permission  @relation(fields: [permissionId], references: [id])
 
   @@unique([roleId, permissionId])
@@ -128,47 +135,88 @@ model ProjectRolePermission {
 }
 
 model ProjectAccount {
-  id        String      @id @default(uuid()) @db.Uuid
+  id        String      @id @db.Uuid
   projectId String      @db.Uuid
   project   Project     @relation(fields: [projectId], references: [id])
   accountId String      @db.Uuid
   account   Account     @relation(fields: [accountId], references: [id])
   roleId    String      @db.Uuid
   role      ProjectRole @relation(fields: [roleId], references: [id])
+  isActive  Boolean     @default(true)
+  createdBy String
+  updatedBy String?
+  deleteBy  String?
+  deletedAt DateTime?
   createdAt DateTime    @default(now())
-  updatedAt DateTime    @default(now()) @updatedAt
+  updatedAt DateTime?
 
   @@map("project_account")
 }
 
 model ImsiConfiguration {
-  id        String              @id @default(uuid()) @db.Uuid
-  projectId String              @db.Uuid
-  project   Project             @relation(fields: [projectId], references: [id])
-  imsi      String              @db.VarChar(24)
-  createdAt DateTime            @default(now())
-  updatedAt DateTime?
-  status    DeviceCaptureStatus
+  id                        String                      @id @db.Uuid
+  projectId                 String                      @db.Uuid
+  project                   Project                     @relation(fields: [projectId], references: [id])
+  imsi                      String                      @db.VarChar(24)
+  label                     DeviceCaptureLabel
+  createdBy                 String
+  updatedBy                 String?
+  deleteBy                  String?
+  deletedAt                 DateTime?
+  createdAt                 DateTime                    @default(now())
+  updatedAt                 DateTime?
+  MobileDeviceConfiguration MobileDeviceConfiguration[]
 
-  @@unique([imsi])
+  @@unique([imsi, projectId])
   @@map("imsi_configuration")
 }
 
 model ImeiConfiguration {
-  id        String              @id @default(uuid()) @db.Uuid
-  projectId String              @db.Uuid
-  project   Project             @relation(fields: [projectId], references: [id])
-  imei      String              @db.VarChar(24)
-  status    DeviceCaptureStatus
-  createdAt DateTime            @default(now())
-  updatedAt DateTime?
+  id                        String                      @id @db.Uuid
+  projectId                 String                      @db.Uuid
+  project                   Project                     @relation(fields: [projectId], references: [id])
+  imei                      String                      @db.VarChar(24)
+  label                     DeviceCaptureLabel
+  createdBy                 String
+  updatedBy                 String?
+  deleteBy                  String?
+  deletedAt                 DateTime?
+  createdAt                 DateTime                    @default(now())
+  updatedAt                 DateTime?
+  MobileDeviceConfiguration MobileDeviceConfiguration[]
 
-  @@index([imei])
+  @@unique([imei, projectId])
   @@map("imei_configuration")
 }
 
+model MobileDeviceConfiguration {
+  id                           String             @id @db.Uuid
+  projectId                    String             @db.Uuid
+  project                      Project            @relation(fields: [projectId], references: [id])
+  title                        String
+  tags                         String[]
+  referenceImsiConfigurationId String             @db.Uuid
+  referenceImsi                ImsiConfiguration  @relation(fields: [referenceImsiConfigurationId], references: [id])
+  imsi                         String
+  referenceImeiConfigurationId String             @db.Uuid
+  referenceImei                ImeiConfiguration  @relation(fields: [referenceImeiConfigurationId], references: [id])
+  imei                         String
+  msisdn                       String?
+  label                        DeviceCaptureLabel
+  createdBy                    String
+  updatedBy                    String?
+  deleteBy                     String?
+  deletedAt                    DateTime?
+  createdAt                    DateTime           @default(now())
+  updatedAt                    DateTime?
+
+  @@index([tags], type: Gin)
+  @@index([title(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@map("mobile_device_configuration")
+}
+
 model InspectionLocation {
-  id          String    @id @default(uuid()) @db.Uuid
+  id          String    @id @db.Uuid
   projectId   String    @db.Uuid
   project     Project   @relation(fields: [projectId], references: [id])
   title       String
@@ -184,75 +232,111 @@ model InspectionLocation {
   updatedAt   DateTime?
   vehicles    Vehicle[]
 
+  @@index([tags], type: Gin)
+  @@index([title(ops: raw("gin_trgm_ops"))], type: Gin)
   @@map("inspection_location")
 }
 
 model LicensePlateConfiguration {
-  id        String              @id @default(uuid()) @db.Uuid
-  projectId String              @db.Uuid
-  project   Project             @relation(fields: [projectId], references: [id])
-  prefix    String
-  number    String              @db.VarChar(24)
+  id        String             @id @db.Uuid
+  projectId String             @db.Uuid
+  project   Project            @relation(fields: [projectId], references: [id])
+  prefix    String             @db.VarChar(4)
+  number    String             @db.VarChar(24)
   province  String
   country   String?
-  status    DeviceCaptureStatus
+  label     DeviceCaptureLabel
+  createdBy String
+  updatedBy String?
+  deleteBy  String?
+  deletedAt DateTime?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime?
 
+  @@index([prefix])
   @@index([number, prefix])
   @@index([number, prefix, province])
   @@map("license_plate_configuration")
 }
 
 model Vehicle {
-  id                   String                @id @default(uuid()) @db.Uuid
+  id                   String                @id @db.Uuid
   projectId            String                @db.Uuid
   project              Project               @relation(fields: [projectId], references: [id])
   inspectionLocationId String                @db.Uuid
   inspectionLocation   InspectionLocation    @relation(fields: [inspectionLocationId], references: [id])
   brand                String
   color                String
-  status               RemarkState           @default(IN_PROGRESS)
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime?
+  model                String
+  status               RemarkState?
   vehicleLicensePlate  VehicleLicensePlate?
   images               VehicleImage[]
   mobileDevices        VehicleMobileDevice[]
+  createdBy            String
+  updatedBy            String?
+  deleteBy             String?
+  deletedAt            DateTime?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime?
 
+  @@index([brand])
+  @@index([color])
+  @@index([model])
   @@map("vehicle")
 }
 
 model VehicleLicensePlate {
-  vehicleId String               @id @db.Uuid
-  vehicle   Vehicle              @relation(fields: [vehicleId], references: [id])
-  prefix    String               @db.VarChar(4)
-  number    String               @db.VarChar(8)
-  province  String               @db.VarChar(32)
+  vehicleId String              @id @db.Uuid
+  vehicle   Vehicle             @relation(fields: [vehicleId], references: [id])
+  prefix    String              @db.VarChar(4)
+  number    String              @db.VarChar(8)
+  province  String              @db.VarChar(32)
   country   String?
-  status    DeviceCaptureStatus?
+  label     DeviceCaptureLabel?
+  createdBy String
+  updatedBy String?
+  deleteBy  String?
+  deletedAt DateTime?
+  createdAt DateTime            @default(now())
+  updatedAt DateTime?
 
+  @@index([prefix])
+  @@index([number, prefix])
+  @@index([number, prefix, province])
   @@map("vehicle_license_plate")
 }
 
 model VehicleImage {
-  id        String               @id @default(uuid()) @db.Uuid
-  vehicleId String               @db.Uuid
-  vehicle   Vehicle              @relation(fields: [vehicleId], references: [id])
+  id        String              @id @db.Uuid
+  vehicleId String              @db.Uuid
+  vehicle   Vehicle             @relation(fields: [vehicleId], references: [id])
   s3Key     String
-  createdAt DateTime             @default(now())
-  status    DeviceCaptureStatus?
+  label     DeviceCaptureLabel?
+  createdBy String
+  updatedBy String?
+  deleteBy  String?
+  deletedAt DateTime?
+  createdAt DateTime            @default(now())
+  updatedAt DateTime?
 
   @@map("vehicle_image")
 }
 
 model VehicleMobileDevice {
-  id               String      @id @default(uuid()) @db.Uuid
-  vehicleId        String      @db.Uuid
-  vehicle          Vehicle     @relation(fields: [vehicleId], references: [id])
-  labelStatus      RemarkState @default(IN_PROGRESS)
-  imsi             String      @db.VarChar(24)
-  imei             String      @db.VarChar(24)
+  id               String              @id @db.Uuid
+  vehicleId        String              @db.Uuid
+  vehicle          Vehicle             @relation(fields: [vehicleId], references: [id])
+  remarkStatus     RemarkState         @default(IN_PROGRESS)
+  imsi             String              @db.VarChar(24)
+  imei             String              @db.VarChar(24)
+  label            DeviceCaptureLabel?
   signalStrength   Float
   registerDateTime DateTime
-  createdAt        DateTime    @default(now())
+  createdBy        String
+  updatedBy        String?
+  deleteBy         String?
+  deletedAt        DateTime?
+  createdAt        DateTime            @default(now())
   updatedAt        DateTime?
 
   @@index([imei, imsi])
