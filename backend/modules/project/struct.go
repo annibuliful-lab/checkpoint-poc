@@ -31,9 +31,3 @@ type DeleteProjectData struct {
 	ID        uuid.UUID `json:"id"`
 	AccountId *string   `json:"accountId"`
 }
-
-type VerifyProjectAccountData struct {
-	ID        uuid.UUID `json:"id"`
-	AccountId uuid.UUID `json:"accountId"`
-	Role      *string   `json:"role"`
-}

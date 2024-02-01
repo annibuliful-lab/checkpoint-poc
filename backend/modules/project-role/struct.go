@@ -1,38 +1,60 @@
 package projectRole
 
 import (
+	"checkpoint/.gen/checkpoint/public/model"
 	"checkpoint/utils"
 	"time"
 
 	"github.com/google/uuid"
 )
 
-type CreateProjectRole struct {
-	Title string `json:"string"`
+type CreateProjectRoleData struct {
+	ProjectId     uuid.UUID `json:"projectId"`
+	Title         string    `json:"title"`
+	PermissionIds []string  `json:"permissionIds"`
 }
 
-type UpdateProjectRole struct {
-	ID    uuid.UUID `json:"id"`
-	Title string    `json:"string"`
+type UpdateProjectRoleData struct {
+	ID            uuid.UUID `json:"id"`
+	ProjectId     uuid.UUID `json:"projectId"`
+	Title         string    `json:"string"`
+	PermissionIds []string  `json:"permissionIds"`
 }
 
-type GetProjectRoleById struct {
-	ID uuid.UUID `json:"id"`
+type GetProjectRoleByIdData struct {
+	ProjectId uuid.UUID `json:"projectId"`
+	ID        uuid.UUID `json:"id"`
 }
 
-type DeleteProjectRole struct {
-	ID uuid.UUID `json:"id"`
+type GetProjectRolesData struct {
+	ProjectId  uuid.UUID `json:"projectId"`
+	Search     string    `json:"search"`
+	pagination utils.OffsetPagination
 }
 
-type GetProjectRole struct {
-	Search *string `json:"search"`
+type DeleteProjectRoleData struct {
+	ProjectId uuid.UUID `json:"projectId"`
+	ID        uuid.UUID `json:"id"`
+}
+
+type GetProjectRoleData struct {
+	ProjectId uuid.UUID `json:"projectId"`
+	Search    *string   `json:"search"`
 	utils.OffsetPagination
 }
 
 type ProjectRoleResponse struct {
-	ID        uuid.UUID  `json:"id"`
-	ProjectId uuid.UUID  `json:"projectId"`
-	Title     string     `json:"string"`
-	CreatedAt time.Time  `json:"createdAt"`
-	UpdatedAt *time.Time `json:"updatedAt"`
+	ID          uuid.UUID            `json:"id"`
+	ProjectId   uuid.UUID            `json:"projectId"`
+	Title       string               `json:"title"`
+	CreatedAt   time.Time            `json:"createdAt"`
+	UpdatedAt   *time.Time           `json:"updatedAt"`
+	Permissions []PermissionResponse `json:"permissions"`
+}
+
+type PermissionResponse struct {
+	RoleID  uuid.UUID              `json:"roleId"`
+	ID      uuid.UUID              `json:"id"`
+	Subject string                 `json:"subject"`
+	Action  model.PermissionAction `json:"action"`
 }

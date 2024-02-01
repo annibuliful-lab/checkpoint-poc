@@ -4,6 +4,7 @@ import (
 	"checkpoint/middleware"
 	"checkpoint/modules/authentication"
 	"checkpoint/modules/project"
+	projectRole "checkpoint/modules/project-role"
 	"checkpoint/modules/upload"
 	"checkpoint/utils"
 
@@ -19,7 +20,7 @@ func Router(app *iris.Application) {
 		authApi.Post("/refresh-token", authentication.RefreshTokenController)
 	}
 
-	storageApi := app.Party("/storage")
+	storageApi := app.Party("/storages")
 	storageApi.Use(middleware.AuthMiddleware())
 	{
 		storageApi.Post("/upload", upload.UploadController)
@@ -29,18 +30,28 @@ func Router(app *iris.Application) {
 	projectApi := app.Party("/projects")
 	projectApi.Use(middleware.AuthMiddleware())
 	{
-		projectApi.Post("/", middleware.VerifyAuthorizationMiddleware(utils.AuthorizationPermissionData{
-			PermissionSubject: "project",
-			PermissionAction:  "CREATE",
-		}), project.CreateProjectController)
-
-		projectApi.Patch("/{id:uuid}", middleware.VerifyAuthorizationMiddleware(utils.AuthorizationPermissionData{
-			PermissionSubject: "project",
-			PermissionAction:  "UPDATE",
-		}), project.UpdateProjectController)
-
+		projectApi.Post("/", project.CreateProjectController)
+		projectApi.Patch("/{id:uuid}", project.UpdateProjectController)
 		projectApi.Get("/{id:uuid}", project.GetProjectByIdController)
 		projectApi.Delete("/{id:uuid}", project.DeleteProjectByIdController)
+
+		// roles
+		projectApi.Post("/roles", middleware.VerifyAuthorizationMiddleware(utils.AuthorizationPermissionData{
+			PermissionSubject: "project",
+			PermissionAction:  "CREATE",
+		}), projectRole.CreateProjectRoleController)
+		projectApi.Patch("/roles/{id:uuid}", middleware.VerifyAuthorizationMiddleware(utils.AuthorizationPermissionData{
+			PermissionSubject: "project",
+			PermissionAction:  "UPDATE",
+		}), projectRole.UpdateProjectRoleController)
+		projectApi.Get("/roles/{id:uuid}", middleware.VerifyAuthorizationMiddleware(utils.AuthorizationPermissionData{
+			PermissionSubject: "project",
+			PermissionAction:  "READ",
+		}), projectRole.GetProjectRoleByIdController)
+		projectApi.Get("/roles", middleware.VerifyAuthorizationMiddleware(utils.AuthorizationPermissionData{
+			PermissionSubject: "project",
+			PermissionAction:  "READ",
+		}), projectRole.GetProjectRolesController)
 	}
 
 }

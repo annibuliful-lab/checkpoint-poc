@@ -1,3 +1,4 @@
+import { v4 } from 'uuid';
 import { client } from './client';
 import argon from 'argon2';
 
@@ -23,6 +24,7 @@ export async function seedUsers() {
       id: 'af466ea9-04ba-432e-98e0-3b8787dcda41',
       username: 'userA1234',
       password: await argon.hash('12345678'),
+      createdBy: 'SEED',
       accountConfiguration: {
         create: {
           isActive: true,
@@ -30,8 +32,11 @@ export async function seedUsers() {
       },
       projectAccounts: {
         create: {
+          id: v4(),
+          createdBy: 'SEED',
           role: {
             create: {
+              id: v4(),
               projectId: '246bb085-8ccc-4def-ac78-dc2ad5c7760b',
               title: 'Admin',
             },
@@ -40,6 +45,7 @@ export async function seedUsers() {
             create: {
               id: '246bb085-8ccc-4def-ac78-dc2ad5c7760b',
               title: 'userA Project',
+              createdBy: 'SEED',
             },
           },
         },
@@ -59,6 +65,7 @@ export async function seedUsers() {
     await client.projectRolePermission.upsert({
       update: {},
       create: {
+        id: v4(),
         roleId: userA.projectAccounts[0].roleId,
         permissionId,
         projectId: userA.projectAccounts[0].projectId,

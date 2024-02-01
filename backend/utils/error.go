@@ -17,4 +17,5 @@ var (
 	ErrIncompatibleVersion = errors.New("incompatible version of argon2")
 	ForbiddenOperation     = errors.New("forbidden operation")
 	ContactOwner           = errors.New("please contact project owner")
+	IdNotfound             = errors.New("id not found")
 )

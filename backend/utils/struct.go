@@ -1,6 +1,6 @@
 package utils
 
 type OffsetPagination struct {
-	Skip  *int `json:"skip"`
-	Limit *int `json:"limit"`
+	Skip  int64 `json:"skip"`
+	Limit int64 `json:"limit"`
 }
