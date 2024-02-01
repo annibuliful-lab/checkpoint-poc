@@ -55,7 +55,7 @@ func CreateProject(data CreateProjectData) (*ProjectResponse, int, error) {
 		INSERT(ProjectRole.ID, ProjectRole.Title, ProjectRole.ProjectId).
 		MODEL(model.ProjectRole{
 			ID:        uuid.New(),
-			Title:     "Admin",
+			Title:     "Owner",
 			ProjectId: project.ID,
 		}).
 		RETURNING(ProjectRole.AllColumns)

@@ -37,7 +37,7 @@ func VerifyProjectOwner(data VerifyProjectAccountData) bool {
 			INNER_JOIN(ProjectRole, ProjectAccount.RoleId.EQ(ProjectRole.ID))).
 		WHERE(ProjectAccount.AccountId.EQ(pg.UUID(data.AccountId)).
 			AND(ProjectAccount.ProjectId.EQ(pg.UUID(data.ID))).
-			AND(ProjectRole.Title.EQ(pg.String("Admin"))))
+			AND(ProjectRole.Title.EQ(pg.String("Owner"))))
 
 	result, err := selectProjectAdminStmt.Exec(dbClient)
 
@@ -60,7 +60,7 @@ func VerifyProjectRole(data VerifyProjectRoleData) bool {
 			INNER_JOIN(ProjectRole, ProjectAccount.RoleId.EQ(ProjectRole.ID))).
 		WHERE(ProjectAccount.AccountId.EQ(pg.UUID(data.AccountId)).
 			AND(ProjectAccount.ProjectId.EQ(pg.UUID(data.ID))).
-			AND(ProjectRole.Title.EQ(pg.String("Admin"))))
+			AND(ProjectRole.Title.EQ(pg.String("Owner"))))
 
 	result, err := selectProjectRoleStmt.Exec(dbClient)
 
