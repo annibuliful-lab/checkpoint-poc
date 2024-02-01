@@ -11,6 +11,7 @@ import (
 	"errors"
 	"log"
 	"strings"
+	"time"
 
 	pg "github.com/go-jet/jet/v2/postgres"
 	"github.com/thanhpk/randstr"
@@ -126,7 +127,7 @@ func SignInService(data SignInData) (*SigninResponse, int, error) {
 		return nil, 500, utils.InternalServerError
 	}
 
-	err = redisClient.Set(ctx, token, jsonData, 0).Err()
+	err = redisClient.Set(ctx, token, jsonData, time.Minute*15).Err()
 
 	if err != nil {
 		log.Println("redis-error: ", err.Error())
@@ -330,7 +331,7 @@ func GetAuthenticationTokenByRefreshToken(data RefreshTokenData) (*SigninRespons
 		return nil, 500, utils.InternalServerError
 	}
 
-	err = redisClient.Set(ctx, token, jsonData, 0).Err()
+	err = redisClient.Set(ctx, token, jsonData, time.Minute*15).Err()
 
 	if err != nil {
 		log.Println("redis-error: ", err.Error())

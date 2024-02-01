@@ -197,10 +197,8 @@ model MobileDeviceConfiguration {
   tags                         String[]
   referenceImsiConfigurationId String             @db.Uuid
   referenceImsi                ImsiConfiguration  @relation(fields: [referenceImsiConfigurationId], references: [id])
-  imsi                         String
   referenceImeiConfigurationId String             @db.Uuid
   referenceImei                ImeiConfiguration  @relation(fields: [referenceImeiConfigurationId], references: [id])
-  imei                         String
   msisdn                       String?
   label                        DeviceCaptureLabel
   createdBy                    String
@@ -328,7 +326,7 @@ model VehicleMobileDevice {
   vehicle          Vehicle             @relation(fields: [vehicleId], references: [id])
   remarkStatus     RemarkState         @default(IN_PROGRESS)
   imsi             String              @db.VarChar(24)
-  imei             String              @db.VarChar(24)
+  imei             String?             @db.VarChar(24)
   label            DeviceCaptureLabel?
   signalStrength   Float
   registerDateTime DateTime

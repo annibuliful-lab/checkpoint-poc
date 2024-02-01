@@ -1,6 +1,7 @@
 package project
 
 import (
+	"checkpoint/auth"
 	"checkpoint/jwt"
 	"checkpoint/utils"
 
@@ -67,7 +68,7 @@ func UpdateProjectController(ctx iris.Context) {
 
 	payload, _ := jwt.VerifyToken(headers.Token)
 
-	match := VerifyOwner(VerifyProjectAccountData{
+	match := auth.VerifyProjectOwner(auth.VerifyProjectAccountData{
 		ID:        id,
 		AccountId: payload.AccountId,
 	})
@@ -108,7 +109,8 @@ func UpdateProjectController(ctx iris.Context) {
 	}
 
 	ctx.JSON(iris.Map{
-		"data": project,
+		"message": "updated",
+		"data":    project,
 	})
 }
 
@@ -127,7 +129,7 @@ func GetProjectByIdController(ctx iris.Context) {
 
 	payload, _ := jwt.VerifyToken(headers.Token)
 
-	match := VerifyAccount(VerifyProjectAccountData{
+	match := auth.VerifyProjectAccount(auth.VerifyProjectAccountData{
 		ID:        id,
 		AccountId: payload.AccountId,
 	})
@@ -174,7 +176,7 @@ func DeleteProjectByIdController(ctx iris.Context) {
 
 	payload, _ := jwt.VerifyToken(headers.Token)
 
-	match := VerifyOwner(VerifyProjectAccountData{
+	match := auth.VerifyProjectOwner(auth.VerifyProjectAccountData{
 		ID:        id,
 		AccountId: payload.AccountId,
 	})
@@ -187,6 +189,7 @@ func DeleteProjectByIdController(ctx iris.Context) {
 		})
 		return
 	}
+
 	accountId := payload.AccountId.String()
 
 	code, err := DeleteProjectById(DeleteProjectData{

@@ -33,12 +33,14 @@
   "dependencies": {
     "@babel/preset-env": "7.23.9",
     "@prisma/client": "5.8.1",
+    "@types/uuid": "9.0.8",
     "argon2": "0.31.2",
     "axios": "^1.6.7",
     "babel-jest": "29.7.0",
     "dotenv": "16.4.1",
     "got": "14.0.0",
     "nanoid": "3",
-    "ts-jest": "29.1.2"
+    "ts-jest": "29.1.2",
+    "uuid": "9.0.1"
   }
 }

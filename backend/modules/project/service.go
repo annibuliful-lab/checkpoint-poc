@@ -29,10 +29,11 @@ func CreateProject(data CreateProjectData) (*ProjectResponse, int, error) {
 	project := model.Project{}
 
 	insertProjectStmt := Project.
-		INSERT(Project.ID, Project.Title).
+		INSERT(Project.ID, Project.Title, Project.CreatedBy).
 		MODEL(model.Project{
-			Title: data.Title,
-			ID:    uuid.New(),
+			Title:     data.Title,
+			ID:        uuid.New(),
+			CreatedBy: data.AccountId,
 		}).
 		RETURNING(Project.AllColumns)
 
@@ -74,12 +75,13 @@ func CreateProject(data CreateProjectData) (*ProjectResponse, int, error) {
 	}
 
 	insertProjectAccountStmt := ProjectAccount.
-		INSERT(ProjectAccount.ID, ProjectAccount.RoleId, ProjectAccount.AccountId, ProjectAccount.ProjectId).
+		INSERT(ProjectAccount.ID, ProjectAccount.RoleId, ProjectAccount.AccountId, ProjectAccount.ProjectId, ProjectAccount.CreatedBy).
 		MODEL(model.ProjectAccount{
 			ID:        uuid.New(),
 			RoleId:    projectRole.ID,
 			AccountId: uuid.MustParse(data.AccountId),
 			ProjectId: project.ID,
+			CreatedBy: data.AccountId,
 		})
 
 	_, err = insertProjectAccountStmt.ExecContext(ctx, tx)
@@ -97,7 +99,7 @@ func CreateProject(data CreateProjectData) (*ProjectResponse, int, error) {
 		Title:     project.Title,
 		CreatedAt: project.CreatedAt,
 		UpdatedAt: project.UpdatedAt,
-	}, iris.StatusCreated, err
+	}, iris.StatusCreated, nil
 }
 
 func UpdateProject(data UpdateProjectData) (*ProjectResponse, int, error) {
@@ -106,7 +108,9 @@ func UpdateProject(data UpdateProjectData) (*ProjectResponse, int, error) {
 	selectDuplcatedTitleStmt := pg.
 		SELECT(Project.Title).
 		FROM(Project).
-		WHERE(Project.Title.EQ(pg.String(data.Title)))
+		WHERE(Project.Title.EQ(pg.String(data.Title))).
+		LIMIT(1)
+
 	rows, err := selectDuplcatedTitleStmt.Exec(dbClient)
 
 	if err != nil {
@@ -145,11 +149,13 @@ func UpdateProject(data UpdateProjectData) (*ProjectResponse, int, error) {
 }
 
 func GetProjectById(data GetProjectData) (*ProjectResponse, int, error) {
+
 	dbClient := db.GetPrimaryClient()
 	selectProjectStmt := pg.
 		SELECT(Project.AllColumns).
 		FROM(Project).
 		WHERE(Project.ID.EQ(pg.UUID(data.ID))).
+		WHERE(Project.DeletedAt.IS_NULL()).
 		LIMIT(1)
 
 	project := model.Project{}
@@ -187,47 +193,4 @@ func DeleteProjectById(data DeleteProjectData) (int, error) {
 	}
 
 	return 200, nil
-}
-
-func VerifyAccount(data VerifyProjectAccountData) bool {
-	dbClient := db.GetPrimaryClient()
-	selectProjectAdminStmt := pg.
-		SELECT(ProjectAccount.AccountId).
-		FROM(ProjectAccount.
-			INNER_JOIN(ProjectRole, ProjectAccount.RoleId.EQ(ProjectRole.ID))).
-		WHERE(ProjectAccount.AccountId.EQ(pg.UUID(data.AccountId)).
-			AND(ProjectAccount.ProjectId.EQ(pg.UUID(data.ID))))
-
-	result, err := selectProjectAdminStmt.Exec(dbClient)
-
-	if err != nil {
-		return false
-	}
-
-	rowsAffected, _ := result.RowsAffected()
-
-	return rowsAffected != 0
-}
-
-func VerifyOwner(data VerifyProjectAccountData) bool {
-	dbClient := db.GetPrimaryClient()
-
-	selectProjectAdminStmt := pg.
-		SELECT(ProjectAccount.AccountId).
-		FROM(ProjectAccount.
-			INNER_JOIN(ProjectRole, ProjectAccount.RoleId.EQ(ProjectRole.ID))).
-		WHERE(ProjectAccount.AccountId.EQ(pg.UUID(data.AccountId)).
-			AND(ProjectAccount.ProjectId.EQ(pg.UUID(data.ID))).
-			AND(ProjectRole.Title.EQ(pg.String("Admin"))))
-
-	result, err := selectProjectAdminStmt.Exec(dbClient)
-
-	if err != nil {
-		log.Println("verify-owner", err.Error())
-		return false
-	}
-
-	rowsAffected, _ := result.RowsAffected()
-
-	return rowsAffected != 0
 }

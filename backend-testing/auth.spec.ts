@@ -1,13 +1,13 @@
 import { nanoid } from 'nanoid';
-import { httpClient } from './constants';
+import { httpClient } from './utils/constants';
 import {
   getAuthenticatedClient,
   getAuthenticatedClientWithRefreshToken,
-} from './utils';
+} from './utils/utils';
 
 describe('Auth', () => {
   it('calls signout with token', async () => {
-    const client = await getAuthenticatedClient();
+    const client = await getAuthenticatedClient({});
 
     const result = await client.post('/auth/signout');
 

@@ -13,7 +13,7 @@
 *.dylib
 ERD.svg
 backend/.gen/cdr/public
-
+frontend/src/generated
 # Test binary, built with `go test -c`
 *.test
 postgres_data
