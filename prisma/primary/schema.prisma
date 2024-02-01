@@ -66,7 +66,7 @@ model Account {
   accountConfiguration AccountConfiguration?
   createdBy            String
   updatedBy            String?
-  deleteBy             String?
+  deletedBy            String?
   deletedAt            DateTime?
   createdAt            DateTime              @default(now())
   updatedAt            DateTime?
@@ -97,7 +97,7 @@ model Project {
   mobileDeviceConfiguration  MobileDeviceConfiguration[]
   createdBy                  String
   updatedBy                  String?
-  deleteBy                   String?
+  deletedBy                  String?
   deletedAt                  DateTime?
   createdAt                  DateTime                    @default(now())
   updatedAt                  DateTime?
@@ -145,7 +145,7 @@ model ProjectAccount {
   isActive  Boolean     @default(true)
   createdBy String
   updatedBy String?
-  deleteBy  String?
+  deletedBy String?
   deletedAt DateTime?
   createdAt DateTime    @default(now())
   updatedAt DateTime?
@@ -158,10 +158,10 @@ model ImsiConfiguration {
   projectId                 String                      @db.Uuid
   project                   Project                     @relation(fields: [projectId], references: [id])
   imsi                      String                      @db.VarChar(24)
-  label                     DeviceCaptureLabel
+  label                     DeviceCaptureLabel?
   createdBy                 String
   updatedBy                 String?
-  deleteBy                  String?
+  deletedBy                 String?
   deletedAt                 DateTime?
   createdAt                 DateTime                    @default(now())
   updatedAt                 DateTime?
@@ -176,10 +176,10 @@ model ImeiConfiguration {
   projectId                 String                      @db.Uuid
   project                   Project                     @relation(fields: [projectId], references: [id])
   imei                      String                      @db.VarChar(24)
-  label                     DeviceCaptureLabel
+  label                     DeviceCaptureLabel?
   createdBy                 String
   updatedBy                 String?
-  deleteBy                  String?
+  deletedBy                 String?
   deletedAt                 DateTime?
   createdAt                 DateTime                    @default(now())
   updatedAt                 DateTime?
@@ -203,7 +203,7 @@ model MobileDeviceConfiguration {
   label                        DeviceCaptureLabel
   createdBy                    String
   updatedBy                    String?
-  deleteBy                     String?
+  deletedBy                    String?
   deletedAt                    DateTime?
   createdAt                    DateTime           @default(now())
   updatedAt                    DateTime?
@@ -224,7 +224,7 @@ model InspectionLocation {
   longtitude  Decimal   @db.Decimal(9, 6)
   createdBy   String
   updatedBy   String?
-  deleteBy    String?
+  deletedBy   String?
   deletedAt   DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime?
@@ -246,7 +246,7 @@ model LicensePlateConfiguration {
   label     DeviceCaptureLabel
   createdBy String
   updatedBy String?
-  deleteBy  String?
+  deletedBy String?
   deletedAt DateTime?
   createdAt DateTime           @default(now())
   updatedAt DateTime?
@@ -272,7 +272,7 @@ model Vehicle {
   mobileDevices        VehicleMobileDevice[]
   createdBy            String
   updatedBy            String?
-  deleteBy             String?
+  deletedBy            String?
   deletedAt            DateTime?
   createdAt            DateTime              @default(now())
   updatedAt            DateTime?
@@ -293,7 +293,7 @@ model VehicleLicensePlate {
   label     DeviceCaptureLabel?
   createdBy String
   updatedBy String?
-  deleteBy  String?
+  deletedBy String?
   deletedAt DateTime?
   createdAt DateTime            @default(now())
   updatedAt DateTime?
@@ -312,7 +312,7 @@ model VehicleImage {
   label     DeviceCaptureLabel?
   createdBy String
   updatedBy String?
-  deleteBy  String?
+  deletedBy String?
   deletedAt DateTime?
   createdAt DateTime            @default(now())
   updatedAt DateTime?
@@ -332,7 +332,7 @@ model VehicleMobileDevice {
   registerDateTime DateTime
   createdBy        String
   updatedBy        String?
-  deleteBy         String?
+  deletedBy        String?
   deletedAt        DateTime?
   createdAt        DateTime            @default(now())
   updatedAt        DateTime?
