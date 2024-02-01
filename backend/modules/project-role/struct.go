@@ -37,12 +37,6 @@ type DeleteProjectRoleData struct {
 	ID        uuid.UUID `json:"id"`
 }
 
-type GetProjectRoleData struct {
-	ProjectId uuid.UUID `json:"projectId"`
-	Search    *string   `json:"search"`
-	utils.OffsetPagination
-}
-
 type ProjectRoleResponse struct {
 	ID          uuid.UUID            `json:"id"`
 	ProjectId   uuid.UUID            `json:"projectId"`

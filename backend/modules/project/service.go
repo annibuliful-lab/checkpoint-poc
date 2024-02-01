@@ -179,9 +179,9 @@ func DeleteProjectById(data DeleteProjectData) (int, error) {
 	now := time.Now()
 
 	deleteProjectStmt := Project.
-		UPDATE(Project.DeletedAt, Project.DeleteBy).
+		UPDATE(Project.DeletedAt, Project.DeletedBy).
 		MODEL(model.Project{
-			DeleteBy:  data.AccountId,
+			DeletedBy: data.AccountId,
 			DeletedAt: &now,
 		}).
 		WHERE(Project.ID.EQ(pg.UUID(data.ID)))

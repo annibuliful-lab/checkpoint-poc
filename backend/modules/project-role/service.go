@@ -6,7 +6,6 @@ import (
 	"checkpoint/db"
 	"checkpoint/utils"
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -202,7 +201,7 @@ func GetProjectRoles(data GetProjectRolesData) (*[]ProjectRoleResponse, int, err
 		LIMIT(data.pagination.Limit).
 		OFFSET(data.pagination.Skip).
 		ORDER_BY(ProjectRole.CreatedAt)
-	fmt.Println(selectProjectRolesStmt.DebugSql())
+
 	projectRoles := []model.ProjectRole{}
 	err := selectProjectRolesStmt.Query(dbClient, &projectRoles)
 
