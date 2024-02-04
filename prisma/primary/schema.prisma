@@ -155,23 +155,24 @@ model ProjectRolePermission {
 }
 
 model ProjectAccount {
-  id        String      @id @db.Uuid
-  projectId String      @db.Uuid
-  project   Project     @relation(fields: [projectId], references: [id])
-  accountId String      @db.Uuid
-  account   Account     @relation(fields: [accountId], references: [id])
-  roleId    String      @db.Uuid
-  role      ProjectRole @relation(fields: [roleId], references: [id])
-  isActive  Boolean     @default(true)
-  firstname String?
-  lastname  String?
-  msisdn    String?
-  createdBy String
-  updatedBy String?
-  deletedBy String?
-  deletedAt DateTime?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime?
+  id             String           @id @db.Uuid
+  projectId      String           @db.Uuid
+  project        Project          @relation(fields: [projectId], references: [id])
+  accountId      String           @db.Uuid
+  account        Account          @relation(fields: [accountId], references: [id])
+  roleId         String           @db.Uuid
+  role           ProjectRole      @relation(fields: [roleId], references: [id])
+  isActive       Boolean          @default(true)
+  firstname      String?
+  lastname       String?
+  msisdn         String?
+  createdBy      String
+  updatedBy      String?
+  deletedBy      String?
+  deletedAt      DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime?
+  StationOfficer StationOfficer[]
 
   @@map("project_account")
 }
@@ -196,7 +197,7 @@ model ImsiConfiguration {
   updatedAt                 DateTime?
   MobileDeviceConfiguration MobileDeviceConfiguration[]
 
-  @@unique([imsi, projectId])
+  @@index([imsi, projectId])
   @@map("imsi_configuration")
 }
 
@@ -218,7 +219,7 @@ model ImeiConfiguration {
   updatedAt                 DateTime?
   MobileDeviceConfiguration MobileDeviceConfiguration[]
 
-  @@unique([imei, projectId])
+  @@index([imei, projectId])
   @@map("imei_configuration")
 }
 
@@ -269,10 +270,31 @@ model StationLocation {
   currentHealthCheckId       String?                      @db.Uuid
   currentHealthCheck         StationHealthCheckActivity?  @relation(name: "current", fields: [currentHealthCheckId], references: [id])
   StationDevice              StationDevice[]
+  StationOfficer             StationOfficer[]
 
   @@index([tags], type: Gin)
   @@index([title(ops: raw("gin_trgm_ops"))], type: Gin)
   @@map("station_location")
+}
+
+model StationOfficer {
+  id                String          @id @db.Uuid
+  stationLocationId String          @db.Uuid
+  stationLocation   StationLocation @relation(fields: [stationLocationId], references: [id])
+  projectAccountId  String?         @db.Uuid
+  projectAccount    ProjectAccount? @relation(fields: [projectAccountId], references: [id])
+  firstname         String
+  lastname          String
+  msisdn            String          @db.VarChar(10)
+  createdBy         String
+  updatedBy         String?
+  deletedBy         String?
+  deletedAt         DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime?
+
+  @@index([firstname, lastname])
+  @@map("station_officer")
 }
 
 model StationDevice {
@@ -281,8 +303,14 @@ model StationDevice {
   stationLocationId        String                     @db.Uuid
   title                    String
   softwareVersion          String?
+  hardwareVersion          String?
   StationDeviceHealthCheck StationDeviceHealthCheck[]
+  createdBy                String
+  updatedBy                String?
+  deletedBy                String?
+  deletedAt                DateTime?
   createdAt                DateTime                   @default(now())
+  updatedAt                DateTime?
 
   @@map("station_device")
 }
@@ -321,6 +349,7 @@ model LicensePlateConfiguration {
   prefix            String               @db.VarChar(4)
   number            String               @db.VarChar(24)
   province          String
+  type              String // white, red, yellow
   country           String?
   tags              String[]
   label             DevicePermittedLabel @default(NONE)
@@ -369,6 +398,7 @@ model VehicleLicensePlate {
   prefix    String               @db.VarChar(4)
   number    String               @db.VarChar(8)
   province  String               @db.VarChar(32)
+  type      String // white, red, yellow
   country   String?
   label     DevicePermittedLabel @default(NONE)
   priority  BlacklistPriority    @default(NORMAL)
@@ -390,6 +420,7 @@ model VehicleImage {
   vehicleId String    @db.Uuid
   vehicle   Vehicle   @relation(fields: [vehicleId], references: [id])
   s3Key     String
+  type      String // vehicle, driver
   createdBy String
   updatedBy String?
   deletedBy String?
