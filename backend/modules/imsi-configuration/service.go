@@ -5,7 +5,6 @@ import (
 	. "checkpoint/.gen/checkpoint/public/table"
 	"checkpoint/db"
 	"checkpoint/utils"
-	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -50,7 +49,7 @@ func GetImsiConfigurations(data GetImsiConfigurationsData) ([]ImsiConfigurationR
 		OFFSET(data.Pagination.Skip)
 
 	imsiConfigurations := []model.ImsiConfiguration{}
-	fmt.Println(getImsiConfigurationsStmt.DebugSql())
+
 	err := getImsiConfigurationsStmt.Query(dbClient, &imsiConfigurations)
 
 	if err != nil {
