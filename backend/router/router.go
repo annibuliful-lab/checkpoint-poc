@@ -3,6 +3,7 @@ package router
 import (
 	"checkpoint/middleware"
 	"checkpoint/modules/authentication"
+	imsiconfiguration "checkpoint/modules/imsi-configuration"
 	"checkpoint/modules/project"
 	projectRole "checkpoint/modules/project-role"
 	"checkpoint/modules/upload"
@@ -52,6 +53,16 @@ func Router(app *iris.Application) {
 			PermissionSubject: "project",
 			PermissionAction:  "READ",
 		}), projectRole.GetProjectRolesController)
+	}
+
+	imsiConfigurationApi := app.Party("/imsi-configurations")
+	projectApi.Use(middleware.AuthMiddleware())
+	{
+		imsiConfigurationApi.Post("/", imsiconfiguration.CreateImsiConfigurationController)
+		imsiConfigurationApi.Get("/", imsiconfiguration.GetImsiConfigurationsController)
+		imsiConfigurationApi.Patch("/{id:uuid}", imsiconfiguration.UpdateImsiConfigurationController)
+		imsiConfigurationApi.Delete("/{id:uuid}", imsiconfiguration.DeleteImsiConfigurationByIdController)
+		imsiConfigurationApi.Get("/{id:uuid}", imsiconfiguration.GetImsiConfigurationController)
 	}
 
 }

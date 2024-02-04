@@ -16,6 +16,9 @@ export async function getAuthenticatedClient({
   });
 
   return axios.create({
+    paramsSerializer: {
+      indexes: null,
+    },
     baseURL: BACKEND_ENDPOINT,
     headers: {
       Authorization: `Bearer ${result.data.data.token}`,
@@ -34,6 +37,9 @@ export async function getAuthenticatedClientWithRefreshToken() {
 
   return {
     client: axios.create({
+      paramsSerializer: {
+        indexes: null,
+      },
       baseURL: BACKEND_ENDPOINT,
       headers: {
         Authorization: `Bearer ${result.data.data.token}`,
