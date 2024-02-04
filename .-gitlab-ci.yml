@@ -1,0 +1,95 @@
+image: node:lts
+cache:
+  paths:
+    - node_modules/
+stages:
+  - install
+  - build
+
+variables:
+  GO111MODULE: 'on'
+  GOPROXY: 'https://proxy.golang.org'
+  POSTGRES_DB: my_test_db
+  POSTGRES_USER: my_test_user
+  POSTGRES_PASSWORD: my_test_password
+  ENV_FILES: |
+    # Primary Postgres
+    PRIMARY_POSTGRES_SERVER_URL="localhost"
+    PRIMARY_POSTGRES_SERVER_PORT = 5432
+    PRIMARY_POSTGRES_DB_NAME="checkpoint"
+    PRIMARY_POSTGRES_USERNAME="checkpoint"
+    PRIMARY_POSTGRES_PASSWORD="checkpoint"
+    PRIMARY_DATABASE_URL="postgres://checkpoint:checkpoint@localhost:5432/checkpoint?sslmode=disable"
+
+    # Redis
+    REDIS_SERVER_PORT=6379
+    REDIS_PASSWORD=checkpoint
+    REDIS_URL=localhost:6379
+
+    # Rabbitmq
+    RABBITMQ_DEFAULT_USER=checkpoint
+    RABBITMQ_DEFAULT_PASS=checkpoint
+    RABBITMQ_PORT_ONE=5672
+    RABBITMQ_PORT_TWO=15672
+
+    # MiniO
+    MINIO_ROOT_USER=checkpoint
+    MINIO_ROOT_PASSWORD=checkpoint
+    MINIO_SERVER_PORT=9000
+    MINIO_DASHBOARD_PORT=9001
+
+    # S3 storage
+    S3_SECRET_KEY=fKGTumwGZojhmPODNsSlBR75GkvRIJzsiaFRNZuI
+    S3_ACCESS_KEY=yOGmfogoksggDF99G3CY
+    S3_ENDPOINT=localhost:9000
+    S3_BUCKET_NAME=introspection
+
+    # Application
+    JWT_SECRET=checkpoint
+    BACKEND_PORT=:3030
+    BACKEND_ENDPOINT=http://localhost:3030
+
+# services:
+#   - name: jaegertracing/all-in-one:1.53
+#     alias: jaeger
+
+#   - name: postgres:15-alpine
+#     alias: postgres
+#     variables:
+#       POSTGRES_DB: $POSTGRES_DB
+#       POSTGRES_USER: $POSTGRES_USER
+#       POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+
+#   - name: redis:7-alpine
+#     alias: redis
+
+#   - name: quay.io/minio/minio
+#     alias: minio
+#     variables:
+#       MINIO_ROOT_USER: my_minio_user
+#       MINIO_ROOT_PASSWORD: my_minio_password
+
+#   - name: rabbitmq:management
+#     alias: rabbitmq
+
+#   - name: neo4j:community
+#     alias: neo4j
+
+before_script:
+  - export CGO_ENABLED=0 # Disable CGO for static binary
+  # - pnpm install
+
+install_dependencies:
+  stage: install
+  before_script:
+    - curl -L https://unpkg.com/@pnpm/self-installer | node
+  script:
+    - pnpm install
+
+build:
+  stage: build
+  image: golang:1.21.6-alpine3.19
+  script:
+    - echo "$ENV_FILES" >> .env
+    # - pnpm run db-primary:migrate
+    - cd backend && go build
