@@ -154,7 +154,8 @@ func UpdateImsiConfiguration(data UpdateImsiConfigurationData) (*ImsiConfigurati
 			Tags:      db.ConvertArrayStringToInput(data.Tags),
 		}).
 		WHERE(ImsiConfiguration.ID.EQ(pg.UUID(data.ID)).
-			AND(ImsiConfiguration.ProjectId.EQ(pg.UUID(data.ProjectId)))).
+			AND(ImsiConfiguration.ProjectId.EQ(pg.UUID(data.ProjectId))).
+			AND(ImsiConfiguration.DeletedAt.IS_NULL())).
 		RETURNING(ImsiConfiguration.AllColumns)
 
 	imsiConfiguration := model.ImsiConfiguration{}
