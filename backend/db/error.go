@@ -9,3 +9,7 @@ func HasNoRow(err error) bool {
 func IsDuplicate(err error) bool {
 	return strings.Contains(err.Error(), "duplicate key")
 }
+
+func InvalidInput(err error) bool {
+	return strings.Contains(err.Error(), "invalid input")
+}
