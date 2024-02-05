@@ -30,6 +30,7 @@ type UpdateImeiConfigurationData struct {
 type DeleteImeiConfigurationData struct {
 	ID        uuid.UUID `json:"id"`
 	ProjectId uuid.UUID `json:"projectId"`
+	DeletedBy string    `json:"deletedBy"`
 }
 
 type GetImeiConfigurationData struct {

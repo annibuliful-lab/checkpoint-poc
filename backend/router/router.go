@@ -3,6 +3,7 @@ package router
 import (
 	"checkpoint/middleware"
 	"checkpoint/modules/authentication"
+	imeiconfiguration "checkpoint/modules/imei-configuration"
 	imsiconfiguration "checkpoint/modules/imsi-configuration"
 	"checkpoint/modules/project"
 	projectRole "checkpoint/modules/project-role"
@@ -56,13 +57,23 @@ func Router(app *iris.Application) {
 	}
 
 	imsiConfigurationApi := app.Party("/imsi-configurations")
-	projectApi.Use(middleware.AuthMiddleware())
+	imsiConfigurationApi.Use(middleware.AuthMiddleware())
 	{
 		imsiConfigurationApi.Post("/", imsiconfiguration.CreateImsiConfigurationController)
 		imsiConfigurationApi.Get("/", imsiconfiguration.GetImsiConfigurationsController)
 		imsiConfigurationApi.Patch("/{id:uuid}", imsiconfiguration.UpdateImsiConfigurationController)
 		imsiConfigurationApi.Delete("/{id:uuid}", imsiconfiguration.DeleteImsiConfigurationByIdController)
 		imsiConfigurationApi.Get("/{id:uuid}", imsiconfiguration.GetImsiConfigurationController)
+	}
+
+	imeiConfigurationApi := app.Party("/imei-configurations")
+	imeiConfigurationApi.Use(middleware.AuthMiddleware())
+	{
+		imeiConfigurationApi.Post("/", imeiconfiguration.CreateImeiConfigurationController)
+		imeiConfigurationApi.Patch("/{id:uuid}", imeiconfiguration.UpdateImeiConfigurationController)
+		imeiConfigurationApi.Delete("/{id:uuid}", imeiconfiguration.DeleteImeiConfigurationController)
+		imeiConfigurationApi.Get("/{id:uuid}", imeiconfiguration.GetImeiConfigurationByIdController)
+		imeiConfigurationApi.Get("/", imeiconfiguration.GetImeiConfigurationsController)
 	}
 
 }
