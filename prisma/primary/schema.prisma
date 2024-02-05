@@ -12,6 +12,13 @@ datasource db {
   url      = env("PRIMARY_DATABASE_URL")
 }
 
+enum ImageType {
+  FRONT
+  REAR
+  DRIVER
+  LICENSE_PLATE
+}
+
 enum DeviceStatus {
   ONLINE
   OFFLINE
@@ -121,6 +128,7 @@ model Project {
   createdAt                  DateTime                    @default(now())
   updatedAt                  DateTime?
   ConfigLineNotify           ConfigLineNotify[]
+  Tags                       Tag[]
 
   @@unique([title])
   @@map("project")
@@ -155,25 +163,49 @@ model ProjectRolePermission {
 }
 
 model ProjectAccount {
-  id        String      @id @db.Uuid
-  projectId String      @db.Uuid
-  project   Project     @relation(fields: [projectId], references: [id])
-  accountId String      @db.Uuid
-  account   Account     @relation(fields: [accountId], references: [id])
-  roleId    String      @db.Uuid
-  role      ProjectRole @relation(fields: [roleId], references: [id])
-  isActive  Boolean     @default(true)
-  firstname String?
-  lastname  String?
-  msisdn    String?
-  createdBy String
-  updatedBy String?
-  deletedBy String?
-  deletedAt DateTime?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime?
+  id                String              @id @db.Uuid
+  projectId         String              @db.Uuid
+  project           Project             @relation(fields: [projectId], references: [id])
+  accountId         String              @db.Uuid
+  account           Account             @relation(fields: [accountId], references: [id])
+  roleId            String              @db.Uuid
+  role              ProjectRole         @relation(fields: [roleId], references: [id])
+  isActive          Boolean             @default(true)
+  firstname         String?
+  lastname          String?
+  msisdn            String?
+  createdBy         String
+  updatedBy         String?
+  deletedBy         String?
+  deletedAt         DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime?
+  stationSupervisor stationSupervisor[]
 
   @@map("project_account")
+}
+
+model Tag {
+  id                          String                     @id @db.Uuid
+  project                     Project                    @relation(fields: [projectId], references: [id])
+  projectId                   String                     @db.Uuid
+  title                       String
+  createdBy                   String
+  updatedBy                   String?
+  deletedBy                   String?
+  deletedAt                   DateTime?
+  createdAt                   DateTime                   @default(now())
+  updatedAt                   DateTime?
+  ImsiConfiguration           ImsiConfiguration?         @relation(fields: [imsiConfigurationId], references: [id])
+  imsiConfigurationId         String?                    @db.Uuid
+  ImeiConfiguration           ImeiConfiguration?         @relation(fields: [imeiConfigurationId], references: [id])
+  imeiConfigurationId         String?                    @db.Uuid
+  MobileDeviceConfiguration   MobileDeviceConfiguration? @relation(fields: [mobileDeviceConfigurationId], references: [id])
+  mobileDeviceConfigurationId String?                    @db.Uuid
+  StationLocation             StationLocation?           @relation(fields: [stationLocationId], references: [id])
+  stationLocationId           String?                    @db.Uuid
+  LicensePlateConfiguration   LicensePlateConfiguration? @relation(fields: [licensePlateConfigurationId], references: [id])
+  licensePlateConfigurationId String?                    @db.Uuid
 }
 
 model ImsiConfiguration {
@@ -186,7 +218,7 @@ model ImsiConfiguration {
   mnc                       String                      @db.VarChar(3)
   mcc                       String                      @db.VarChar(3)
   label                     DevicePermittedLabel        @default(NONE)
-  tags                      String[]
+  tags                      Tag[]
   priority                  BlacklistPriority           @default(NORMAL)
   createdBy                 String
   updatedBy                 String?
@@ -209,7 +241,7 @@ model ImeiConfiguration {
   imei                      String                      @db.VarChar(24)
   label                     DevicePermittedLabel        @default(NONE)
   priority                  BlacklistPriority           @default(NORMAL)
-  tags                      String[]
+  tags                      Tag[]
   createdBy                 String
   updatedBy                 String?
   deletedBy                 String?
@@ -227,7 +259,7 @@ model MobileDeviceConfiguration {
   projectId                    String               @db.Uuid
   project                      Project              @relation(fields: [projectId], references: [id])
   title                        String
-  tags                         String[]
+  tags                         Tag[]
   referenceImsiConfigurationId String               @db.Uuid
   referenceImsi                ImsiConfiguration    @relation(fields: [referenceImsiConfigurationId], references: [id])
   referenceImeiConfigurationId String               @db.Uuid
@@ -241,7 +273,7 @@ model MobileDeviceConfiguration {
   createdAt                    DateTime             @default(now())
   updatedAt                    DateTime?
 
-  @@index([tags], type: Gin)
+  // @@index([tags], type: Gin)
   @@index([title(ops: raw("gin_trgm_ops"))], type: Gin)
   @@map("mobile_device_configuration")
 }
@@ -252,7 +284,7 @@ model StationLocation {
   project                    Project                      @relation(fields: [projectId], references: [id])
   title                      String
   description                String?
-  tags                       String[]
+  tags                       Tag[]
   latitude                   Decimal                      @db.Decimal(8, 6)
   longtitude                 Decimal                      @db.Decimal(9, 6)
   createdBy                  String
@@ -269,10 +301,31 @@ model StationLocation {
   currentHealthCheckId       String?                      @db.Uuid
   currentHealthCheck         StationHealthCheckActivity?  @relation(name: "current", fields: [currentHealthCheckId], references: [id])
   StationDevice              StationDevice[]
+  stationSupervisor          stationSupervisor[]
 
-  @@index([tags], type: Gin)
+  // @@index([tags], type: Gin)
   @@index([title(ops: raw("gin_trgm_ops"))], type: Gin)
   @@map("station_location")
+}
+
+model stationSupervisor {
+  id                String          @id @db.Uuid
+  firstname         String
+  lastname          String
+  msisdn            String
+  isExistAccount    Boolean         @default(false)
+  projectAccount    ProjectAccount? @relation(fields: [projectAccountId], references: [id])
+  projectAccountId  String          @db.Uuid
+  stationLocation   StationLocation @relation(fields: [stationLocationId], references: [id])
+  stationLocationId String          @db.Uuid
+  createdBy         String
+  createdAt         DateTime
+  updatedBy         String?
+  updatedAt         DateTime?
+  startDateTime     DateTime
+  endDateTime       DateTime
+
+  @@map("station_supervisor")
 }
 
 model StationDevice {
@@ -322,7 +375,7 @@ model LicensePlateConfiguration {
   number            String               @db.VarChar(24)
   province          String
   country           String?
-  tags              String[]
+  tags              Tag[]
   label             DevicePermittedLabel @default(NONE)
   blacklistPriority BlacklistPriority    @default(NORMAL)
   createdBy         String
@@ -363,20 +416,21 @@ model Vehicle {
 }
 
 model VehicleLicensePlate {
-  vehicleId String               @id @db.Uuid
-  vehicle   Vehicle              @relation(fields: [vehicleId], references: [id])
+  vehicleId String                @id @db.Uuid
+  vehicle   Vehicle               @relation(fields: [vehicleId], references: [id])
   tags      String[]
-  prefix    String               @db.VarChar(4)
-  number    String               @db.VarChar(8)
-  province  String               @db.VarChar(32)
+  prefix    String?               @db.VarChar(4)
+  number    String?               @db.VarChar(8)
+  province  String?               @db.VarChar(32)
   country   String?
-  label     DevicePermittedLabel @default(NONE)
-  priority  BlacklistPriority    @default(NORMAL)
+  label     DevicePermittedLabel? @default(NONE)
+  priority  BlacklistPriority?    @default(NORMAL)
+  s3Key     String?
   createdBy String
   updatedBy String?
   deletedBy String?
   deletedAt DateTime?
-  createdAt DateTime             @default(now())
+  createdAt DateTime              @default(now())
   updatedAt DateTime?
 
   @@index([prefix])
@@ -389,6 +443,7 @@ model VehicleImage {
   id        String    @id @db.Uuid
   vehicleId String    @db.Uuid
   vehicle   Vehicle   @relation(fields: [vehicleId], references: [id])
+  type      ImageType
   s3Key     String
   createdBy String
   updatedBy String?
