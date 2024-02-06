@@ -1,0 +1,11 @@
+type Authentication {
+  token: String!
+  refreshToken: String!
+  userId: ID!
+}
+
+type Mutation {
+  signup(username: String!, password: String!): Account!
+
+  signin(username: String!, password: String!): Authentication!
+}

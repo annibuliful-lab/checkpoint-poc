@@ -3,15 +3,17 @@ import { getAuthenticatedClient } from './utils';
 
 export async function createProject() {
   const client = await getAuthenticatedClient({});
-  const response = await client.post('/projects', {
-    title: nanoid(),
+  const response = await client.mutation({
+    createProject: {
+      __scalar: true,
+      __args: {
+        title: nanoid(),
+      },
+    },
   });
 
-  const responseData = response.data;
-
   return {
-    id: responseData.data.id as string,
-    title: responseData.data.title as string,
-    message: responseData.message as string,
+    id: response.createProject.id,
+    title: response.createProject.title,
   };
 }

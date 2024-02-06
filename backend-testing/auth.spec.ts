@@ -3,71 +3,47 @@ import { httpClient } from './utils/constants';
 import {
   getAuthenticatedClient,
   getAuthenticatedClientWithRefreshToken,
+  graphqlClient,
 } from './utils/utils';
+import { Client } from './graphql/generated';
 
-describe('Auth', () => {
-  it('calls signout with token', async () => {
-    const client = await getAuthenticatedClient({});
-
-    const result = await client.post('/auth/signout');
-
-    expect(result.data.message).toEqual('success');
+describe('Authentication', () => {
+  let client: Client;
+  beforeAll(() => {
+    client = graphqlClient;
   });
 
-  it('calls signup', async () => {
-    const result = await httpClient.post('/auth/signup', {
-      username: nanoid(),
-      password: nanoid(),
-    });
-
-    expect(result.data.data.id).toBeDefined();
-    expect(result.data.data.createdAt).toBeDefined();
-    expect(result.data.data.updatedAt).toBeNull();
-  });
-
-  it('gets token with refresh token', async () => {
-    const { refreshToken } =
-      await getAuthenticatedClientWithRefreshToken();
-
-    const result = await httpClient.post(
-      '/auth/refresh-token',
-      null,
-      {
-        headers: {
-          Authorization: `Bearer ${refreshToken}`,
+  it('signup', async () => {
+    const username = nanoid();
+    const response = await client.mutation({
+      signup: {
+        id: true,
+        username: true,
+        __args: {
+          username,
+          password: '12345678',
         },
-      }
-    );
-    const responseData = result.data.data;
-
-    expect(responseData.userId).toBeDefined();
-    expect(responseData.token).toBeDefined();
-    expect(responseData.refreshToken).toBeDefined();
-    expect(result.data.message).toEqual('signed');
+      },
+    });
+    expect(response.signup.id).toBeDefined();
+    expect(response.signup.username).toEqual(username);
   });
 
-  it('throws error when call sigin API with random user and password', (done) => {
-    httpClient
-      .post('/auth/signin', {
-        username: nanoid(),
-        password: nanoid(),
-      })
-      .catch((error) => {
-        expect(error.response.data.message).toEqual(
-          'username or password is incorrect'
-        );
-        done();
-      });
-  });
-
-  it('gets authentication response when sigin with correct username and password', async () => {
-    const result = await httpClient.post('/auth/signin', {
-      username: 'userA1234',
-      password: '12345678',
+  it('signin', async () => {
+    const response = await client.mutation({
+      signin: {
+        __scalar: true,
+        __args: {
+          username: 'userA1234',
+          password: '12345678',
+        },
+      },
     });
 
-    expect(result.data.data.userId).toBeDefined();
-    expect(result.data.data.token).toBeDefined();
-    expect(result.data.data.refreshToken).toBeDefined();
+    expect(response.signin.refreshToken).toBeDefined();
+    expect(response.signin.token).toBeDefined();
+    expect(response.signin.userId).toEqual(
+      'af466ea9-04ba-432e-98e0-3b8787dcda41'
+    );
   });
 });

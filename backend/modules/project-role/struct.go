@@ -3,22 +3,47 @@ package projectRole
 import (
 	"checkpoint/.gen/checkpoint/public/model"
 	"checkpoint/utils"
-	"time"
 
 	"github.com/google/uuid"
+	"github.com/graph-gophers/graphql-go"
 )
 
+type ProjectRole struct {
+	Id        graphql.ID   `json:"id"`
+	ProjectId graphql.ID   `json:"projectId"`
+	Title     string       `json:"title"`
+	CreatedAt graphql.Time `json:"createdAt"`
+}
+
+type ProjectRolePermission struct {
+	Id      graphql.ID `json:"id"`
+	RoleId  graphql.ID `json:"roleId"`
+	Subject string     `json:"subject"`
+	Action  string     `json:"action"`
+}
+
+type CreateProjectRoleInput struct {
+	Title         string       `json:"title"`
+	PermissionIds []graphql.ID `json:"permissionIds"`
+}
+
+type UpdateProjectRoleInput struct {
+	Id            graphql.ID   `json:"id"`
+	Title         string       `json:"title"`
+	PermissionIds []graphql.ID `json:"permissionIds"`
+}
+
 type CreateProjectRoleData struct {
-	ProjectId     uuid.UUID `json:"projectId"`
-	Title         string    `json:"title"`
-	PermissionIds []string  `json:"permissionIds"`
+	ProjectId     uuid.UUID    `json:"projectId"`
+	Title         string       `json:"title"`
+	PermissionIds []graphql.ID `json:"permissionIds"`
 }
 
 type UpdateProjectRoleData struct {
-	ID            uuid.UUID `json:"id"`
-	ProjectId     uuid.UUID `json:"projectId"`
-	Title         string    `json:"string"`
-	PermissionIds []string  `json:"permissionIds"`
+	ID            uuid.UUID    `json:"id"`
+	ProjectId     uuid.UUID    `json:"projectId"`
+	Title         string       `json:"string"`
+	PermissionIds []graphql.ID `json:"permissionIds"`
 }
 
 type GetProjectRoleByIdData struct {
@@ -26,24 +51,22 @@ type GetProjectRoleByIdData struct {
 	ID        uuid.UUID `json:"id"`
 }
 
+type GetProjectRolesInput struct {
+	Search *string `json:"search"`
+	Limit  int32   `json:"limit"`
+	Skip   int32   `json:"skip"`
+}
+
 type GetProjectRolesData struct {
 	ProjectId  uuid.UUID `json:"projectId"`
-	Search     string    `json:"search"`
+	Search     *string   `json:"search"`
 	pagination utils.OffsetPagination
 }
 
 type DeleteProjectRoleData struct {
-	ProjectId uuid.UUID `json:"projectId"`
-	ID        uuid.UUID `json:"id"`
-}
-
-type ProjectRoleResponse struct {
-	ID          uuid.UUID            `json:"id"`
-	ProjectId   uuid.UUID            `json:"projectId"`
-	Title       string               `json:"title"`
-	CreatedAt   time.Time            `json:"createdAt"`
-	UpdatedAt   *time.Time           `json:"updatedAt"`
-	Permissions []PermissionResponse `json:"permissions"`
+	ProjectId uuid.UUID  `json:"projectId"`
+	ID        graphql.ID `json:"id"`
+	AccountId uuid.UUID  `json:"accountId"`
 }
 
 type PermissionResponse struct {

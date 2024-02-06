@@ -1,14 +1,18 @@
 package main
 
 import (
+	"log"
+
+	"checkpoint/auth"
 	"checkpoint/db"
-	"checkpoint/router"
+	"checkpoint/gql"
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
+	"github.com/graph-gophers/graphql-go"
+	"github.com/graph-gophers/graphql-go/relay"
 	"github.com/iris-contrib/middleware/cors"
 	"github.com/joho/godotenv"
 
@@ -16,7 +20,7 @@ import (
 )
 
 func main() {
-	err := godotenv.Load("../.env")
+	err := godotenv.Load("./.env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
@@ -32,8 +36,16 @@ func main() {
 	}))
 
 	app.Use(iris.Compression)
+	mergedSchema, err := os.ReadFile("generated.graphql")
 
-	router.Router(app)
+	if err != nil {
+		log.Fatal("Error loading graphql file")
+	}
+
+	opts := []graphql.SchemaOpt{graphql.UseFieldResolvers(), graphql.MaxParallelism(20), graphql.UseStringDescriptions(), graphql.Directives()}
+	schema := graphql.MustParseSchema(string(mergedSchema[:]), &gql.Resolver{}, opts...)
+
+	app.Post("/graphql", iris.FromStd(auth.AuthContext(&relay.Handler{Schema: schema})))
 
 	idleConnsClosed := make(chan struct{})
 

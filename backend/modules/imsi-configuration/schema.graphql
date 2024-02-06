@@ -1,0 +1,26 @@
+type ImsiConfiguration {
+  id: ID!
+  projectId: ID!
+  stationLocationId: ID!
+  imsi: String!
+  createdBy: String!
+  updatedBy: String!
+  createdAt: Time!
+  updatedAt: Time
+  label: String!
+  priority: String!
+  mcc: String!
+  mnc: String!
+  tags: [Tag!]!
+}
+
+type Mutation {
+  createImsiConfiguration(
+    imsi: String!
+    label: String!
+    priority: String!
+    mcc: String!
+    mnc: String!
+    tags: [String!]
+  ): ImsiConfiguration!
+}

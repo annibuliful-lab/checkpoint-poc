@@ -1,0 +1,58 @@
+scalar Time
+enum ImageType {
+  FRONT
+  REAR
+  DRIVER
+  LICENSE_PLATE
+}
+
+enum DeviceStatus {
+  ONLINE
+  OFFLINE
+}
+
+enum PermissionAction {
+  CREATE
+  UPDATE
+  DELETE
+  READ
+}
+
+enum BlacklistPriority {
+  WARNING
+  DANGER
+  NORMAL
+}
+
+enum DevicePermittedLabel {
+  WHITELIST
+  BLACKLIST
+  NONE
+}
+
+enum StationStatus {
+  ONLINE
+  OFFLINE
+  CLOSED
+  MAINTENANCE
+}
+
+enum RemarkState {
+  WHITELIST
+  BLACKLIST
+  IN_QUEUE
+  IN_PROGRESS
+  PASSED
+  WAITING
+  INVESTIGATING
+  SUSPICION
+}
+
+type DeleteOperation {
+  success: Boolean!
+}
+
+type offsetPagination {
+  skip: Int!
+  limit: Int!
+}

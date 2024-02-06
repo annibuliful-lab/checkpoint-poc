@@ -1,9 +1,11 @@
 package authentication
 
+import "github.com/graph-gophers/graphql-go"
+
 type Authentication struct {
-	Token        string `json:"token"`
-	RefreshToken string `json:"refreshToken"`
-	UserID       string `json:"userId"`
+	Token        string     `json:"token"`
+	RefreshToken string     `json:"refreshToken"`
+	UserId       graphql.ID `json:"userId"`
 }
 
 type SignUpData struct {

@@ -13,3 +13,9 @@ type VerifyProjectRoleData struct {
 	AccountId uuid.UUID `json:"accountId"`
 	ProjectId uuid.UUID `json:"projectId"`
 }
+
+type AuthenticationHeader struct {
+	Authorization string `json:"authorization"`
+	ProjectId     string `json:"projectId"`
+	Token         string `json:"token"`
+}

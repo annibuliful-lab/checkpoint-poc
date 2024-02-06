@@ -5,14 +5,15 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "backend:run": "cd backend && go run main.go",
+    "backend:run": "pnpm run genql & go run backend/main.go",
     "backend:db-primary-generate": "cd backend && rm -rf .gen && jet -source=postgres -dsn=\"postgres://checkpoint:checkpoint@localhost:5432/checkpoint?sslmode=disable\" -path=./.gen && rm -rf ./.gen/checkpoint/public/table/table_use_schema.go",
     "backend:build": "cd backend && go build",
     "backend:test": "cd backend-testing && jest",
     "frontend:dev": "cd frontend && pnpm run dev",
     "db-primary:migrate": "prisma migrate dev --schema prisma/primary/schema.prisma && pnpm run backend:db-primary-generate",
     "db-primary:generate": "prisma generate --schema prisma/primary/schema.prisma",
-    "db-primary:seed": "ts-node prisma/primary/seed"
+    "db-primary:seed": "ts-node prisma/primary/seed",
+    "genql": "go run tools/merge-gql/main.go && ts-node -r tsconfig-paths/register tools/genql"
   },
   "keywords": [],
   "author": "",
@@ -32,6 +33,7 @@
   },
   "dependencies": {
     "@babel/preset-env": "7.23.9",
+    "@genql/cli": "^6.3.2",
     "@prisma/client": "5.9.1",
     "@types/uuid": "9.0.8",
     "argon2": "0.31.2",

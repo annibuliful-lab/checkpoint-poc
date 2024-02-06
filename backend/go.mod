@@ -6,11 +6,13 @@ require (
 	github.com/go-jet/jet/v2 v2.10.1
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/google/uuid v1.5.0
+	github.com/graph-gophers/graphql-go v1.5.1-0.20231220101041-a3a932cfa9a7
 	github.com/iris-contrib/middleware/cors v0.0.0-20240111010557-e34016a4d6ee
 	github.com/joho/godotenv v1.5.1
 	github.com/kataras/iris/v12 v12.2.9
 	github.com/lib/pq v1.10.9
 	github.com/minio/minio-go/v7 v7.0.66
+	github.com/mununki/gqlmerge v0.2.12
 	github.com/redis/go-redis/v9 v9.4.0
 	github.com/samber/lo v1.39.0
 	github.com/thanhpk/randstr v1.0.6

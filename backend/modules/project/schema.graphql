@@ -1,0 +1,18 @@
+type Project {
+  id: ID!
+  title: String!
+  createdBy: ID!
+  createdAt: Time!
+  updatedBy: ID
+  updatedAt: Time
+}
+
+type Mutation {
+  createProject(title: String!): Project!
+  updateProject(id: ID!, title: String!): Project!
+  deleteProject(id: ID!): DeleteOperation!
+}
+
+type Query {
+  getProjectById(id: ID!): Project!
+}

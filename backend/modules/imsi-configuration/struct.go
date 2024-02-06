@@ -6,11 +6,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/graph-gophers/graphql-go"
 )
 
-type ImsiConfigurationResponse struct {
-	ID                uuid.UUID                  `json:"id"`
-	ProjectId         uuid.UUID                  `json:"projectId"`
+type Imsiconfiguration struct {
+	ID                graphql.ID                 `json:"id"`
+	ProjectId         graphql.ID                 `json:"projectId"`
 	Imsi              string                     `json:"imsi"`
 	CreatedBy         string                     `json:"createdBy"`
 	UpdatedBy         *string                    `json:"updatedBy"`
@@ -21,14 +22,23 @@ type ImsiConfigurationResponse struct {
 	StationLocationId uuid.UUID                  `json:"stationLocationId"`
 	Mcc               string                     `json:"mcc"`
 	Mnc               string                     `json:"mnc"`
-	Tags              []string                   `json:"tags"`
+}
+
+type CreateImeiConfigurationInput struct {
+	StationLocationId graphql.ID `json:"stationLocationId"`
+	Imsi              string     `json:"imsi"`
+	PermittedLabel    string     `json:"permittedLabel"`
+	Priority          string     `json:"priority"`
+	Mcc               string     `json:"mcc"`
+	Mnc               string     `json:"mnc"`
+	Tags              []string   `jcon:"tags"`
 }
 
 type CreateImsiConfigurationData struct {
 	ProjectId         uuid.UUID `json:"projectId"`
 	Imsi              string    `json:"imsi"`
 	CreatedBy         string    `json:"createdBy"`
-	Label             string    `json:"label"`
+	PermittedLabel    string    `json:"label"`
 	Priority          string    `json:"priority"`
 	StationLocationId uuid.UUID `json:"stationLocationId"`
 	Tags              []string  `json:"tags"`
