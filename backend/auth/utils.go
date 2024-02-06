@@ -1,0 +1,309 @@
+package auth
+
+import (
+	"checkpoint/.gen/checkpoint/public/model"
+	"checkpoint/.gen/checkpoint/public/table"
+	"checkpoint/db"
+	"checkpoint/jwt"
+	"checkpoint/utils"
+	"context"
+	"encoding/json"
+	"log"
+	"net/http"
+
+	pg "github.com/go-jet/jet/v2/postgres"
+	"github.com/google/uuid"
+	"github.com/samber/lo"
+)
+
+func VerifyAuthentication(headers AuthenticationHeader) {
+	ctx := context.Background()
+	dbClient := db.GetPrimaryClient()
+	redisClient := db.GetRedisClient()
+	payload, err := jwt.VerifyToken(headers.Token)
+
+	if err != nil && err.Error() == utils.TokenExpire.Error() {
+
+		err = redisClient.
+			Del(ctx, headers.Token).
+			Err()
+
+		if err != nil {
+			log.Println("redis-delete-cache-error", err.Error())
+		}
+
+		updateStmt := table.SessionToken.
+			UPDATE(table.SessionToken.Revoke).
+			MODEL(model.SessionToken{Revoke: true}).
+			WHERE(table.SessionToken.Token.EQ(pg.String(headers.Token)))
+
+		_, err := updateStmt.Exec(dbClient)
+		if err != nil {
+			log.Println("update-session-token-error", err.Error())
+		}
+
+		// ctx.StatusCode(iris.StatusForbidden)
+		// ctx.JSON(iris.Map{
+		// 	"message": "Token expired",
+		// })
+		return
+	}
+
+	if err != nil {
+		log.Println("jwt-error", err.Error())
+		// ctx.StatusCode(iris.StatusForbidden)
+		// ctx.JSON(iris.Map{
+		// 	"message": err.Error(),
+		// })
+		return
+	}
+
+	result, err := redisClient.Get(ctx, utils.GetAuthToken(headers.Authorization)).Result()
+
+	if err != nil {
+		log.Println("Cache-get-error", err.Error())
+	}
+
+	if result != "" {
+		var cacheAccount utils.AuthorizationData
+
+		err = json.Unmarshal([]byte(result), &cacheAccount)
+		if err != nil {
+			log.Println("Json-cache-error", err.Error())
+		}
+
+		if cacheAccount.AccountId != payload.AccountId {
+			log.Println("Account-mismatch")
+			// ctx.StatusCode(iris.StatusForbidden)
+			// ctx.JSON(iris.Map{
+			// 	"message": utils.ForbiddenOperation.Error(),
+			// })
+			return
+		}
+
+		if !cacheAccount.IsActive {
+			// ctx.StatusCode(iris.StatusForbidden)
+			// ctx.JSON(iris.Map{
+			// 	"message": utils.ContactOwner,
+			// })
+			return
+		}
+
+		// ctx.Next()
+		return
+	}
+
+	var account struct {
+		model.AccountConfiguration
+	}
+
+	selectAccountStmt := pg.
+		SELECT(table.AccountConfiguration.AllColumns).
+		FROM(table.AccountConfiguration).
+		WHERE(table.AccountConfiguration.AccountId.EQ(pg.UUID(payload.AccountId))).
+		LIMIT(1)
+
+	err = selectAccountStmt.Query(dbClient, &account)
+
+	if err != nil {
+		log.Println("select-account-error", err.Error())
+		// ctx.StatusCode(iris.StatusInternalServerError)
+		// ctx.JSON(iris.Map{
+		// 	"message": utils.InternalServerError,
+		// })
+		return
+	}
+
+	if !account.IsActive {
+		// ctx.StatusCode(iris.StatusForbidden)
+		// ctx.JSON(iris.Map{
+		// 	"message": utils.ContactOwner,
+		// })
+		return
+	}
+
+	jsonData, err := json.Marshal(utils.AuthorizationData{
+		AccountId: payload.AccountId,
+		IsActive:  account.IsActive,
+	})
+	if err != nil {
+		log.Println("Json-error", err.Error())
+	}
+
+	err = redisClient.Set(ctx, utils.GetAuthToken(headers.Authorization), jsonData, 0).Err()
+	if err != nil {
+		log.Println("Cache-error", err.Error())
+	}
+
+}
+
+func VerifyAuthorization(ctx context.Context, headerContext http.Header, permissionData utils.AuthorizationPermissionData) {
+	headers := GetAuthenticationHeaders(headerContext)
+
+	if headers.Token == "" || headers.ProjectId == "" {
+		// ctx.StatusCode(iris.StatusForbidden)
+		// ctx.JSON(iris.Map{
+		//     "message": utils.InvalidToken.Error(),
+		// })
+		return
+	}
+
+	payload, _ := jwt.VerifyToken(headers.Token)
+	key := "accountId:" + payload.AccountId.String() + "," + "projectId:" + headers.ProjectId
+
+	// Check if the authorization data is present in the cache
+	result, err := db.GetRedisClient().Get(ctx, key).Result()
+	if err == nil && result != "" {
+		handleCachedAuthorization(ctx, result, permissionData)
+		return
+	}
+
+	projectId, err := uuid.Parse(headers.ProjectId)
+	if err != nil {
+		// ctx.StatusCode(iris.StatusForbidden)
+		// ctx.JSON(iris.Map{
+		//     "message": "project id is required",
+		// })
+		return
+	}
+
+	projectAccount, err := getProjectAccount(payload.AccountId, projectId)
+	if err != nil {
+		log.Println("get-project-account-error", err.Error())
+		// ctx.StatusCode(iris.StatusForbidden)
+		// ctx.JSON(iris.Map{
+		//     "message": utils.ForbiddenOperation.Error(),
+		// })
+		return
+	}
+
+	accountPermissions, err := getAccountPermissions(projectAccount.ProjectRole.ID)
+	if err != nil {
+		// ctx.StatusCode(iris.StatusInternalServerError)
+		// ctx.JSON(iris.Map{
+		//     "message": utils.InternalServerError.Error(),
+		// })
+		return
+	}
+
+	if !hasPermission(accountPermissions, permissionData) {
+		// ctx.StatusCode(iris.StatusForbidden)
+		// ctx.JSON(iris.Map{
+		//     "message": utils.ForbiddenOperation.Error(),
+		// })
+		return
+	}
+
+	cacheAuthorization(ctx, key, payload.AccountId, projectId, accountPermissions)
+
+}
+
+func handleCachedAuthorization(ctx context.Context, result string, permissionData utils.AuthorizationPermissionData) {
+	var data utils.AuthorizationWithPermissionsData
+	if err := json.Unmarshal([]byte(result), &data); err != nil {
+		log.Println("Cache-error", err.Error())
+		return
+	}
+
+	_, match := lo.Find(data.Permissions, func(el utils.AuthorizationPermissionData) bool {
+		return el.PermissionAction == permissionData.PermissionAction && el.PermissionSubject == permissionData.PermissionSubject
+	})
+
+	if !match {
+		// ctx.StatusCode(iris.StatusForbidden)
+		// ctx.JSON(iris.Map{
+		// 	"message": utils.ForbiddenOperation.Error(),
+		// })
+		return
+	}
+
+}
+
+func getProjectAccount(accountID uuid.UUID, projectID uuid.UUID) (struct {
+	model.ProjectAccount
+	model.ProjectRole
+}, error) {
+	dbClient := db.GetPrimaryClient()
+	var projectAccount struct {
+		model.ProjectAccount
+		model.ProjectRole
+	}
+
+	selectProjectAccountStmt := pg.
+		SELECT(
+			table.ProjectAccount.AccountId,
+			table.ProjectRole.ID,
+			table.ProjectRole.Title,
+		).
+		FROM(
+			table.ProjectAccount.
+				INNER_JOIN(table.ProjectRole, table.ProjectRole.ID.EQ(table.ProjectAccount.RoleId)),
+		).
+		WHERE(
+			table.ProjectAccount.AccountId.EQ(pg.UUID(accountID)).
+				AND(table.ProjectAccount.ProjectId.EQ(pg.UUID(projectID))))
+
+	err := selectProjectAccountStmt.Query(dbClient, &projectAccount)
+	return projectAccount, err
+}
+
+func getAccountPermissions(roleID uuid.UUID) ([]struct{ model.Permission }, error) {
+	dbClient := db.GetPrimaryClient()
+	var accountPermissions []struct{ model.Permission }
+
+	selectProjectAccountPermissionsStmt := pg.
+		SELECT(table.Permission.Action, table.Permission.Subject, table.Permission.ID).
+		FROM(
+			table.ProjectRolePermission.
+				INNER_JOIN(table.Permission, table.Permission.ID.EQ(table.ProjectRolePermission.PermissionId)),
+		).WHERE(table.ProjectRolePermission.RoleId.EQ(pg.UUID(roleID)))
+
+	err := selectProjectAccountPermissionsStmt.Query(dbClient, &accountPermissions)
+
+	return accountPermissions, err
+}
+
+func hasPermission(accountPermissions []struct{ model.Permission }, permissionData utils.AuthorizationPermissionData) bool {
+	_, match := lo.Find(accountPermissions, func(el struct{ model.Permission }) bool {
+		return el.Action == permissionData.PermissionAction && el.Subject == permissionData.PermissionSubject
+	})
+	return match
+}
+
+func cacheAuthorization(ctx context.Context, key string, accountID uuid.UUID, projectID uuid.UUID, accountPermissions []struct{ model.Permission }) {
+	data := utils.AuthorizationWithPermissionsData{
+		AccountId: accountID,
+		ProjectId: projectID,
+		Permissions: lo.Map(accountPermissions, func(item struct{ model.Permission }, index int) utils.AuthorizationPermissionData {
+			return utils.AuthorizationPermissionData{
+				PermissionSubject: item.Subject,
+				PermissionAction:  item.Action,
+			}
+		}),
+	}
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		log.Println("Json-error", err.Error())
+		return
+	}
+
+	err = db.GetRedisClient().Set(ctx, key, jsonData, 0).Err()
+	if err != nil {
+		log.Println("Cache-error", err.Error())
+	}
+}
+
+func GetAuthorizationContext(ctx context.Context) AuthorizationContext {
+	return AuthorizationContext{
+		Token:     ctx.Value("token").(string),
+		ProjectId: ctx.Value("projectId").(string),
+		AccountId: ctx.Value("accountId").(string),
+	}
+}
+
+type AuthorizationContext struct {
+	Token     string `json:"token"`
+	ProjectId string `json:"projectId"`
+	AccountId string `json:"accountId"`
+}

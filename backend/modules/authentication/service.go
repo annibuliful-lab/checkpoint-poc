@@ -14,12 +14,15 @@ import (
 	"time"
 
 	pg "github.com/go-jet/jet/v2/postgres"
+	"github.com/graph-gophers/graphql-go"
 	"github.com/thanhpk/randstr"
 
 	"github.com/google/uuid"
 )
 
-func SignInService(data SignInData) (*SigninResponse, int, error) {
+type AuthenticationService struct{}
+
+func (AuthenticationService) SignIn(data SignInData) (*Authentication, string, error) {
 	dbClient := db.GetPrimaryClient()
 	redisClient := db.GetRedisClient()
 
@@ -43,27 +46,27 @@ func SignInService(data SignInData) (*SigninResponse, int, error) {
 
 	if err != nil && db.HasNoRow(err) {
 		log.Println(err.Error())
-		return nil, 404, errors.New("username or password is incorrect")
+		return nil, "username or password is incorrect", errors.New("username or password is incorrect")
 	}
 
 	if err != nil {
 		log.Println(err.Error())
-		return nil, 500, utils.InternalServerError
+		return nil, utils.InternalServerError.Error(), utils.InternalServerError
 	}
 
 	match, err := comparePasswordAndHash(data.Password, account.Password)
 
 	if err != nil {
 		log.Println(err.Error())
-		return nil, 401, errors.New("username or password is incorrect")
+		return nil, "username or password is incorrect", errors.New("username or password is incorrect")
 
 	}
 	if !match {
-		return nil, 401, errors.New("username or password is incorrect")
+		return nil, "username or password is incorrect", errors.New("username or password is incorrect")
 	}
 
 	if !account.AccountConfiguration.IsActive {
-		return nil, 403, errors.New("please contact project owner")
+		return nil, "please contact project owner", errors.New("please contact project owner")
 	}
 
 	token, err := jwt.SignToken(jwt.SignedTokenParams{
@@ -73,7 +76,7 @@ func SignInService(data SignInData) (*SigninResponse, int, error) {
 
 	if err != nil {
 		log.Println(err.Error())
-		return nil, 500, utils.SignTokenFailed
+		return nil, utils.InternalServerError.Error(), utils.SignTokenFailed
 	}
 
 	refreshToken, err := jwt.SignRefreshToken(jwt.SignedTokenParams{
@@ -83,14 +86,14 @@ func SignInService(data SignInData) (*SigninResponse, int, error) {
 
 	if err != nil {
 		log.Println(err.Error())
-		return nil, 500, utils.SignTokenFailed
+		return nil, utils.InternalServerError.Error(), utils.SignTokenFailed
 	}
 
 	tx, err := dbClient.Begin()
 
 	if err != nil {
 		log.Println("init-db-tx", err.Error())
-		return nil, 500, utils.InternalServerError
+		return nil, utils.InternalServerError.Error(), utils.InternalServerError
 	}
 
 	insertSessionTokenStmt := SessionToken.
@@ -113,7 +116,7 @@ func SignInService(data SignInData) (*SigninResponse, int, error) {
 	if err != nil {
 		log.Println("insert-error: ", err.Error())
 		tx.Rollback()
-		return nil, 500, utils.InternalServerError
+		return nil, utils.InternalServerError.Error(), utils.InternalServerError
 	}
 
 	jsonData, err := json.Marshal(utils.AuthorizationData{
@@ -124,7 +127,7 @@ func SignInService(data SignInData) (*SigninResponse, int, error) {
 	if err != nil {
 		log.Println("json-error: ", err.Error())
 		tx.Rollback()
-		return nil, 500, utils.InternalServerError
+		return nil, utils.InternalServerError.Error(), utils.InternalServerError
 	}
 
 	err = redisClient.Set(ctx, token, jsonData, time.Minute*15).Err()
@@ -132,19 +135,19 @@ func SignInService(data SignInData) (*SigninResponse, int, error) {
 	if err != nil {
 		log.Println("redis-error: ", err.Error())
 		tx.Rollback()
-		return nil, 500, utils.InternalServerError
+		return nil, utils.InternalServerError.Error(), utils.InternalServerError
 	}
 
 	tx.Commit()
 
-	return &SigninResponse{
-		UserId:       account.ID.String(),
+	return &Authentication{
+		UserId:       graphql.ID(account.ID.String()),
 		Token:        token,
 		RefreshToken: refreshToken,
-	}, 200, nil
+	}, "Signin", nil
 }
 
-func SignOutService(token string) error {
+func (AuthenticationService) SignOut(token string) error {
 	dbClient := db.GetPrimaryClient()
 	redisClient := db.GetRedisClient()
 	ctx := context.Background()
@@ -174,7 +177,7 @@ func SignOutService(token string) error {
 	return nil
 }
 
-func SignUpService(data SignUpData) (model.Account, int, error) {
+func (AuthenticationService) SignUp(data SignUpData) (model.Account, string, error) {
 	dbClient := db.GetPrimaryClient()
 	ctx := context.Background()
 	hash, _ := hashPassword(data.Password)
@@ -182,16 +185,17 @@ func SignUpService(data SignUpData) (model.Account, int, error) {
 
 	if err != nil {
 		log.Println("init-db-tx", err.Error())
-		return model.Account{}, 500, utils.InternalServerError
+		return model.Account{}, utils.InternalServerError.Error(), utils.InternalServerError
 	}
 
 	accountResult := model.Account{}
 	insertAccountStmt := Account.
-		INSERT(Account.ID, Account.Username, Account.Password).
+		INSERT(Account.ID, Account.Username, Account.Password, Account.CreatedBy).
 		MODEL(model.Account{
-			ID:       uuid.New(),
-			Username: data.Username,
-			Password: hash,
+			ID:        uuid.New(),
+			Username:  data.Username,
+			Password:  hash,
+			CreatedBy: "System",
 		}).
 		RETURNING(Account.AllColumns)
 
@@ -201,10 +205,10 @@ func SignUpService(data SignUpData) (model.Account, int, error) {
 		tx.Rollback()
 
 		if strings.Contains(err.Error(), "duplicate") {
-			return model.Account{}, 409, errors.New("username is already exists")
+			return model.Account{}, utils.DataConflict.Error(), errors.New("username is already exists")
 		}
 
-		return model.Account{}, 500, utils.InternalServerError
+		return model.Account{}, utils.InternalServerError.Error(), utils.InternalServerError
 	}
 
 	accountConfiguration := model.AccountConfiguration{}
@@ -219,15 +223,15 @@ func SignUpService(data SignUpData) (model.Account, int, error) {
 	err = insertAccountConfigurationStmt.QueryContext(ctx, tx, &accountConfiguration)
 	if err != nil {
 		tx.Rollback()
-		return model.Account{}, 500, utils.InternalServerError
+		return model.Account{}, utils.InternalServerError.Error(), utils.InternalServerError
 	}
 
 	tx.Commit()
 
-	return accountResult, 200, err
+	return accountResult, "Signup", nil
 }
 
-func GetAuthenticationTokenByRefreshToken(data RefreshTokenData) (*SigninResponse, int, error) {
+func (AuthenticationService) GetAuthenticationTokenByRefreshToken(data RefreshTokenData) (*SigninResponse, int, error) {
 	dbClient := db.GetPrimaryClient()
 	redisClient := db.GetRedisClient()
 

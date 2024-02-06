@@ -38,7 +38,7 @@ export async function seedUsers() {
             create: {
               id: v4(),
               projectId: '246bb085-8ccc-4def-ac78-dc2ad5c7760b',
-              title: 'Admin',
+              title: 'Owner',
             },
           },
           project: {

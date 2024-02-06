@@ -5,7 +5,8 @@ WORKDIR /app
 
 # Download Go modules
 COPY go.mod go.sum ./
-COPY ../.env ../.env
+COPY ../generated.graphql ./
+COPY ../.env ./.env
 RUN go mod download
 
 # https://docs.docker.com/engine/reference/builder/#copy

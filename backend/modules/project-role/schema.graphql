@@ -1,0 +1,39 @@
+type ProjectRole {
+  id: ID!
+  projectId: ID!
+  title: String!
+  createdAt: Time!
+  permissions: [ProjectRolePermission!]!
+}
+
+type ProjectRolePermission {
+  id: ID!
+  roleId: ID!
+  subject: String!
+  action: String!
+}
+
+type Mutation {
+  createProjectRole(
+    title: String!
+    permissionIds: [ID!]!
+  ): ProjectRole!
+
+  updateProjectRole(
+    id: ID!
+    title: String!
+    permissionIds: [ID!]!
+  ): ProjectRole!
+
+  deleteProjectRole(id: ID!): DeleteOperation!
+}
+
+type Query {
+  getProjectRoleById(id: ID!): ProjectRole!
+
+  getProjectRoles(
+    search: String
+    skip: Int!
+    limit: Int!
+  ): [ProjectRole!]!
+}

@@ -18,6 +18,9 @@ frontend/src/generated
 *.test
 postgres_data
 neo4j_data
+backend-testing/graphql/generated
+tools/genql/generated.graphql
+generated.graphql
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out

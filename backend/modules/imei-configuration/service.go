@@ -2,7 +2,7 @@ package imeiconfiguration
 
 import (
 	"checkpoint/.gen/checkpoint/public/model"
-	. "checkpoint/.gen/checkpoint/public/table"
+	table "checkpoint/.gen/checkpoint/public/table"
 	"checkpoint/db"
 	"checkpoint/utils"
 	"log"
@@ -18,14 +18,14 @@ import (
 func DeleteImeiConfiguration(data DeleteImeiConfigurationData) (int, error) {
 	dbClient := db.GetPrimaryClient()
 	now := time.Now()
-	softDeleteStmt := ImeiConfiguration.
-		UPDATE(ImeiConfiguration.DeletedBy, ImeiConfiguration.DeletedAt).
+	softDeleteStmt := table.ImeiConfiguration.
+		UPDATE(table.ImeiConfiguration.DeletedBy, table.ImeiConfiguration.DeletedAt).
 		MODEL(model.ImeiConfiguration{
 			DeletedAt: &now,
 			DeletedBy: &data.DeletedBy,
 		}).
-		WHERE(ImeiConfiguration.ID.EQ(pg.UUID(data.ID)).
-			AND(ImeiConfiguration.ProjectId.EQ(pg.UUID(data.ProjectId))))
+		WHERE(table.ImeiConfiguration.ID.EQ(pg.UUID(data.ID)).
+			AND(table.ImeiConfiguration.ProjectId.EQ(pg.UUID(data.ProjectId))))
 
 	_, err := softDeleteStmt.Exec(dbClient)
 
@@ -44,22 +44,22 @@ func DeleteImeiConfiguration(data DeleteImeiConfigurationData) (int, error) {
 func GetImeiConfigurations(data GetImeiConfigurationsData) ([]ImeiConfigurationResponse, int, error) {
 	dbClient := db.GetPrimaryClient()
 	conditions := pg.Bool(true).
-		AND(ImeiConfiguration.ProjectId.EQ(pg.UUID(data.ProjectId))).
-		AND(ImeiConfiguration.DeletedAt.IS_NULL())
+		AND(table.ImeiConfiguration.ProjectId.EQ(pg.UUID(data.ProjectId))).
+		AND(table.ImeiConfiguration.DeletedAt.IS_NULL())
 
 	if data.Label != "" {
-		conditions = conditions.AND(ImeiConfiguration.Label.EQ(pg.NewEnumValue(data.Label)))
+		conditions = conditions.AND(table.ImeiConfiguration.PermittedLabel.EQ(pg.NewEnumValue(data.Label)))
 	}
 
 	if data.Search != "" {
-		conditions = conditions.AND(ImeiConfiguration.Imei.LIKE(pg.String(data.Search)))
+		conditions = conditions.AND(table.ImeiConfiguration.Imei.LIKE(pg.String(data.Search)))
 	}
 
 	if len(data.Tags) != 0 {
 		conditions = conditions.AND(pg.RawBool("imei_configuration.tags @> array[string_to_array(#tags,'~^~')]", pg.RawArgs{"#tags": strings.Join(data.Tags, "~^~")}))
 	}
 
-	getImeisStmt := ImeiConfiguration.SELECT(ImeiConfiguration.AllColumns).
+	getImeisStmt := table.ImeiConfiguration.SELECT(table.ImeiConfiguration.AllColumns).
 		WHERE(conditions).
 		LIMIT(data.Pagination.Limit).
 		OFFSET(data.Pagination.Skip)
@@ -80,8 +80,7 @@ func GetImeiConfigurations(data GetImeiConfigurationsData) ([]ImeiConfigurationR
 			StationLocationId: item.StationLocationId,
 			Imei:              item.Imei,
 			Priority:          item.Priority.String(),
-			Label:             item.Label.String(),
-			Tags:              db.ConvertArrayDbStringToArrayString(item.Tags),
+			Label:             item.PermittedLabel.String(),
 			CreatedBy:         item.CreatedBy,
 			CreatedAt:         item.CreatedAt,
 			UpdatedBy:         item.UpdatedBy,
@@ -95,11 +94,11 @@ func GetImeiConfigurations(data GetImeiConfigurationsData) ([]ImeiConfigurationR
 func GetImeiConfiguration(data GetImeiConfigurationData) (*ImeiConfigurationResponse, int, error) {
 	dbClient := db.GetPrimaryClient()
 
-	getImeiStmt := ImeiConfiguration.
-		SELECT(ImeiConfiguration.AllColumns).
-		WHERE(ImeiConfiguration.ID.EQ(pg.UUID(data.ID)).
-			AND(ImeiConfiguration.ProjectId.EQ(pg.UUID(data.ProjectId))).
-			AND(ImeiConfiguration.DeletedAt.IS_NULL()))
+	getImeiStmt := table.ImeiConfiguration.
+		SELECT(table.ImeiConfiguration.AllColumns).
+		WHERE(table.ImeiConfiguration.ID.EQ(pg.UUID(data.ID)).
+			AND(table.ImeiConfiguration.ProjectId.EQ(pg.UUID(data.ProjectId))).
+			AND(table.ImeiConfiguration.DeletedAt.IS_NULL()))
 
 	imeiConfiguration := model.ImeiConfiguration{}
 
@@ -119,9 +118,8 @@ func GetImeiConfiguration(data GetImeiConfigurationData) (*ImeiConfigurationResp
 		ProjectId:         imeiConfiguration.ProjectId,
 		StationLocationId: imeiConfiguration.StationLocationId,
 		Imei:              imeiConfiguration.Imei,
-		Label:             imeiConfiguration.Label.String(),
+		Label:             imeiConfiguration.PermittedLabel.String(),
 		Priority:          imeiConfiguration.Priority.String(),
-		Tags:              db.ConvertArrayDbStringToArrayString(imeiConfiguration.Tags),
 		CreatedBy:         imeiConfiguration.CreatedBy,
 		CreatedAt:         imeiConfiguration.CreatedAt,
 		UpdatedBy:         imeiConfiguration.UpdatedBy,
@@ -132,20 +130,19 @@ func UpdateImeiConfiguration(data UpdateImeiConfigurationData) (*ImeiConfigurati
 	dbClient := db.GetPrimaryClient()
 
 	now := time.Now()
-	updateImeiStmt := ImeiConfiguration.
-		UPDATE(ImeiConfiguration.Tags, ImeiConfiguration.Imei, ImeiConfiguration.UpdatedBy, ImeiConfiguration.Label, ImeiConfiguration.Priority, ImeiConfiguration.UpdatedAt).
+	updateImeiStmt := table.ImeiConfiguration.
+		UPDATE(table.ImeiConfiguration.Imei, table.ImeiConfiguration.UpdatedBy, table.ImeiConfiguration.PermittedLabel, table.ImeiConfiguration.Priority, table.ImeiConfiguration.UpdatedAt).
 		MODEL(model.ImeiConfiguration{
-			Imei:      data.Imei,
-			UpdatedBy: &data.UpdatedBy,
-			UpdatedAt: &now,
-			Label:     model.DevicePermittedLabel(data.Label),
-			Priority:  model.BlacklistPriority(data.Priority),
-			Tags:      db.ConvertArrayStringToInput(data.Tags),
+			Imei:           data.Imei,
+			UpdatedBy:      &data.UpdatedBy,
+			UpdatedAt:      &now,
+			PermittedLabel: model.DevicePermittedLabel(data.Label),
+			Priority:       model.BlacklistPriority(data.Priority),
 		}).
-		RETURNING(ImeiConfiguration.AllColumns).
-		WHERE(ImeiConfiguration.ID.EQ(pg.UUID(data.ID)).
-			AND(ImeiConfiguration.ProjectId.EQ(pg.UUID(data.ProjectId))).
-			AND(ImeiConfiguration.DeletedAt.IS_NULL()))
+		RETURNING(table.ImeiConfiguration.AllColumns).
+		WHERE(table.ImeiConfiguration.ID.EQ(pg.UUID(data.ID)).
+			AND(table.ImeiConfiguration.ProjectId.EQ(pg.UUID(data.ProjectId))).
+			AND(table.ImeiConfiguration.DeletedAt.IS_NULL()))
 
 	imeiConfiguration := model.ImeiConfiguration{}
 
@@ -165,9 +162,8 @@ func UpdateImeiConfiguration(data UpdateImeiConfigurationData) (*ImeiConfigurati
 		ProjectId:         imeiConfiguration.ProjectId,
 		StationLocationId: imeiConfiguration.StationLocationId,
 		Imei:              imeiConfiguration.Imei,
-		Label:             imeiConfiguration.Label.String(),
+		Label:             imeiConfiguration.PermittedLabel.String(),
 		Priority:          imeiConfiguration.Priority.String(),
-		Tags:              db.ConvertArrayDbStringToArrayString(imeiConfiguration.Tags),
 		CreatedBy:         imeiConfiguration.CreatedBy,
 		CreatedAt:         imeiConfiguration.CreatedAt,
 		UpdatedBy:         imeiConfiguration.UpdatedBy,
@@ -178,18 +174,17 @@ func UpdateImeiConfiguration(data UpdateImeiConfigurationData) (*ImeiConfigurati
 func CreateImeiConfiguration(data CreateImeiConfigurationData) (*ImeiConfigurationResponse, int, error) {
 	dbClient := db.GetPrimaryClient()
 
-	insertImeiStmt := ImeiConfiguration.
-		INSERT(ImeiConfiguration.Tags, ImeiConfiguration.Imei, ImeiConfiguration.ID, ImeiConfiguration.ProjectId, ImeiConfiguration.StationLocationId, ImeiConfiguration.CreatedBy, ImeiConfiguration.Label, ImeiConfiguration.Priority).
+	insertImeiStmt := table.ImeiConfiguration.
+		INSERT(table.ImeiConfiguration.Imei, table.ImeiConfiguration.ID, table.ImeiConfiguration.ProjectId, table.ImeiConfiguration.StationLocationId, table.ImeiConfiguration.CreatedBy, table.ImeiConfiguration.PermittedLabel, table.ImeiConfiguration.Priority).
 		MODEL(model.ImeiConfiguration{
 			ID:                uuid.New(),
 			ProjectId:         data.ProjectId,
 			Imei:              data.Imei,
 			CreatedBy:         data.CreatedBy,
-			Label:             model.DevicePermittedLabel(data.Label),
+			PermittedLabel:    model.DevicePermittedLabel(data.Label),
 			Priority:          model.BlacklistPriority(data.Priority),
 			StationLocationId: data.StationLocationId,
-			Tags:              db.ConvertArrayStringToInput(data.Tags),
-		}).RETURNING(ImeiConfiguration.AllColumns)
+		}).RETURNING(table.ImeiConfiguration.AllColumns)
 
 	imeiConfiguration := model.ImeiConfiguration{}
 
@@ -205,9 +200,8 @@ func CreateImeiConfiguration(data CreateImeiConfigurationData) (*ImeiConfigurati
 		ProjectId:         imeiConfiguration.ProjectId,
 		StationLocationId: imeiConfiguration.StationLocationId,
 		Imei:              imeiConfiguration.Imei,
-		Label:             imeiConfiguration.Label.String(),
+		Label:             imeiConfiguration.PermittedLabel.String(),
 		Priority:          imeiConfiguration.Priority.String(),
-		Tags:              db.ConvertArrayDbStringToArrayString(imeiConfiguration.Tags),
 		CreatedBy:         imeiConfiguration.CreatedBy,
 		CreatedAt:         imeiConfiguration.CreatedAt,
 		UpdatedBy:         imeiConfiguration.UpdatedBy,

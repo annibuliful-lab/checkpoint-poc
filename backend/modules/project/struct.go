@@ -1,33 +1,40 @@
 package project
 
 import (
-	"time"
-
 	"github.com/google/uuid"
+	"github.com/graph-gophers/graphql-go"
 )
 
-type ProjectResponse struct {
-	Title     string     `json:"title"`
-	ID        uuid.UUID  `json:"id"`
-	CreatedAt time.Time  `json:"createdAt"`
-	UpdatedAt *time.Time `json:"updatedAt"`
+type Project struct {
+	Title     string            `json:"title"`
+	ID        graphql.ID        `json:"id"`
+	CreatedBy graphql.ID        `json:"createdBy"`
+	CreatedAt graphql.Time      `json:"createdAt"`
+	UpdatedBy *graphql.NullID   `json:"updatedBy"`
+	UpdatedAt *graphql.NullTime `json:"updatedAt"`
 }
 
-type CreateProjectData struct {
+type CreateProjectInput struct {
 	Title     string `json:"title"`
 	AccountId string `json:"accountId"`
 }
 
+type UpdateProjectInput struct {
+	Id        graphql.ID `json:"id"`
+	Title     string     `json:"title"`
+	AccountId string     `json:"accountId"`
+}
 type UpdateProjectData struct {
-	ID    uuid.UUID `json:"id"`
-	Title string    `json:"title"`
-}
-
-type GetProjectData struct {
-	ID uuid.UUID `json:"id"`
-}
-
-type DeleteProjectData struct {
 	ID        uuid.UUID `json:"id"`
-	AccountId *string   `json:"accountId"`
+	Title     string    `json:"title"`
+	AccountId string    `json:"accountId"`
+}
+
+type GetProjectInput struct {
+	ID graphql.ID `json:"id"`
+}
+
+type DeleteProjectInput struct {
+	ID        graphql.ID `json:"id"`
+	AccountId string     `json:"accountId"`
 }

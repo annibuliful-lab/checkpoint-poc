@@ -2,7 +2,7 @@ package projectRole
 
 import (
 	"checkpoint/.gen/checkpoint/public/model"
-	. "checkpoint/.gen/checkpoint/public/table"
+	"checkpoint/.gen/checkpoint/public/table"
 	"checkpoint/db"
 	"checkpoint/utils"
 	"context"
@@ -11,28 +11,61 @@ import (
 
 	pg "github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
-	"github.com/kataras/iris/v12"
+	"github.com/graph-gophers/graphql-go"
 	"github.com/samber/lo"
 )
 
-func CreateProjectRole(data CreateProjectRoleData) (*ProjectRoleResponse, int, error) {
+type ProjectRoleService struct{}
+
+func (ProjectRoleService) Delete(data DeleteProjectRoleData) error {
+	dbClient := db.GetPrimaryClient()
+	now := time.Now()
+	softDeleteStmt := table.ProjectRole.
+		UPDATE(table.ProjectRole.DeletedAt).
+		MODEL(model.ProjectRole{
+			DeletedAt: &now,
+		}).
+		WHERE(table.ProjectRole.ID.EQ(pg.UUID(uuid.MustParse(string(data.ID)))).
+			AND(table.ProjectRole.ProjectId.EQ(pg.UUID(data.ProjectId))))
+
+	result, err := softDeleteStmt.Exec(dbClient)
+
+	if err != nil {
+		log.Println(err.Error())
+		return utils.InternalServerError
+	}
+
+	rowAffected, err := result.RowsAffected()
+
+	if err != nil {
+		log.Println(err.Error())
+		return utils.InternalServerError
+	}
+
+	if rowAffected == 0 {
+		return utils.IdNotfound
+	}
+
+	return nil
+}
+func (ProjectRoleService) Create(data CreateProjectRoleData) (*ProjectRole, string, error) {
 	dbClient := db.GetPrimaryClient()
 	ctx := context.Background()
 	tx, err := dbClient.Begin()
 
 	if err != nil {
 		log.Println(err.Error())
-		return nil, iris.StatusInternalServerError, utils.InternalServerError
+		return nil, utils.InternalServerError.Error(), utils.InternalServerError
 	}
 
-	insertProjectRoleStmt := ProjectRole.
-		INSERT(ProjectRole.ID, ProjectRole.ProjectId, ProjectRole.Title).
+	insertProjectRoleStmt := table.ProjectRole.
+		INSERT(table.ProjectRole.ID, table.ProjectRole.ProjectId, table.ProjectRole.Title).
 		MODEL(model.ProjectRole{
 			ID:        uuid.New(),
 			Title:     data.Title,
 			ProjectId: data.ProjectId,
 		}).
-		RETURNING(ProjectRole.AllColumns)
+		RETURNING(table.ProjectRole.AllColumns)
 
 	projectRole := model.ProjectRole{}
 
@@ -41,16 +74,16 @@ func CreateProjectRole(data CreateProjectRoleData) (*ProjectRoleResponse, int, e
 	if err != nil {
 		log.Println(err.Error())
 		tx.Rollback()
-		return nil, iris.StatusInternalServerError, utils.InternalServerError
+		return nil, utils.InternalServerError.Error(), utils.InternalServerError
 	}
 
 	for _, id := range data.PermissionIds {
-		insertRolePermissionStmt := ProjectRolePermission.
-			INSERT(ProjectRolePermission.ID, ProjectRolePermission.RoleId, ProjectRolePermission.PermissionId, ProjectRole.ProjectId).
+		insertRolePermissionStmt := table.ProjectRolePermission.
+			INSERT(table.ProjectRolePermission.ID, table.ProjectRolePermission.RoleId, table.ProjectRolePermission.PermissionId, table.ProjectRole.ProjectId).
 			MODEL(model.ProjectRolePermission{
 				ID:           uuid.New(),
 				RoleId:       projectRole.ID,
-				PermissionId: uuid.MustParse(id),
+				PermissionId: uuid.MustParse(string(id)),
 				ProjectId:    data.ProjectId,
 			})
 
@@ -59,52 +92,51 @@ func CreateProjectRole(data CreateProjectRoleData) (*ProjectRoleResponse, int, e
 		if err != nil {
 			log.Println(err.Error())
 			tx.Rollback()
-			return nil, iris.StatusInternalServerError, utils.InternalServerError
+			return nil, utils.InternalServerError.Error(), utils.InternalServerError
 		}
 
 	}
 
 	tx.Commit()
 
-	return &ProjectRoleResponse{
-		ID:        projectRole.ID,
-		ProjectId: projectRole.ProjectId,
+	return &ProjectRole{
+		Id:        graphql.ID(projectRole.ID.String()),
+		ProjectId: graphql.ID(projectRole.ProjectId.String()),
 		Title:     projectRole.Title,
-		CreatedAt: projectRole.CreatedAt,
-		UpdatedAt: &projectRole.UpdatedAt,
-	}, 201, nil
+		CreatedAt: graphql.Time{Time: projectRole.CreatedAt},
+	}, "Created", nil
 }
 
-func UpdateProjectRole(data UpdateProjectRoleData) (*ProjectRoleResponse, int, error) {
+func (ProjectRoleService) Update(data UpdateProjectRoleData) (*ProjectRole, string, error) {
 	dbClient := db.GetPrimaryClient()
 	ctx := context.Background()
 	tx, err := dbClient.Begin()
 
 	if err != nil {
 		log.Println(err.Error())
-		return nil, iris.StatusInternalServerError, utils.InternalServerError
+		return nil, utils.InternalServerError.Error(), utils.InternalServerError
 	}
 
-	deleteAllRolePermissionStmt := ProjectRolePermission.
+	deleteAllRolePermissionStmt := table.ProjectRolePermission.
 		DELETE().
-		WHERE(ProjectRolePermission.RoleId.EQ(pg.UUID(data.ID)))
+		WHERE(table.ProjectRolePermission.RoleId.EQ(pg.UUID(data.ID)))
 
 	_, err = deleteAllRolePermissionStmt.ExecContext(ctx, tx)
 
 	if err != nil {
 		log.Println(err.Error())
 		tx.Rollback()
-		return nil, iris.StatusInternalServerError, utils.InternalServerError
+		return nil, utils.InternalServerError.Error(), utils.InternalServerError
 	}
 
-	updateProjectRoleStmt := ProjectRole.
-		UPDATE(ProjectRole.Title, ProjectRole.UpdatedAt).
+	updateProjectRoleStmt := table.ProjectRole.
+		UPDATE(table.ProjectRole.Title, table.ProjectRole.UpdatedAt).
 		MODEL(model.ProjectRole{
 			Title:     data.Title,
 			UpdatedAt: time.Now(),
 		}).
-		WHERE(ProjectRole.ID.EQ(pg.UUID(data.ID))).
-		RETURNING(ProjectRole.AllColumns)
+		WHERE(table.ProjectRole.ID.EQ(pg.UUID(data.ID))).
+		RETURNING(table.ProjectRole.AllColumns)
 
 	projectRole := model.ProjectRole{}
 	err = updateProjectRoleStmt.QueryContext(ctx, tx, &projectRole)
@@ -112,22 +144,22 @@ func UpdateProjectRole(data UpdateProjectRoleData) (*ProjectRoleResponse, int, e
 	if err != nil && db.HasNoRow(err) {
 		log.Println(err.Error())
 		tx.Rollback()
-		return nil, 404, utils.IdNotfound
+		return nil, utils.IdNotfound.Error(), utils.IdNotfound
 	}
 
 	if err != nil {
 		log.Println(err.Error())
 		tx.Rollback()
-		return nil, iris.StatusInternalServerError, utils.InternalServerError
+		return nil, utils.InternalServerError.Error(), utils.InternalServerError
 	}
 
 	for _, id := range data.PermissionIds {
-		insertRolePermissionStmt := ProjectRolePermission.
-			INSERT(ProjectRolePermission.ID, ProjectRolePermission.RoleId, ProjectRolePermission.PermissionId, ProjectRole.ProjectId).
+		insertRolePermissionStmt := table.ProjectRolePermission.
+			INSERT(table.ProjectRolePermission.ID, table.ProjectRolePermission.RoleId, table.ProjectRolePermission.PermissionId, table.ProjectRole.ProjectId).
 			MODEL(model.ProjectRolePermission{
 				ID:           uuid.New(),
 				RoleId:       projectRole.ID,
-				PermissionId: uuid.MustParse(id),
+				PermissionId: uuid.MustParse(string(id)),
 				ProjectId:    data.ProjectId,
 			})
 
@@ -136,29 +168,28 @@ func UpdateProjectRole(data UpdateProjectRoleData) (*ProjectRoleResponse, int, e
 		if err != nil {
 			log.Println(err.Error())
 			tx.Rollback()
-			return nil, iris.StatusInternalServerError, utils.InternalServerError
+			return nil, utils.InternalServerError.Error(), utils.InternalServerError
 		}
 
 	}
 
 	tx.Commit()
 
-	return &ProjectRoleResponse{
-		ID:        projectRole.ID,
-		ProjectId: projectRole.ProjectId,
+	return &ProjectRole{
+		Id:        graphql.ID(projectRole.ID.String()),
+		ProjectId: graphql.ID(projectRole.ProjectId.String()),
 		Title:     projectRole.Title,
-		CreatedAt: projectRole.CreatedAt,
-		UpdatedAt: &projectRole.UpdatedAt,
-	}, 200, nil
+		CreatedAt: graphql.Time{Time: projectRole.CreatedAt},
+	}, "Updated", nil
 }
 
-func GetProjectRoleById(data GetProjectRoleByIdData) (*ProjectRoleResponse, int, error) {
+func (ProjectRoleService) FindById(data GetProjectRoleByIdData) (*ProjectRole, string, error) {
 	dbClient := db.GetPrimaryClient()
 
 	selectProjectRoleStmt := pg.
-		SELECT(ProjectRole.AllColumns).
-		FROM(ProjectRole).
-		WHERE(ProjectRole.ID.EQ(pg.UUID(data.ID))).
+		SELECT(table.ProjectRole.AllColumns).
+		FROM(table.ProjectRole).
+		WHERE(table.ProjectRole.ID.EQ(pg.UUID(data.ID))).
 		LIMIT(1)
 
 	projectRole := model.ProjectRole{}
@@ -166,41 +197,40 @@ func GetProjectRoleById(data GetProjectRoleByIdData) (*ProjectRoleResponse, int,
 
 	if err != nil && db.HasNoRow(err) {
 		log.Println("select-project-role-error", err.Error())
-		return nil, 404, utils.IdNotfound
+		return nil, utils.IdNotfound.Error(), utils.IdNotfound
 	}
 
 	if err != nil {
 		log.Println("select-project-role-error", err.Error())
-		return nil, 500, utils.InternalServerError
+		return nil, utils.InternalServerError.Error(), utils.InternalServerError
 	}
 
-	return &ProjectRoleResponse{
-		ID:        projectRole.ID,
-		ProjectId: projectRole.ProjectId,
+	return &ProjectRole{
+		Id:        graphql.ID(projectRole.ID.String()),
+		ProjectId: graphql.ID(projectRole.ProjectId.String()),
 		Title:     projectRole.Title,
-		CreatedAt: projectRole.CreatedAt,
-		UpdatedAt: &projectRole.UpdatedAt,
-	}, 200, nil
+		CreatedAt: graphql.Time{Time: projectRole.CreatedAt},
+	}, "Ok", nil
 }
 
-func GetProjectRoles(data GetProjectRolesData) (*[]ProjectRoleResponse, int, error) {
+func (ProjectRoleService) FindMany(data GetProjectRolesData) (*[]ProjectRole, int, error) {
 	dbClient := db.GetPrimaryClient()
 
 	selectProjectRolesConditions := pg.Bool(true)
 	{
-		if data.Search != "" {
-			selectProjectRolesConditions = selectProjectRolesConditions.AND(ProjectRole.Title.LIKE(pg.String(data.Search)))
+		if data.Search != nil {
+			selectProjectRolesConditions = selectProjectRolesConditions.AND(table.ProjectRole.Title.LIKE(pg.String(*data.Search)))
 		}
-		selectProjectRolesConditions = selectProjectRolesConditions.AND(ProjectRole.ProjectId.EQ(pg.UUID(data.ProjectId)))
+		selectProjectRolesConditions = selectProjectRolesConditions.AND(table.ProjectRole.ProjectId.EQ(pg.UUID(data.ProjectId)))
 	}
 
 	selectProjectRolesStmt := pg.
-		SELECT(ProjectRole.AllColumns).
-		FROM(ProjectRole).
+		SELECT(table.ProjectRole.AllColumns).
+		FROM(table.ProjectRole).
 		WHERE(selectProjectRolesConditions).
 		LIMIT(data.pagination.Limit).
 		OFFSET(data.pagination.Skip).
-		ORDER_BY(ProjectRole.CreatedAt)
+		ORDER_BY(table.ProjectRole.CreatedAt)
 
 	projectRoles := []model.ProjectRole{}
 	err := selectProjectRolesStmt.Query(dbClient, &projectRoles)
@@ -214,29 +244,28 @@ func GetProjectRoles(data GetProjectRolesData) (*[]ProjectRoleResponse, int, err
 		return nil, 500, utils.InternalServerError
 	}
 
-	projectRolesResponse := lo.Map(projectRoles, func(projectRole model.ProjectRole, index int) ProjectRoleResponse {
-		return ProjectRoleResponse{
-			ID:        projectRole.ID,
-			ProjectId: projectRole.ProjectId,
+	projectRolesResponse := lo.Map(projectRoles, func(projectRole model.ProjectRole, index int) ProjectRole {
+		return ProjectRole{
+			Id:        graphql.ID(projectRole.ID.String()),
+			ProjectId: graphql.ID(projectRole.ProjectId.String()),
 			Title:     projectRole.Title,
-			CreatedAt: projectRole.CreatedAt,
-			UpdatedAt: &projectRole.UpdatedAt,
+			CreatedAt: graphql.Time{Time: projectRole.CreatedAt},
 		}
 	})
 
 	return &projectRolesResponse, 200, nil
 }
 
-func GetProjectRolePermissionsByProjectRoleId(id uuid.UUID) (*[]PermissionResponse, int, error) {
+func (ProjectRoleService) GetProjectRolePermissions(id uuid.UUID) (*[]PermissionResponse, string, error) {
 	dbClient := db.GetPrimaryClient()
 
 	projectRolePermissionsStmt := pg.
-		SELECT(Permission.Action, Permission.Subject, Permission.ID, ProjectRolePermission.RoleId).
+		SELECT(table.Permission.Action, table.Permission.Subject, table.Permission.ID, table.ProjectRolePermission.RoleId).
 		FROM(
-			ProjectRolePermission.
-				INNER_JOIN(Permission, ProjectRolePermission.PermissionId.EQ(Permission.ID)),
+			table.ProjectRolePermission.
+				INNER_JOIN(table.Permission, table.ProjectRolePermission.PermissionId.EQ(table.Permission.ID)),
 		).
-		WHERE(ProjectRolePermission.RoleId.EQ(pg.UUID(id)))
+		WHERE(table.ProjectRolePermission.RoleId.EQ(pg.UUID(id)))
 
 	var permissions []struct {
 		RoleId     uuid.UUID `alias:"project_role_permission.roleId"`
@@ -247,7 +276,7 @@ func GetProjectRolePermissionsByProjectRoleId(id uuid.UUID) (*[]PermissionRespon
 
 	if err != nil {
 		log.Println(err.Error())
-		return &[]PermissionResponse{}, 500, utils.InternalServerError
+		return &[]PermissionResponse{}, utils.InternalServerError.Error(), utils.InternalServerError
 	}
 
 	permissionsResponse := lo.Map(permissions, func(item struct {
@@ -262,10 +291,10 @@ func GetProjectRolePermissionsByProjectRoleId(id uuid.UUID) (*[]PermissionRespon
 		}
 	})
 
-	return &permissionsResponse, 200, nil
+	return &permissionsResponse, "Ok", nil
 }
 
-func GetProjectRolePermissionsByProjectRoleIds(ids []uuid.UUID) (*[]PermissionResponse, int, error) {
+func (ProjectRoleService) GetProjectRolePermissionsByProjectRoleIds(ids []uuid.UUID) (*[]PermissionResponse, int, error) {
 	dbClient := db.GetPrimaryClient()
 
 	var projectRoleIds []pg.Expression
@@ -274,12 +303,12 @@ func GetProjectRolePermissionsByProjectRoleIds(ids []uuid.UUID) (*[]PermissionRe
 	}
 
 	projectRolePermissionsStmt := pg.
-		SELECT(Permission.Action, Permission.Subject, Permission.ID, ProjectRolePermission.RoleId).
+		SELECT(table.Permission.Action, table.Permission.Subject, table.Permission.ID, table.ProjectRolePermission.RoleId).
 		FROM(
-			ProjectRolePermission.
-				INNER_JOIN(Permission, ProjectRolePermission.PermissionId.EQ(Permission.ID)),
+			table.ProjectRolePermission.
+				INNER_JOIN(table.Permission, table.ProjectRolePermission.PermissionId.EQ(table.Permission.ID)),
 		).
-		WHERE(ProjectRolePermission.RoleId.IN(projectRoleIds...))
+		WHERE(table.ProjectRolePermission.RoleId.IN(projectRoleIds...))
 
 	var permissions []struct {
 		RoleId     uuid.UUID `alias:"project_role_permission.roleId"`
