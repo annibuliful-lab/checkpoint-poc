@@ -4,6 +4,8 @@ import (
 	"checkpoint/.gen/checkpoint/public/model"
 	table "checkpoint/.gen/checkpoint/public/table"
 	"checkpoint/db"
+	"checkpoint/utils/graphql_utils"
+
 	"checkpoint/utils"
 	"log"
 	"strings"
@@ -61,17 +63,26 @@ func (ImsiConfigurationService) FindMany(data GetImsiConfigurationsData) ([]Imsi
 	}
 
 	imsiConfigurationsResponse := lo.Map(imsiConfigurations, func(item model.ImsiConfiguration, index int) Imsiconfiguration {
+		var updatedBy graphql.NullID
+		if item.UpdatedAt != nil {
+			updatedBy = graphql_utils.ConvertStringToNullID(item.UpdatedBy)
+		}
+
+		var updatedAt graphql.NullTime
+		if item.UpdatedAt != nil {
+			updatedAt = graphql.NullTime{Value: &graphql.Time{Time: *item.UpdatedAt}}
+		}
 		return Imsiconfiguration{
 			ID:                graphql.ID(item.ID.String()),
 			ProjectId:         graphql.ID(item.ProjectId.String()),
 			Imsi:              item.Imsi,
-			CreatedBy:         item.CreatedBy,
-			UpdatedBy:         item.UpdatedBy,
-			CreatedAt:         item.CreatedAt,
-			UpdatedAt:         item.UpdatedAt,
-			Label:             item.PermittedLabel,
+			CreatedBy:         graphql.ID(item.CreatedBy),
+			UpdatedBy:         updatedBy,
+			CreatedAt:         graphql.Time{Time: item.CreatedAt},
+			UpdatedAt:         updatedAt,
+			PermittedLabel:    model.DevicePermittedLabel(item.PermittedLabel),
 			Priority:          item.Priority,
-			StationLocationId: item.StationLocationId,
+			StationLocationId: graphql.ID(item.StationLocationId.String()),
 			Mcc:               item.Mcc,
 			Mnc:               item.Mnc,
 		}
@@ -100,16 +111,30 @@ func (ImsiConfigurationService) FindById(data GetImsiConfigurationByIdData) (*Im
 		return nil, 500, utils.InternalServerError
 	}
 
+	var updatedBy graphql.NullID
+	if imsiConfiguration.UpdatedAt != nil {
+
+		updatedBy = graphql_utils.ConvertStringToNullID(imsiConfiguration.UpdatedBy)
+	}
+
+	var updatedAt graphql.NullTime
+	if imsiConfiguration.UpdatedAt != nil {
+		updatedAt = graphql.NullTime{Value: &graphql.Time{Time: *imsiConfiguration.UpdatedAt}}
+	}
+
 	return &Imsiconfiguration{
-		ID:        graphql.ID(imsiConfiguration.ID.String()),
-		ProjectId: graphql.ID(imsiConfiguration.ProjectId.String()),
-		Imsi:      imsiConfiguration.Imsi,
-		CreatedBy: imsiConfiguration.CreatedBy,
-		CreatedAt: imsiConfiguration.CreatedAt,
-		UpdatedBy: imsiConfiguration.UpdatedBy,
-		UpdatedAt: imsiConfiguration.UpdatedAt,
-		Label:     imsiConfiguration.PermittedLabel,
-		Priority:  imsiConfiguration.Priority,
+		ID:                graphql.ID(imsiConfiguration.ID.String()),
+		ProjectId:         graphql.ID(imsiConfiguration.ProjectId.String()),
+		Imsi:              imsiConfiguration.Imsi,
+		CreatedBy:         graphql.ID(imsiConfiguration.CreatedBy),
+		UpdatedBy:         updatedBy,
+		CreatedAt:         graphql.Time{Time: imsiConfiguration.CreatedAt},
+		UpdatedAt:         updatedAt,
+		PermittedLabel:    model.DevicePermittedLabel(imsiConfiguration.PermittedLabel),
+		Priority:          imsiConfiguration.Priority,
+		StationLocationId: graphql.ID(imsiConfiguration.StationLocationId.String()),
+		Mcc:               imsiConfiguration.Mcc,
+		Mnc:               imsiConfiguration.Mnc,
 	}, 200, nil
 }
 
@@ -175,16 +200,29 @@ func (ImsiConfigurationService) Update(data UpdateImsiConfigurationData) (*Imsic
 		return nil, 500, utils.InternalServerError
 	}
 
+	var updatedBy graphql.NullID
+	if imsiConfiguration.UpdatedAt != nil {
+		updatedBy = graphql_utils.ConvertStringToNullID(imsiConfiguration.UpdatedBy)
+	}
+
+	var updatedAt graphql.NullTime
+	if imsiConfiguration.UpdatedAt != nil {
+		updatedAt = graphql.NullTime{Value: &graphql.Time{Time: *imsiConfiguration.UpdatedAt}}
+	}
+
 	return &Imsiconfiguration{
-		ID:        graphql.ID(imsiConfiguration.ID.String()),
-		ProjectId: graphql.ID(imsiConfiguration.ProjectId.String()),
-		Imsi:      imsiConfiguration.Imsi,
-		CreatedBy: imsiConfiguration.CreatedBy,
-		CreatedAt: imsiConfiguration.CreatedAt,
-		UpdatedBy: imsiConfiguration.UpdatedBy,
-		UpdatedAt: imsiConfiguration.UpdatedAt,
-		Label:     imsiConfiguration.PermittedLabel,
-		Priority:  imsiConfiguration.Priority,
+		ID:                graphql.ID(imsiConfiguration.ID.String()),
+		ProjectId:         graphql.ID(imsiConfiguration.ProjectId.String()),
+		Imsi:              imsiConfiguration.Imsi,
+		CreatedBy:         graphql.ID(imsiConfiguration.CreatedBy),
+		UpdatedBy:         updatedBy,
+		CreatedAt:         graphql.Time{Time: imsiConfiguration.CreatedAt},
+		UpdatedAt:         updatedAt,
+		PermittedLabel:    model.DevicePermittedLabel(imsiConfiguration.PermittedLabel),
+		Priority:          imsiConfiguration.Priority,
+		StationLocationId: graphql.ID(imsiConfiguration.StationLocationId.String()),
+		Mcc:               imsiConfiguration.Mcc,
+		Mnc:               imsiConfiguration.Mnc,
 	}, 200, nil
 }
 
@@ -224,18 +262,28 @@ func (ImsiConfigurationService) Create(data CreateImsiConfigurationData) (*Imsic
 		return nil, 500, utils.InternalServerError
 	}
 
+	var updatedBy graphql.NullID
+	if imsiConfiguration.UpdatedAt != nil {
+		updatedBy = graphql_utils.ConvertStringToNullID(imsiConfiguration.UpdatedBy)
+	}
+
+	var updatedAt graphql.NullTime
+	if imsiConfiguration.UpdatedAt != nil {
+		updatedAt = graphql.NullTime{Value: &graphql.Time{Time: *imsiConfiguration.UpdatedAt}}
+	}
+
 	return &Imsiconfiguration{
 		ID:                graphql.ID(imsiConfiguration.ID.String()),
 		ProjectId:         graphql.ID(imsiConfiguration.ProjectId.String()),
-		StationLocationId: imsiConfiguration.StationLocationId,
+		Imsi:              imsiConfiguration.Imsi,
+		CreatedBy:         graphql.ID(imsiConfiguration.CreatedBy),
+		UpdatedBy:         updatedBy,
+		CreatedAt:         graphql.Time{Time: imsiConfiguration.CreatedAt},
+		UpdatedAt:         updatedAt,
+		PermittedLabel:    model.DevicePermittedLabel(imsiConfiguration.PermittedLabel),
+		Priority:          imsiConfiguration.Priority,
+		StationLocationId: graphql.ID(imsiConfiguration.StationLocationId.String()),
 		Mcc:               imsiConfiguration.Mcc,
 		Mnc:               imsiConfiguration.Mnc,
-		Imsi:              imsiConfiguration.Imsi,
-		CreatedBy:         imsiConfiguration.CreatedBy,
-		CreatedAt:         imsiConfiguration.CreatedAt,
-		UpdatedBy:         imsiConfiguration.UpdatedBy,
-		UpdatedAt:         imsiConfiguration.UpdatedAt,
-		Label:             imsiConfiguration.PermittedLabel,
-		Priority:          imsiConfiguration.Priority,
 	}, 201, nil
 }

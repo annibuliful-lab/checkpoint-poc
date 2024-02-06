@@ -20,7 +20,7 @@ func (ImsiConfigurationResolver) CreateImsiConfiguration(ctx context.Context, ar
 		PermittedLabel:    args.PermittedLabel,
 		ProjectId:         uuid.MustParse(authorization.ProjectId),
 		StationLocationId: uuid.MustParse(string(args.StationLocationId)),
-		Tags:              args.Tags,
+		Tags:              *args.Tags,
 		CreatedBy:         authorization.AccountId,
 		Priority:          args.Priority,
 	})

@@ -3,7 +3,6 @@ package imsiconfiguration
 import (
 	"checkpoint/.gen/checkpoint/public/model"
 	"checkpoint/utils"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/graph-gophers/graphql-go"
@@ -13,13 +12,13 @@ type Imsiconfiguration struct {
 	ID                graphql.ID                 `json:"id"`
 	ProjectId         graphql.ID                 `json:"projectId"`
 	Imsi              string                     `json:"imsi"`
-	CreatedBy         string                     `json:"createdBy"`
-	UpdatedBy         *string                    `json:"updatedBy"`
-	CreatedAt         time.Time                  `json:"createdAt"`
-	UpdatedAt         *time.Time                 `json:"updatedAt"`
-	Label             model.DevicePermittedLabel `json:"label"`
+	CreatedBy         graphql.ID                 `json:"createdBy"`
+	UpdatedBy         graphql.NullID             `json:"updatedBy"`
+	CreatedAt         graphql.Time               `json:"createdAt"`
+	UpdatedAt         graphql.NullTime           `json:"updatedAt"`
+	PermittedLabel    model.DevicePermittedLabel `json:"label"`
 	Priority          model.BlacklistPriority    `json:"priority"`
-	StationLocationId uuid.UUID                  `json:"stationLocationId"`
+	StationLocationId graphql.ID                 `json:"stationLocationId"`
 	Mcc               string                     `json:"mcc"`
 	Mnc               string                     `json:"mnc"`
 }
@@ -31,7 +30,7 @@ type CreateImeiConfigurationInput struct {
 	Priority          string     `json:"priority"`
 	Mcc               string     `json:"mcc"`
 	Mnc               string     `json:"mnc"`
-	Tags              []string   `jcon:"tags"`
+	Tags              *[]string  `jcon:"tags"`
 }
 
 type CreateImsiConfigurationData struct {

@@ -7,7 +7,7 @@ type ImsiConfiguration {
   updatedBy: String!
   createdAt: Time!
   updatedAt: Time
-  label: String!
+  permittedLabel: String!
   priority: String!
   mcc: String!
   mnc: String!
@@ -16,8 +16,9 @@ type ImsiConfiguration {
 
 type Mutation {
   createImsiConfiguration(
+    stationLocationId: ID!
     imsi: String!
-    label: String!
+    permittedLabel: String!
     priority: String!
     mcc: String!
     mnc: String!
