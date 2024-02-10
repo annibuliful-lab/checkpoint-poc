@@ -200,8 +200,9 @@ model Tag {
   VehicleLicensePlateTag       VehicleLicensePlateTag[]
   VehicleTag                   VehicleTag[]
 
+  @@unique([title, projectId])
   @@index([title(ops: raw("gin_trgm_ops"))], type: Gin)
-  @@map("tags")
+  @@map("tag")
 }
 
 model ImsiConfigurationTag {
@@ -211,6 +212,7 @@ model ImsiConfigurationTag {
   tag                 Tag               @relation(fields: [tagId], references: [id])
   tagId               String            @db.Uuid
   createdAt           DateTime          @default(now())
+  createdBy           String
 
   @@map("imsi_configuration_tag")
 }
@@ -222,6 +224,7 @@ model ImeiConfigurationTag {
   tag                 Tag               @relation(fields: [tagId], references: [id])
   tagId               String            @db.Uuid
   createdAt           DateTime          @default(now())
+  createdBy           String
 
   @@map("imei_configuration_tag")
 }
@@ -233,6 +236,7 @@ model MobileDeviceConfigurationTag {
   tag                         Tag                       @relation(fields: [tagId], references: [id])
   tagId                       String                    @db.Uuid
   createdAt                   DateTime                  @default(now())
+  createdBy                   String
 
   @@map("mobile_device_configuration_tag")
 }
@@ -244,6 +248,7 @@ model StationLocationTag {
   stationLocationId String          @db.Uuid
   tagId             String          @db.Uuid
   createdAt         DateTime        @default(now())
+  createdBy         String
 
   @@map("station_location_tag")
 }
@@ -255,6 +260,7 @@ model LicensePlateConfigurationTag {
   createdAt                   DateTime                  @default(now())
   licensePlateConfigurationId String                    @db.Uuid
   tagId                       String                    @db.Uuid
+  createdBy                   String
 
   @@map("license_plate_configuration_tag")
 }
@@ -266,6 +272,7 @@ model VehicleLicensePlateTag {
   vehicleLicensePlateVehicleId String              @db.Uuid
   tagId                        String              @db.Uuid
   createdAt                    DateTime            @default(now())
+  createdBy                    String
 
   @@map("vehicle_license_plate_tag")
 }
@@ -277,6 +284,7 @@ model VehicleTag {
   vehicle   Vehicle  @relation(fields: [vehicleId], references: [id])
   tagId     String   @db.Uuid
   vehicleId String   @db.Uuid
+  createdBy String
 
   @@map("vehicle_tag")
 }

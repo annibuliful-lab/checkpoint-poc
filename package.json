@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "backend:run": "pnpm run genql & go run backend/main.go",
+    "backend:run": "pnpm run genql && go run backend/main.go",
     "backend:db-primary-generate": "cd backend && rm -rf .gen && jet -source=postgres -dsn=\"postgres://checkpoint:checkpoint@localhost:5432/checkpoint?sslmode=disable\" -path=./.gen && rm -rf ./.gen/checkpoint/public/table/table_use_schema.go",
     "backend:build": "cd backend && go build",
     "backend:test": "cd backend-testing && jest",

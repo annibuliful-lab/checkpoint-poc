@@ -138,7 +138,11 @@ func (AuthenticationService) SignIn(data SignInData) (*Authentication, string, e
 		return nil, utils.InternalServerError.Error(), utils.InternalServerError
 	}
 
-	tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		log.Println("insert-session-token-error", err.Error())
+		return nil, utils.InternalServerError.Error(), utils.InternalServerError
+	}
 
 	return &Authentication{
 		UserId:       graphql.ID(account.ID.String()),
@@ -226,7 +230,11 @@ func (AuthenticationService) SignUp(data SignUpData) (model.Account, string, err
 		return model.Account{}, utils.InternalServerError.Error(), utils.InternalServerError
 	}
 
-	tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		log.Println("signup-error", err.Error())
+		return model.Account{}, utils.InternalServerError.Error(), utils.InternalServerError
+	}
 
 	return accountResult, "Signup", nil
 }
@@ -343,7 +351,11 @@ func (AuthenticationService) GetAuthenticationTokenByRefreshToken(data RefreshTo
 		return nil, 500, utils.InternalServerError
 	}
 
-	tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		log.Println("signin-error", err.Error())
+		return nil, 500, utils.InternalServerError
+	}
 
 	return &SigninResponse{
 		UserId:       sessionToken.AccountId.String(),
