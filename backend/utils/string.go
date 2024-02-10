@@ -1,14 +1,13 @@
 package utils
 
-import (
-	"fmt"
-)
+import "log"
 
 func ExtractMCCMNC(imsi string) (mcc string, mnc string, err error) {
 	// Check if the IMSI has a valid length
 	if len(imsi) < 6 {
-		err = fmt.Errorf("invalid IMSI length")
-		return
+		log.Println("Invalid IMSI")
+
+		return "000", "00", nil
 	}
 
 	// Extract the MCC and MNC
@@ -24,9 +23,6 @@ func ExtractMCCMNC(imsi string) (mcc string, mnc string, err error) {
 	}
 
 	mnc = imsi[3 : 3+mncLength]
-	if err != nil {
-		return
-	}
 
 	return
 }

@@ -1,0 +1,143 @@
+package imeiconfiguration
+
+import (
+	"checkpoint/.gen/checkpoint/public/model"
+	"checkpoint/auth"
+	"checkpoint/modules/tag"
+	"checkpoint/utils"
+	"context"
+
+	"github.com/google/uuid"
+	"github.com/graph-gophers/graphql-go"
+	"github.com/samber/lo"
+)
+
+type ImeiConfigurationResolver struct{}
+
+var imeiconfigurationService = ImeiConfigurationService{}
+var tagService = tag.TagService{}
+
+func (ImeiConfigurationResolver) GetImeiConfigurations(ctx context.Context, args GetImeiConfigurationsInput) ([]ImeiConfiguration, error) {
+	authorization := auth.GetAuthorizationContext(ctx)
+
+	imeiConfigurations, _, err := imeiconfigurationService.FindMany(GetImeiConfigurationsData{
+		ProjectId: uuid.MustParse(authorization.ProjectId),
+		Tags:      args.Tags,
+		Search:    args.Search,
+		Label:     args.Label,
+		Pagination: utils.OffsetPagination{
+			Limit: int64(args.Limit),
+			Skip:  int64(args.Skip),
+		},
+	})
+
+	if err != nil {
+		return nil, utils.GraphqlError{
+			Code:    err.Error(),
+			Message: err.Error(),
+		}
+	}
+
+	return imeiConfigurations, nil
+}
+
+func (ImeiConfigurationResolver) GetImeiConfigurationById(ctx context.Context, args GetImeiConfigurationInput) (*ImeiConfiguration, error) {
+	authorization := auth.GetAuthorizationContext(ctx)
+	imeiConfiguration, _, err := imeiconfigurationService.FindById(GetImeiConfigurationData{
+		ID:        uuid.MustParse(string(args.ID)),
+		ProjectId: uuid.MustParse(authorization.ProjectId),
+	})
+
+	if err != nil {
+		return nil, utils.GraphqlError{
+			Code:    err.Error(),
+			Message: err.Error(),
+		}
+	}
+
+	return imeiConfiguration, nil
+}
+
+func (ImeiConfigurationResolver) DeleteImeiConfiguration(ctx context.Context, args DeleteImeiConfigurationInput) (*utils.DeleteOperation, error) {
+	authorization := auth.GetAuthorizationContext(ctx)
+	_, err := imeiconfigurationService.Delete(DeleteImeiConfigurationData{
+		ID:        uuid.MustParse(string(args.ID)),
+		ProjectId: uuid.MustParse(authorization.ProjectId),
+		DeletedBy: authorization.AccountId,
+	})
+
+	if err != nil {
+		return nil, utils.GraphqlError{
+			Code:    err.Error(),
+			Message: err.Error(),
+		}
+	}
+
+	return &utils.DeleteOperation{
+		Success: true,
+	}, nil
+}
+
+func (ImeiConfigurationResolver) UpdateImeiConfiguration(ctx context.Context, args UpdateImeiConfigurationInput) (*ImeiConfiguration, error) {
+	authorization := auth.GetAuthorizationContext(ctx)
+	ImeiConfiguration, _, err := imeiconfigurationService.Update(UpdateImeiConfigurationData{
+		ID:        uuid.MustParse(string(args.ID)),
+		UpdatedBy: authorization.AccountId,
+		Imei:      args.Imei,
+		ProjectId: uuid.MustParse(authorization.ProjectId),
+		Priority:  args.Priority,
+		Label:     args.PermittedLabel,
+		Tags:      args.Tags,
+	})
+
+	if err != nil {
+		return nil, utils.GraphqlError{
+			Code:    err.Error(),
+			Message: err.Error(),
+		}
+	}
+
+	return ImeiConfiguration, nil
+}
+
+func (ImeiConfigurationResolver) CreateImeiConfiguration(ctx context.Context, args CreateImeiConfigurationInput) (*ImeiConfiguration, error) {
+	authorization := auth.GetAuthorizationContext(ctx)
+	ImeiConfiguration, _, err := imeiconfigurationService.Create(CreateImeiConfigurationData{
+		CreatedBy:         authorization.AccountId,
+		Imei:              args.Imei,
+		StationLocationId: uuid.MustParse(string(args.StationLocationId)),
+		ProjectId:         uuid.MustParse(authorization.ProjectId),
+		Priority:          args.Priority,
+		Label:             args.PermittedLabel,
+		Tags:              args.Tags,
+	})
+
+	if err != nil {
+		return nil, utils.GraphqlError{
+			Code:    err.Error(),
+			Message: err.Error(),
+		}
+	}
+
+	return ImeiConfiguration, nil
+}
+
+func (parent ImeiConfiguration) Tags() (*[]tag.Tag, error) {
+	tagsResponse, err := tagService.FindByImeiConfigurationId(uuid.MustParse(string(parent.ID)))
+	if err != nil {
+		return nil, utils.GraphqlError{
+			Code:    err.Error(),
+			Message: err.Error(),
+		}
+	}
+
+	tags := lo.Map(*tagsResponse, func(item model.Tag, index int) tag.Tag {
+		return tag.Tag{
+			Id:        graphql.ID(item.ID.String()),
+			ProjectId: graphql.ID(item.ProjectId.String()),
+			Title:     item.Title,
+		}
+	})
+
+	return &tags, nil
+}

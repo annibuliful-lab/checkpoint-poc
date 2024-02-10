@@ -3,15 +3,15 @@ type ImsiConfiguration {
   projectId: ID!
   stationLocationId: ID!
   imsi: String!
-  createdBy: String!
-  updatedBy: String!
+  createdBy: ID!
+  updatedBy: ID
   createdAt: Time!
   updatedAt: Time
   permittedLabel: String!
   priority: String!
   mcc: String!
   mnc: String!
-  tags: [Tag!]!
+  tags: [Tag!]
 }
 
 type Mutation {
@@ -20,8 +20,31 @@ type Mutation {
     imsi: String!
     permittedLabel: String!
     priority: String!
-    mcc: String!
-    mnc: String!
     tags: [String!]
   ): ImsiConfiguration!
+
+  updateImsiConfiguration(
+    id: ID!
+    imsi: String!
+    permittedLabel: String
+    priority: String
+    tags: [String!]
+  ): ImsiConfiguration!
+
+  deleteImsiConfiguration(id: ID!): DeleteOperation!
+}
+
+type Query {
+  getImsiConfigurations(
+    stationLocationId: ID!
+    search: String
+    label: String
+    tags: [String!]
+    mnc: String
+    mcc: String
+    limit: Float!
+    skip: Float!
+  ): [ImsiConfiguration!]!
+
+  getImsiConfigurationById(id: ID!): ImsiConfiguration!
 }

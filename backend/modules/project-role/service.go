@@ -97,7 +97,12 @@ func (ProjectRoleService) Create(data CreateProjectRoleData) (*ProjectRole, stri
 
 	}
 
-	tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		log.Println("insert-project-role-error", err.Error())
+		return nil, utils.InternalServerError.Error(), utils.InternalServerError
+
+	}
 
 	return &ProjectRole{
 		Id:        graphql.ID(projectRole.ID.String()),
@@ -173,7 +178,11 @@ func (ProjectRoleService) Update(data UpdateProjectRoleData) (*ProjectRole, stri
 
 	}
 
-	tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		log.Println("update-project-role-error", err.Error())
+		return nil, utils.InternalServerError.Error(), utils.InternalServerError
+	}
 
 	return &ProjectRole{
 		Id:        graphql.ID(projectRole.ID.String()),
