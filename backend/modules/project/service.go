@@ -94,7 +94,11 @@ func (ProjectService) Create(data CreateProjectInput) (*Project, string, error) 
 		return nil, utils.InternalServerError.Error(), utils.InternalServerError
 	}
 
-	tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		log.Println("insert-project-error", err.Error())
+		return nil, utils.InternalServerError.Error(), utils.InternalServerError
+	}
 
 	return &Project{
 		ID:        graphql.ID(project.ID.String()),

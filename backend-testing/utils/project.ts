@@ -1,5 +1,8 @@
 import { nanoid } from 'nanoid';
-import { getAuthenticatedClient } from './utils';
+import { getAuthenticatedClient, prismaClient } from './utils';
+import { client } from '../../prisma/primary/seed/client';
+import { v4 } from 'uuid';
+import { PROJECT_ID } from './constants';
 
 export async function createProject() {
   const client = await getAuthenticatedClient({});
@@ -16,4 +19,18 @@ export async function createProject() {
     id: response.createProject.id,
     title: response.createProject.title,
   };
+}
+
+export async function createStationLocation() {
+  return prismaClient.stationLocation.create({
+    data: {
+      id: v4(),
+      title: nanoid(),
+      department: nanoid(),
+      latitude: 0,
+      longtitude: 0,
+      projectId: PROJECT_ID,
+      createdBy: 'SYSTEM',
+    },
+  });
 }

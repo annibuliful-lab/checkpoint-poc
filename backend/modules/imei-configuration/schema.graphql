@@ -1,0 +1,46 @@
+type ImeiConfiguration {
+  id: ID!
+  projectId: ID!
+  imei: String!
+  createdBy: String!
+  updatedBy: ID
+  createdAt: Time!
+  updatedAt: Time
+  priority: String!
+  stationLocationId: ID!
+  permittedLabel: String!
+  tags: [Tag!]
+}
+
+type Mutation {
+  createImeiConfiguration(
+    imei: String!
+    priority: String!
+    stationLocationId: ID!
+    permittedLabel: String!
+    tags: [String!]
+  ): ImeiConfiguration!
+
+  updateImeiConfiguration(
+    id: ID!
+    imei: String!
+    priority: String!
+    permittedLabel: String!
+    tags: [String!]
+  ): ImeiConfiguration!
+
+  deleteImeiConfiguration(id: ID!): DeleteOperation!
+}
+
+type Query {
+  getImeiConfigurationById(id: ID!): ImeiConfiguration!
+
+  getImeiConfigurations(
+    stationLocationId: ID!
+    search: String
+    label: String
+    tags: [String!]
+    limit: Int!
+    skip: Int!
+  ): [ImeiConfiguration!]!
+}

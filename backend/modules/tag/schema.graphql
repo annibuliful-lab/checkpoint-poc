@@ -1,5 +1,5 @@
 type Tag {
   id: ID!
   projectId: ID!
-  title: ID!
+  title: String!
 }

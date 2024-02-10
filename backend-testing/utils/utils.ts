@@ -3,6 +3,8 @@ import { BACKEND_ENDPOINT, httpClient } from './constants';
 import axios from 'axios';
 import { config } from 'dotenv';
 import { createClient } from '../graphql/generated';
+import { createStationLocation } from './project';
+import { nanoid } from 'nanoid';
 config();
 
 export const graphqlClient = createClient({
@@ -56,4 +58,56 @@ export async function getAuthenticatedClientWithRefreshToken() {
     }),
     refreshToken: result.data.data.refreshToken as string,
   };
+}
+
+export async function createImeiConfiguration() {
+  const stationLocation = await createStationLocation();
+  const tag = nanoid();
+  const imei = nanoid();
+  const client = await getAuthenticatedClient({
+    includeProjectId: true,
+  });
+  const imeiResponse = await client.mutation({
+    createImeiConfiguration: {
+      __scalar: true,
+      tags: {
+        __scalar: true,
+      },
+      __args: {
+        imei,
+        stationLocationId: stationLocation.id,
+        permittedLabel: 'NONE',
+        priority: 'NORMAL',
+        tags: ['A', tag],
+      },
+    },
+  });
+
+  return imeiResponse.createImeiConfiguration;
+}
+
+export async function createImsiConfiguration() {
+  const stationLocation = await createStationLocation();
+  const client = await getAuthenticatedClient({
+    includeProjectId: true,
+  });
+
+  const imsi = nanoid();
+  const created = await client.mutation({
+    createImsiConfiguration: {
+      __scalar: true,
+      tags: {
+        __scalar: true,
+      },
+      __args: {
+        stationLocationId: stationLocation.id,
+        imsi,
+        permittedLabel: 'WHITELIST',
+        priority: 'NORMAL',
+        tags: ['A'],
+      },
+    },
+  });
+
+  return created.createImsiConfiguration;
 }
