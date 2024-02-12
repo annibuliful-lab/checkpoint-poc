@@ -57,3 +57,9 @@ type offsetPagination {
   skip: Int!
   limit: Int!
 }
+
+directive @access(
+  requiredProjectId: Boolean
+  subject: String
+  action: PermissionAction
+) on FIELD_DEFINITION

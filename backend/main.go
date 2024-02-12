@@ -6,6 +6,7 @@ import (
 	"checkpoint/auth"
 	"checkpoint/db"
 	"checkpoint/gql"
+	"checkpoint/gql/directive"
 	"context"
 	"fmt"
 	"os"
@@ -42,7 +43,13 @@ func main() {
 		log.Fatal("Error loading graphql file")
 	}
 
-	opts := []graphql.SchemaOpt{graphql.UseFieldResolvers(), graphql.MaxParallelism(20), graphql.UseStringDescriptions(), graphql.Directives()}
+	opts := []graphql.SchemaOpt{
+		graphql.UseFieldResolvers(),
+		graphql.MaxParallelism(20),
+		graphql.UseStringDescriptions(),
+		graphql.Directives(&directive.AccessDirective{}),
+	}
+
 	schema := graphql.MustParseSchema(string(mergedSchema[:]), &gql.Resolver{}, opts...)
 
 	app.Post("/graphql", iris.FromStd(auth.GraphqlContext(&relay.Handler{Schema: schema})))

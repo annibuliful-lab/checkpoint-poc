@@ -27,14 +27,14 @@ func UploadController(ctx iris.Context) {
 	// Create a unique object name based on the file name
 	objectName := fmt.Sprintf("%s:%s", uuid.New(), info.Filename)
 
-	minioClient, bucketName, err := s3.GetClient()
+	minioClient, err := s3.GetClient()
 
 	if err != nil {
 		ctx.JSON(iris.Map{"error": "Failed to upload file"})
 	}
 
 	// Upload the file to MinIO
-	_, err = minioClient.PutObject(ctx, bucketName, objectName, file, info.Size, minio.PutObjectOptions{})
+	_, err = minioClient.Client.PutObject(ctx, minioClient.BucketName, objectName, file, info.Size, minio.PutObjectOptions{})
 
 	if err != nil {
 		ctx.StatusCode(iris.StatusInternalServerError)

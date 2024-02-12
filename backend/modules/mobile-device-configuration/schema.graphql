@@ -27,9 +27,10 @@ type Mutation {
     permittedLabel: DevicePermittedLabel!
     blacklistPriority: BlacklistPriority!
     tags: [String!]
-  ): MobileDeviceConfiguration!
+  ): MobileDeviceConfiguration! @access(requiredProjectId: true)
 
   deleteMobileDeviceConfiguration(id: ID!): DeleteOperation!
+    @access(requiredProjectId: true)
 
   updateMobileDeviceConfiguration(
     id: ID!
@@ -40,13 +41,13 @@ type Mutation {
     permittedLabel: DevicePermittedLabel
     blacklistPriority: BlacklistPriority
     tags: [String!]
-  ): MobileDeviceConfiguration!
+  ): MobileDeviceConfiguration! @access(requiredProjectId: true)
 }
 
 type Query {
   getMobileDeviceConfigurationById(
     id: ID!
-  ): MobileDeviceConfiguration!
+  ): MobileDeviceConfiguration! @access(requiredProjectId: true)
 
   getMobileDeviceConfigurations(
     stationLocationId: ID!
@@ -56,5 +57,5 @@ type Query {
     tags: [String!]
     limit: Float!
     skip: Float!
-  ): [MobileDeviceConfiguration!]!
+  ): [MobileDeviceConfiguration!]! @access(requiredProjectId: true)
 }
