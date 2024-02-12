@@ -61,12 +61,12 @@ func (ImsiConfigurationResolver) CreateImsiConfiguration(ctx context.Context, ar
 
 	imsiConfiguration, _, err := imsiConfigurationService.Create(CreateImsiConfigurationData{
 		Imsi:              args.Imsi,
-		PermittedLabel:    args.PermittedLabel,
+		PermittedLabel:    args.PermittedLabel.String(),
 		ProjectId:         uuid.MustParse(authorization.ProjectId),
 		StationLocationId: uuid.MustParse(string(args.StationLocationId)),
 		Tags:              args.Tags,
 		CreatedBy:         authorization.AccountId,
-		BlacklistPriority: args.BlacklistPriority,
+		BlacklistPriority: args.BlacklistPriority.String(),
 	})
 
 	if err != nil {
@@ -109,13 +109,25 @@ func (ImsiConfigurationResolver) GetImsiConfigurations(ctx context.Context, args
 func (ImsiConfigurationResolver) UpdateImsiConfiguration(ctx context.Context, args UpdateImsiConfigurationInput) (*Imsiconfiguration, error) {
 	authorization := auth.GetAuthorizationContext(ctx)
 
+	var permittedLabel *string
+	if args.PermittedLabel != nil {
+		value := args.PermittedLabel.String()
+		permittedLabel = &value
+	}
+
+	var blacklistPriority *string
+	if args.BlacklistPriority != nil {
+		value := args.BlacklistPriority.String()
+		blacklistPriority = &value
+	}
+
 	imsiConfiguration, _, err := imsiConfigurationService.Update(UpdateImsiConfigurationData{
 		ID:                uuid.MustParse(string(args.ID)),
 		Imsi:              &args.Imsi,
 		UpdatedBy:         authorization.AccountId,
 		ProjectId:         uuid.MustParse(authorization.ProjectId),
-		PermittedLabel:    args.PermittedLabel,
-		BlacklistPriority: args.BlacklistPriority,
+		PermittedLabel:    permittedLabel,
+		BlacklistPriority: blacklistPriority,
 		Tags:              args.Tags,
 	})
 

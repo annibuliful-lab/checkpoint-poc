@@ -1,6 +1,7 @@
 package imsiconfiguration
 
 import (
+	"checkpoint/gql/enum"
 	"checkpoint/utils"
 
 	"github.com/google/uuid"
@@ -8,26 +9,26 @@ import (
 )
 
 type Imsiconfiguration struct {
-	ID                graphql.ID        `json:"id"`
-	ProjectId         graphql.ID        `json:"projectId"`
-	Imsi              string            `json:"imsi"`
-	CreatedBy         graphql.ID        `json:"createdBy"`
-	UpdatedBy         *graphql.NullID   `json:"updatedBy"`
-	CreatedAt         graphql.Time      `json:"createdAt"`
-	UpdatedAt         *graphql.NullTime `json:"updatedAt"`
-	PermittedLabel    string            `json:"label"`
-	BlacklistPriority string            `json:"priority"`
-	StationLocationId graphql.ID        `json:"stationLocationId"`
-	Mcc               string            `json:"mcc"`
-	Mnc               string            `json:"mnc"`
+	ID                graphql.ID                `json:"id"`
+	ProjectId         graphql.ID                `json:"projectId"`
+	Imsi              string                    `json:"imsi"`
+	CreatedBy         graphql.ID                `json:"createdBy"`
+	UpdatedBy         *graphql.NullID           `json:"updatedBy"`
+	CreatedAt         graphql.Time              `json:"createdAt"`
+	UpdatedAt         *graphql.NullTime         `json:"updatedAt"`
+	PermittedLabel    enum.DevicePermittedLabel `json:"label"`
+	BlacklistPriority enum.BlacklistPriority    `json:"priority"`
+	StationLocationId graphql.ID                `json:"stationLocationId"`
+	Mcc               string                    `json:"mcc"`
+	Mnc               string                    `json:"mnc"`
 }
 
 type CreateImeiConfigurationInput struct {
-	StationLocationId graphql.ID `json:"stationLocationId"`
-	Imsi              string     `json:"imsi"`
-	PermittedLabel    string     `json:"permittedLabel"`
-	BlacklistPriority string     `json:"priority"`
-	Tags              *[]string  `jcon:"tags"`
+	StationLocationId graphql.ID                `json:"stationLocationId"`
+	Imsi              string                    `json:"imsi"`
+	PermittedLabel    enum.DevicePermittedLabel `json:"permittedLabel"`
+	BlacklistPriority enum.BlacklistPriority    `json:"priority"`
+	Tags              *[]string                 `jcon:"tags"`
 }
 
 type CreateImsiConfigurationData struct {
@@ -51,12 +52,12 @@ type UpdateImsiConfigurationData struct {
 }
 
 type UpdateImsiConfigurationInput struct {
-	ID                graphql.ID `json:"id"`
-	Imsi              string     `json:"imsi"`
-	ProjectId         graphql.ID `json:"projectId"`
-	PermittedLabel    *string    `json:"label"`
-	BlacklistPriority *string    `json:"priority"`
-	Tags              *[]string  `json:"tags"`
+	ID                graphql.ID                 `json:"id"`
+	Imsi              string                     `json:"imsi"`
+	ProjectId         graphql.ID                 `json:"projectId"`
+	PermittedLabel    *enum.DevicePermittedLabel `json:"label"`
+	BlacklistPriority *enum.BlacklistPriority    `json:"priority"`
+	Tags              *[]string                  `json:"tags"`
 }
 
 type GetImsiConfigurationsData struct {
@@ -72,15 +73,15 @@ type GetImsiConfigurationsData struct {
 }
 
 type GetImsiConfigurationsInput struct {
-	StationLocationId graphql.ID `json:"stationLocationId"`
-	Search            *string    `json:"search"`
-	PermittedLabel    *string    `json:"permittedLabel"`
-	BlacklistPriority *string    `json:"blacklistPriority"`
-	Tags              *[]string  `json:"tags"`
-	Mnc               *string    `json:"mnc"`
-	Mcc               *string    `json:"mcc"`
-	Limit             float64    `json:"limit"`
-	Skip              float64    `json:"skip"`
+	StationLocationId graphql.ID                 `json:"stationLocationId"`
+	Search            *string                    `json:"search"`
+	PermittedLabel    *enum.DevicePermittedLabel `json:"permittedLabel"`
+	BlacklistPriority *enum.BlacklistPriority    `json:"blacklistPriority"`
+	Tags              *[]string                  `json:"tags"`
+	Mnc               *string                    `json:"mnc"`
+	Mcc               *string                    `json:"mcc"`
+	Limit             float64                    `json:"limit"`
+	Skip              float64                    `json:"skip"`
 }
 
 type GetImsiConfigurationByIdInput struct {

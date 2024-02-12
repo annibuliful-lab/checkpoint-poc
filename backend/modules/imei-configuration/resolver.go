@@ -22,12 +22,25 @@ var tagDataloader = tagService.ImeiConfigurationDataloader()
 func (ImeiConfigurationResolver) GetImeiConfigurations(ctx context.Context, args GetImeiConfigurationsInput) ([]ImeiConfiguration, error) {
 	authorization := auth.GetAuthorizationContext(ctx)
 
+	var permittedLabel *string
+	if args.PermittedLabel != nil {
+		value := args.PermittedLabel.String()
+		permittedLabel = &value
+	}
+
+	var blacklistPriority *string
+	if args.BlacklistPriority != nil {
+		value := args.BlacklistPriority.String()
+		blacklistPriority = &value
+	}
+
 	imeiConfigurations, _, err := imeiconfigurationService.FindMany(GetImeiConfigurationsData{
 		ProjectId:         uuid.MustParse(authorization.ProjectId),
 		StationLocationId: uuid.MustParse(string(args.StationLocationId)),
 		Tags:              args.Tags,
 		Search:            args.Search,
-		PermittedLabel:    args.PermittedLabel,
+		BlacklistPriority: blacklistPriority,
+		PermittedLabel:    permittedLabel,
 		Pagination: utils.OffsetPagination{
 			Limit: int64(args.Limit),
 			Skip:  int64(args.Skip),
@@ -110,8 +123,8 @@ func (ImeiConfigurationResolver) CreateImeiConfiguration(ctx context.Context, ar
 		Imei:              args.Imei,
 		StationLocationId: uuid.MustParse(string(args.StationLocationId)),
 		ProjectId:         uuid.MustParse(authorization.ProjectId),
-		BlacklistPriority: args.BlacklistPriority,
-		PermittedLabel:    args.PermittedLabel,
+		BlacklistPriority: args.BlacklistPriority.String(),
+		PermittedLabel:    args.PermittedLabel.String(),
 		Tags:              args.Tags,
 	})
 

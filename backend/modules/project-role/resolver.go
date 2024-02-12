@@ -7,7 +7,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/graph-gophers/graphql-go"
-	"github.com/samber/lo"
 )
 
 type ProjectRoleResolver struct{}
@@ -172,14 +171,5 @@ func (r ProjectRole) Permissions() ([]ProjectRolePermission, error) {
 		}
 	}
 
-	projectRolePermissions := lo.Map(*permissions, func(item PermissionResponse, index int) ProjectRolePermission {
-		return ProjectRolePermission{
-			Id:      graphql.ID(item.ID.String()),
-			RoleId:  graphql.ID(item.RoleID.String()),
-			Subject: item.Subject,
-			Action:  item.Action.String(),
-		}
-	})
-
-	return projectRolePermissions, nil
+	return *permissions, nil
 }

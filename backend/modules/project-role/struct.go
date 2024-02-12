@@ -2,6 +2,7 @@ package projectRole
 
 import (
 	"checkpoint/.gen/checkpoint/public/model"
+	"checkpoint/gql/enum"
 	"checkpoint/utils"
 
 	"github.com/google/uuid"
@@ -16,10 +17,10 @@ type ProjectRole struct {
 }
 
 type ProjectRolePermission struct {
-	Id      graphql.ID `json:"id"`
-	RoleId  graphql.ID `json:"roleId"`
-	Subject string     `json:"subject"`
-	Action  string     `json:"action"`
+	Id      graphql.ID            `json:"id"`
+	RoleId  graphql.ID            `json:"roleId"`
+	Subject string                `json:"subject"`
+	Action  enum.PermissionAction `json:"action"`
 }
 
 type CreateProjectRoleInput struct {

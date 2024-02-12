@@ -8,8 +8,8 @@ type MobileDeviceConfiguration {
   referenceImeiConfigurationId: ID!
   referenceImeiConfiguration: ImeiConfiguration
   msisdn: String
-  permittedLabel: String!
-  blacklistPriority: String!
+  permittedLabel: DevicePermittedLabel!
+  blacklistPriority: BlacklistPriority!
   tags: [Tag!]
   createdBy: ID!
   updatedBy: ID
@@ -24,8 +24,8 @@ type Mutation {
     referenceImsiConfigurationId: ID!
     referenceImeiConfigurationId: ID!
     msisdn: String
-    permittedLabel: String!
-    blacklistPriority: String!
+    permittedLabel: DevicePermittedLabel!
+    blacklistPriority: BlacklistPriority!
     tags: [String!]
   ): MobileDeviceConfiguration!
 
@@ -37,8 +37,8 @@ type Mutation {
     referenceImsiConfigurationId: ID
     referenceImeiConfigurationId: ID
     msisdn: String
-    permittedLabel: String
-    blacklistPriority: String
+    permittedLabel: DevicePermittedLabel
+    blacklistPriority: BlacklistPriority
     tags: [String!]
   ): MobileDeviceConfiguration!
 }
@@ -51,8 +51,8 @@ type Query {
   getMobileDeviceConfigurations(
     stationLocationId: ID!
     search: String
-    permittedLabel: String
-    blacklistPriority: String
+    permittedLabel: DevicePermittedLabel
+    blacklistPriority: BlacklistPriority
     tags: [String!]
     limit: Float!
     skip: Float!

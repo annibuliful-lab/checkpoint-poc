@@ -29,13 +29,25 @@ var tagDataloader = tagService.MobileDeviceConfigurationTagDataloader()
 func (MobileDeviceConfigurationResolver) GetMobileDeviceConfigurations(ctx context.Context, args GetMobileDeviceConfigurationsInput) ([]MobileDeviceConfiguration, error) {
 	authorization := auth.GetAuthorizationContext(ctx)
 
+	var permittedLabel *string
+	if args.PermittedLabel != nil {
+		value := args.PermittedLabel.String()
+		permittedLabel = &value
+	}
+
+	var blacklistPriority *string
+	if args.BlacklistPriority != nil {
+		value := args.BlacklistPriority.String()
+		blacklistPriority = &value
+	}
+
 	mobileDeviceConfigurations, err := mobileDeviceService.FindMany(GetMobileDeviceConfigurationsData{
 		StationLocationId: uuid.MustParse(string(args.StationLocationId)),
 		Search:            args.Search,
 		ProjectId:         uuid.MustParse(authorization.ProjectId),
 		Tags:              args.Tags,
-		PermittedLabel:    args.PermittedLabel,
-		BlacklistPriority: args.BlacklistPriority,
+		PermittedLabel:    permittedLabel,
+		BlacklistPriority: blacklistPriority,
 		pagination: utils.OffsetPagination{
 			Limit: int64(args.Limit),
 			Skip:  int64(args.Skip),
@@ -99,11 +111,23 @@ func (MobileDeviceConfigurationResolver) UpdateMobileDeviceConfiguration(ctx con
 		}
 	}
 
+	var permittedLabel *string
+	if args.PermittedLabel != nil {
+		value := args.PermittedLabel.String()
+		permittedLabel = &value
+	}
+
+	var blacklistPriority *string
+	if args.BlacklistPriority != nil {
+		value := args.BlacklistPriority.String()
+		blacklistPriority = &value
+	}
+
 	var mobileDeviceInput = UpdateMobileDeviceConfigurationData{
 		ID:                uuid.MustParse(string(args.ID)),
 		ProjectId:         uuid.MustParse(authorization.ProjectId),
-		PermittedLabel:    args.PermittedLabel,
-		BlacklistPriority: args.BlacklistPriority,
+		PermittedLabel:    permittedLabel,
+		BlacklistPriority: blacklistPriority,
 		Msisdn:            args.Msisdn,
 		Tags:              args.Tags,
 		UpdatedBy:         authorization.AccountId,
@@ -183,8 +207,8 @@ func (MobileDeviceConfigurationResolver) CreateMobileDeviceConfiguration(ctx con
 		Msisdn:                       args.Msisdn,
 		ReferenceImsiConfigurationId: uuid.MustParse(string(args.ReferenceImsiConfigurationId)),
 		ReferenceImeiConfigurationId: uuid.MustParse(string(args.ReferenceImeiConfigurationId)),
-		PermittedLabel:               model.DevicePermittedLabel(args.PermittedLabel),
-		BlacklistPriority:            model.BlacklistPriority(args.BlacklistPriority),
+		PermittedLabel:               model.DevicePermittedLabel(args.PermittedLabel.String()),
+		BlacklistPriority:            model.BlacklistPriority(args.BlacklistPriority.String()),
 		Tags:                         args.Tags,
 		StationLocationId:            uuid.MustParse(string(args.StationLocationId)),
 	})

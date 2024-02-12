@@ -4,6 +4,7 @@ import (
 	"checkpoint/.gen/checkpoint/public/model"
 	table "checkpoint/.gen/checkpoint/public/table"
 	"checkpoint/db"
+	"checkpoint/gql/enum"
 	"checkpoint/utils/graphql_utils"
 	"context"
 	"errors"
@@ -98,8 +99,8 @@ func (ImsiConfigurationService) FindMany(data GetImsiConfigurationsData) ([]Imsi
 			UpdatedBy:         &updatedBy,
 			CreatedAt:         graphql.Time{Time: item.CreatedAt},
 			UpdatedAt:         &updatedAt,
-			PermittedLabel:    string(item.PermittedLabel),
-			BlacklistPriority: item.BlacklistPriority.String(),
+			PermittedLabel:    enum.GetDevicePermittedLabel(item.PermittedLabel.String()),
+			BlacklistPriority: enum.GetBlacklistPriority(item.BlacklistPriority.String()),
 			StationLocationId: graphql.ID(item.StationLocationId.String()),
 			Mcc:               item.Mcc,
 			Mnc:               item.Mnc,
@@ -148,8 +149,8 @@ func (ImsiConfigurationService) FindById(data GetImsiConfigurationByIdData) (*Im
 		UpdatedBy:         &updatedBy,
 		CreatedAt:         graphql.Time{Time: imsiConfiguration.CreatedAt},
 		UpdatedAt:         &updatedAt,
-		PermittedLabel:    imsiConfiguration.PermittedLabel.String(),
-		BlacklistPriority: imsiConfiguration.BlacklistPriority.String(),
+		PermittedLabel:    enum.GetDevicePermittedLabel(imsiConfiguration.PermittedLabel.String()),
+		BlacklistPriority: enum.GetBlacklistPriority(imsiConfiguration.BlacklistPriority.String()),
 		StationLocationId: graphql.ID(imsiConfiguration.StationLocationId.String()),
 		Mcc:               imsiConfiguration.Mcc,
 		Mnc:               imsiConfiguration.Mnc,
@@ -316,8 +317,8 @@ func (ImsiConfigurationService) Update(data UpdateImsiConfigurationData) (*Imsic
 		UpdatedBy:         &updatedBy,
 		CreatedAt:         graphql.Time{Time: imsiConfiguration.CreatedAt},
 		UpdatedAt:         &updatedAt,
-		PermittedLabel:    imsiConfiguration.PermittedLabel.String(),
-		BlacklistPriority: imsiConfiguration.BlacklistPriority.String(),
+		PermittedLabel:    enum.GetDevicePermittedLabel(imsiConfiguration.PermittedLabel.String()),
+		BlacklistPriority: enum.GetBlacklistPriority(imsiConfiguration.BlacklistPriority.String()),
 		StationLocationId: graphql.ID(imsiConfiguration.StationLocationId.String()),
 		Mcc:               imsiConfiguration.Mcc,
 		Mnc:               imsiConfiguration.Mnc,
@@ -438,8 +439,8 @@ func (ImsiConfigurationService) Create(data CreateImsiConfigurationData) (*Imsic
 		UpdatedBy:         &updatedBy,
 		CreatedAt:         graphql.Time{Time: imsiConfiguration.CreatedAt},
 		UpdatedAt:         &updatedAt,
-		PermittedLabel:    imsiConfiguration.PermittedLabel.String(),
-		BlacklistPriority: imsiConfiguration.BlacklistPriority.String(),
+		PermittedLabel:    enum.GetDevicePermittedLabel(imsiConfiguration.PermittedLabel.String()),
+		BlacklistPriority: enum.GetBlacklistPriority(imsiConfiguration.BlacklistPriority.String()),
 		StationLocationId: graphql.ID(imsiConfiguration.StationLocationId.String()),
 		Mcc:               imsiConfiguration.Mcc,
 		Mnc:               imsiConfiguration.Mnc,
@@ -486,8 +487,8 @@ func (ImsiConfigurationService) FindByIds(keys []uuid.UUID) ([]Imsiconfiguration
 			UpdatedBy:         &updatedBy,
 			CreatedAt:         graphql.Time{Time: item.CreatedAt},
 			UpdatedAt:         &updatedAt,
-			PermittedLabel:    string(item.PermittedLabel),
-			BlacklistPriority: item.BlacklistPriority.String(),
+			PermittedLabel:    enum.GetDevicePermittedLabel(item.PermittedLabel.String()),
+			BlacklistPriority: enum.GetBlacklistPriority(item.BlacklistPriority.String()),
 			StationLocationId: graphql.ID(item.StationLocationId.String()),
 			Mcc:               item.Mcc,
 			Mnc:               item.Mnc,

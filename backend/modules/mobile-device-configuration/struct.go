@@ -2,6 +2,7 @@ package mobiledeviceconfiguration
 
 import (
 	"checkpoint/.gen/checkpoint/public/model"
+	"checkpoint/gql/enum"
 	"checkpoint/utils"
 
 	"github.com/google/uuid"
@@ -9,13 +10,13 @@ import (
 )
 
 type GetMobileDeviceConfigurationsInput struct {
-	StationLocationId graphql.ID `json:"stationLocationId"`
-	Search            *string    `json:"search"`
-	PermittedLabel    *string    `json:"permittedLabel"`
-	BlacklistPriority *string    `json:"blacklistPriority"`
-	Tags              *[]string  `json:"tags"`
-	Limit             float64    `json:"limit"`
-	Skip              float64    `json:"skip"`
+	StationLocationId graphql.ID                 `json:"stationLocationId"`
+	Search            *string                    `json:"search"`
+	PermittedLabel    *enum.DevicePermittedLabel `json:"permittedLabel"`
+	BlacklistPriority *enum.BlacklistPriority    `json:"blacklistPriority"`
+	Tags              *[]string                  `json:"tags"`
+	Limit             float64                    `json:"limit"`
+	Skip              float64                    `json:"skip"`
 }
 
 type GetMobileDeviceConfigurationsData struct {
@@ -38,14 +39,14 @@ type GetMobileDeviceConfigurationData struct {
 }
 
 type UpdateMobileDeviceConfigurationInput struct {
-	ID                           graphql.ID  `json:"id"`
-	Title                        *string     `json:"title"`
-	Msisdn                       *string     `json:"msisdn"`
-	ReferenceImsiConfigurationId *graphql.ID `json:"referenceImsiConfigurationId"`
-	ReferenceImeiConfigurationId *graphql.ID `json:"referenceImeiConfigurationId"`
-	PermittedLabel               *string     `json:"permittedLabel"`
-	BlacklistPriority            *string     `json:"blacklistPriority"`
-	Tags                         *[]string   `json:"tags"`
+	ID                           graphql.ID                 `json:"id"`
+	Title                        *string                    `json:"title"`
+	Msisdn                       *string                    `json:"msisdn"`
+	ReferenceImsiConfigurationId *graphql.ID                `json:"referenceImsiConfigurationId"`
+	ReferenceImeiConfigurationId *graphql.ID                `json:"referenceImeiConfigurationId"`
+	PermittedLabel               *enum.DevicePermittedLabel `json:"permittedLabel"`
+	BlacklistPriority            *enum.BlacklistPriority    `json:"blacklistPriority"`
+	Tags                         *[]string                  `json:"tags"`
 }
 
 type UpdateMobileDeviceConfigurationData struct {
@@ -72,14 +73,14 @@ type DeleteMobileDeviceConfigurationData struct {
 }
 
 type CreateMobileDeviceConfigurationInput struct {
-	StationLocationId            graphql.ID `json:"stationLocationId"`
-	Title                        string     `json:"title"`
-	Msisdn                       *string    `json:"msisdn"`
-	ReferenceImsiConfigurationId graphql.ID `json:"referenceImsiConfigurationId"`
-	ReferenceImeiConfigurationId graphql.ID `json:"referenceImeiConfigurationId"`
-	PermittedLabel               string     `json:"permittedLabel"`
-	BlacklistPriority            string     `json:"blacklistPriority"`
-	Tags                         *[]string  `json:"tags"`
+	StationLocationId            graphql.ID                `json:"stationLocationId"`
+	Title                        string                    `json:"title"`
+	Msisdn                       *string                   `json:"msisdn"`
+	ReferenceImsiConfigurationId graphql.ID                `json:"referenceImsiConfigurationId"`
+	ReferenceImeiConfigurationId graphql.ID                `json:"referenceImeiConfigurationId"`
+	PermittedLabel               enum.DevicePermittedLabel `json:"permittedLabel"`
+	BlacklistPriority            enum.BlacklistPriority    `json:"blacklistPriority"`
+	Tags                         *[]string                 `json:"tags"`
 }
 
 type CreateMobileDeviceConfigurationData struct {
@@ -96,17 +97,17 @@ type CreateMobileDeviceConfigurationData struct {
 }
 
 type MobileDeviceConfiguration struct {
-	ID                           graphql.ID        `json:"id"`
-	StationLocationId            graphql.ID        `json:"stationLocationId"`
-	ProjectId                    graphql.ID        `json:"projectId"`
-	Title                        string            `json:"title"`
-	ReferenceImsiConfigurationId graphql.ID        `json:"referenceImsiConfigurationId"`
-	ReferenceImeiConfigurationId graphql.ID        `json:"referenceImeiConfigurationId"`
-	Msisdn                       *string           `json:"msisdn"`
-	PermittedLabel               string            `json:"permittedLabel"`
-	BlacklistPriority            string            `json:"blacklistPriority"`
-	CreatedBy                    graphql.ID        `json:"createdBy"`
-	UpdatedBy                    *graphql.NullID   `json:"updatedBy"`
-	CreatedAt                    graphql.Time      `json:"createdAt"`
-	UpdatedAt                    *graphql.NullTime `json:"updatedAt"`
+	ID                           graphql.ID                `json:"id"`
+	StationLocationId            graphql.ID                `json:"stationLocationId"`
+	ProjectId                    graphql.ID                `json:"projectId"`
+	Title                        string                    `json:"title"`
+	ReferenceImsiConfigurationId graphql.ID                `json:"referenceImsiConfigurationId"`
+	ReferenceImeiConfigurationId graphql.ID                `json:"referenceImeiConfigurationId"`
+	Msisdn                       *string                   `json:"msisdn"`
+	PermittedLabel               enum.DevicePermittedLabel `json:"permittedLabel"`
+	BlacklistPriority            enum.BlacklistPriority    `json:"blacklistPriority"`
+	CreatedBy                    graphql.ID                `json:"createdBy"`
+	UpdatedBy                    *graphql.NullID           `json:"updatedBy"`
+	CreatedAt                    graphql.Time              `json:"createdAt"`
+	UpdatedAt                    *graphql.NullTime         `json:"updatedAt"`
 }
