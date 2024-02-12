@@ -3,3 +3,7 @@ type Tag {
   projectId: ID!
   title: String!
 }
+
+type Query {
+  getTags(search: String, limit: Float!, skip: Float!): [Tag!]!
+}

@@ -7,10 +7,12 @@ import (
 	"checkpoint/utils"
 	"checkpoint/utils/graphql_utils"
 	"context"
+	"errors"
 	"log"
 	"time"
 
 	pg "github.com/go-jet/jet/v2/postgres"
+	"github.com/graph-gophers/dataloader"
 	"github.com/graph-gophers/graphql-go"
 	"github.com/samber/lo"
 
@@ -52,24 +54,24 @@ func (ImeiConfigurationService) FindMany(data GetImeiConfigurationsData) ([]Imei
 		AND(table.ImeiConfiguration.DeletedAt.IS_NULL()).
 		AND(table.ImeiConfiguration.StationLocationId.EQ(pg.UUID(data.StationLocationId)))
 
-	var fromCondition pg.ReadableTable = table.ImeiConfiguration
+	var fromConditions pg.ReadableTable = table.ImeiConfiguration
 
-	if data.Label != nil {
-		conditions = conditions.AND(table.ImeiConfiguration.PermittedLabel.EQ(pg.NewEnumValue(*data.Label)))
+	if data.PermittedLabel != nil {
+		conditions = conditions.AND(table.ImeiConfiguration.PermittedLabel.EQ(pg.NewEnumValue(*data.PermittedLabel)))
 	}
 
 	if data.Search != nil {
 		conditions = conditions.AND(table.ImeiConfiguration.Imei.LIKE(pg.String(*data.Search)))
 	}
 
-	if data.Tags != nil {
+	if data.Tags != nil && len(*data.Tags) != 0 {
 		var tagItems []pg.Expression
 
 		for _, tag := range *data.Tags {
 			tagItems = append(tagItems, pg.String(tag))
 		}
 
-		fromCondition = fromCondition.
+		fromConditions = fromConditions.
 			INNER_JOIN(table.ImeiConfigurationTag, table.ImeiConfigurationTag.ImeiConfigurationId.EQ(table.ImeiConfiguration.ID)).
 			INNER_JOIN(table.Tag, table.ImeiConfigurationTag.TagId.EQ(table.Tag.ID))
 
@@ -77,7 +79,7 @@ func (ImeiConfigurationService) FindMany(data GetImeiConfigurationsData) ([]Imei
 	}
 
 	getImeisStmt := table.ImeiConfiguration.SELECT(table.ImeiConfiguration.AllColumns).
-		FROM(fromCondition).
+		FROM(fromConditions).
 		WHERE(conditions).
 		LIMIT(data.Pagination.Limit).
 		OFFSET(data.Pagination.Skip)
@@ -107,7 +109,7 @@ func (ImeiConfigurationService) FindMany(data GetImeiConfigurationsData) ([]Imei
 			ProjectId:         graphql.ID(item.ProjectId.String()),
 			StationLocationId: graphql.ID(item.StationLocationId.String()),
 			Imei:              item.Imei,
-			Priority:          item.Priority.String(),
+			BlacklistPriority: item.BlacklistPriority.String(),
 			PermittedLabel:    item.PermittedLabel.String(),
 			CreatedBy:         item.CreatedBy,
 			CreatedAt:         graphql.Time{Time: item.CreatedAt},
@@ -133,7 +135,7 @@ func (ImeiConfigurationService) FindById(data GetImeiConfigurationData) (*ImeiCo
 	err := getImeiStmt.Query(dbClient, &imeiConfiguration)
 
 	if err != nil && db.HasNoRow(err) {
-		return nil, 403, utils.ForbiddenOperation
+		return nil, 404, errors.New("imei id not found")
 	}
 
 	if err != nil {
@@ -157,7 +159,7 @@ func (ImeiConfigurationService) FindById(data GetImeiConfigurationData) (*ImeiCo
 		StationLocationId: graphql.ID(imeiConfiguration.StationLocationId.String()),
 		Imei:              imeiConfiguration.Imei,
 		PermittedLabel:    imeiConfiguration.PermittedLabel.String(),
-		Priority:          imeiConfiguration.Priority.String(),
+		BlacklistPriority: imeiConfiguration.BlacklistPriority.String(),
 		CreatedBy:         imeiConfiguration.CreatedBy,
 		CreatedAt:         graphql.Time{Time: imeiConfiguration.CreatedAt},
 		UpdatedBy:         &updatedBy,
@@ -176,13 +178,13 @@ func (ImeiConfigurationService) Update(data UpdateImeiConfigurationData) (*ImeiC
 
 	now := time.Now()
 	updateImeiStmt := table.ImeiConfiguration.
-		UPDATE(table.ImeiConfiguration.Imei, table.ImeiConfiguration.UpdatedBy, table.ImeiConfiguration.PermittedLabel, table.ImeiConfiguration.Priority, table.ImeiConfiguration.UpdatedAt).
+		UPDATE(table.ImeiConfiguration.Imei, table.ImeiConfiguration.UpdatedBy, table.ImeiConfiguration.PermittedLabel, table.ImeiConfiguration.BlacklistPriority, table.ImeiConfiguration.UpdatedAt).
 		MODEL(model.ImeiConfiguration{
-			Imei:           data.Imei,
-			UpdatedBy:      &data.UpdatedBy,
-			UpdatedAt:      &now,
-			PermittedLabel: model.DevicePermittedLabel(data.Label),
-			Priority:       model.BlacklistPriority(data.Priority),
+			Imei:              data.Imei,
+			UpdatedBy:         &data.UpdatedBy,
+			UpdatedAt:         &now,
+			PermittedLabel:    model.DevicePermittedLabel(data.PermittedLabel),
+			BlacklistPriority: model.BlacklistPriority(data.BlacklistPriority),
 		}).
 		RETURNING(table.ImeiConfiguration.AllColumns).
 		WHERE(table.ImeiConfiguration.ID.EQ(pg.UUID(data.ID)).
@@ -202,14 +204,14 @@ func (ImeiConfigurationService) Update(data UpdateImeiConfigurationData) (*ImeiC
 		return nil, 500, utils.InternalServerError
 	}
 
-	if data.Tags != nil {
+	if data.Tags != nil && len(*data.Tags) != 0 {
 		deleteAllImeiTagsStmt := table.ImeiConfigurationTag.
 			DELETE().
 			WHERE(table.ImeiConfigurationTag.ImeiConfigurationId.EQ(pg.UUID(imeiConfiguration.ID)))
 		_, err := deleteAllImeiTagsStmt.ExecContext(ctx, tx)
 		if err != nil {
 			tx.Rollback()
-			log.Println("delete-imei-configuraiton-tag-error", err.Error())
+			log.Println("delete-imei-configuration-tag-error", err.Error())
 			return nil, 500, utils.InternalServerError
 		}
 
@@ -232,7 +234,7 @@ func (ImeiConfigurationService) Update(data UpdateImeiConfigurationData) (*ImeiC
 
 			if err != nil {
 				tx.Rollback()
-				log.Println("upsert-imei-configuraiton-tag-error", err.Error())
+				log.Println("upsert-imei-configuration-tag-error", err.Error())
 				return nil, 500, utils.InternalServerError
 			}
 
@@ -274,7 +276,7 @@ func (ImeiConfigurationService) Update(data UpdateImeiConfigurationData) (*ImeiC
 		StationLocationId: graphql.ID(imeiConfiguration.StationLocationId.String()),
 		Imei:              imeiConfiguration.Imei,
 		PermittedLabel:    imeiConfiguration.PermittedLabel.String(),
-		Priority:          imeiConfiguration.Priority.String(),
+		BlacklistPriority: imeiConfiguration.BlacklistPriority.String(),
 		CreatedBy:         imeiConfiguration.CreatedBy,
 		CreatedAt:         graphql.Time{Time: imeiConfiguration.CreatedAt},
 		UpdatedBy:         &updatedBy,
@@ -292,14 +294,14 @@ func (ImeiConfigurationService) Create(data CreateImeiConfigurationData) (*ImeiC
 	}
 
 	insertImeiStmt := table.ImeiConfiguration.
-		INSERT(table.ImeiConfiguration.Imei, table.ImeiConfiguration.ID, table.ImeiConfiguration.ProjectId, table.ImeiConfiguration.StationLocationId, table.ImeiConfiguration.CreatedBy, table.ImeiConfiguration.PermittedLabel, table.ImeiConfiguration.Priority).
+		INSERT(table.ImeiConfiguration.Imei, table.ImeiConfiguration.ID, table.ImeiConfiguration.ProjectId, table.ImeiConfiguration.StationLocationId, table.ImeiConfiguration.CreatedBy, table.ImeiConfiguration.PermittedLabel, table.ImeiConfiguration.BlacklistPriority).
 		MODEL(model.ImeiConfiguration{
 			ID:                uuid.New(),
 			ProjectId:         data.ProjectId,
 			Imei:              data.Imei,
 			CreatedBy:         data.CreatedBy,
-			PermittedLabel:    model.DevicePermittedLabel(data.Label),
-			Priority:          model.BlacklistPriority(data.Priority),
+			PermittedLabel:    model.DevicePermittedLabel(data.PermittedLabel),
+			BlacklistPriority: model.BlacklistPriority(data.BlacklistPriority),
 			StationLocationId: data.StationLocationId,
 		}).RETURNING(table.ImeiConfiguration.AllColumns)
 
@@ -313,7 +315,7 @@ func (ImeiConfigurationService) Create(data CreateImeiConfigurationData) (*ImeiC
 		return nil, 500, utils.InternalServerError
 	}
 
-	if data.Tags != nil {
+	if data.Tags != nil && len(*data.Tags) != 0 {
 		for _, tag := range *data.Tags {
 			upsertTagStmt := table.Tag.
 				INSERT(table.Tag.ID, table.Tag.ProjectId, table.Tag.Title, table.Tag.CreatedBy, table.Tag.CreatedAt).
@@ -333,7 +335,7 @@ func (ImeiConfigurationService) Create(data CreateImeiConfigurationData) (*ImeiC
 
 			if err != nil {
 				tx.Rollback()
-				log.Println("upsert-imei-configuraiton-tag-error", err.Error())
+				log.Println("upsert-imei-configuration-tag-error", err.Error())
 				return nil, 500, utils.InternalServerError
 			}
 
@@ -375,10 +377,86 @@ func (ImeiConfigurationService) Create(data CreateImeiConfigurationData) (*ImeiC
 		StationLocationId: graphql.ID(imeiConfiguration.StationLocationId.String()),
 		Imei:              imeiConfiguration.Imei,
 		PermittedLabel:    imeiConfiguration.PermittedLabel.String(),
-		Priority:          imeiConfiguration.Priority.String(),
+		BlacklistPriority: imeiConfiguration.BlacklistPriority.String(),
 		CreatedBy:         imeiConfiguration.CreatedBy,
 		CreatedAt:         graphql.Time{Time: imeiConfiguration.CreatedAt},
 		UpdatedBy:         &updatedBy,
 		UpdatedAt:         &updatedAt,
 	}, 201, nil
+}
+
+func (ImeiConfigurationService) FindByIds(keys []uuid.UUID) ([]ImeiConfiguration, int, error) {
+	dbClient := db.GetPrimaryClient()
+
+	var ids []pg.Expression
+
+	for _, id := range keys {
+		ids = append(ids, pg.UUID(id))
+	}
+
+	getImeisStmt := table.ImeiConfiguration.SELECT(table.ImeiConfiguration.AllColumns).
+		FROM(table.ImeiConfiguration).
+		WHERE(table.ImeiConfiguration.ID.IN(ids...))
+	imeiConfigurations := []model.ImeiConfiguration{}
+
+	err := getImeisStmt.Query(dbClient, &imeiConfigurations)
+	if err != nil {
+		log.Println("get-imei-configuration-ids-error", err.Error())
+		return nil, 500, utils.InternalServerError
+	}
+
+	imeiConfigurationsResponse := lo.Map(imeiConfigurations, func(item model.ImeiConfiguration, index int) ImeiConfiguration {
+		var updatedBy graphql.NullID
+		if item.UpdatedBy != nil {
+			updatedBy = graphql_utils.ConvertStringToNullID(item.UpdatedBy)
+		}
+
+		var updatedAt graphql.NullTime
+		if item.UpdatedAt != nil {
+			updatedAt = graphql.NullTime{Value: &graphql.Time{Time: *item.UpdatedAt}}
+		}
+
+		return ImeiConfiguration{
+			ID:                graphql.ID(item.ID.String()),
+			ProjectId:         graphql.ID(item.ProjectId.String()),
+			StationLocationId: graphql.ID(item.StationLocationId.String()),
+			Imei:              item.Imei,
+			BlacklistPriority: item.BlacklistPriority.String(),
+			PermittedLabel:    item.PermittedLabel.String(),
+			CreatedBy:         item.CreatedBy,
+			CreatedAt:         graphql.Time{Time: item.CreatedAt},
+			UpdatedBy:         &updatedBy,
+			UpdatedAt:         &updatedAt,
+		}
+	})
+
+	return imeiConfigurationsResponse, 200, nil
+
+}
+
+func (service ImeiConfigurationService) Dataloader() *dataloader.Loader {
+	return dataloader.NewBatchedLoader(func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+		var ids []uuid.UUID
+		for _, key := range keys {
+			ids = append(ids, uuid.MustParse(key.String()))
+		}
+
+		imeiConfigurations, _, _ := service.FindByIds(ids)
+
+		var results []*dataloader.Result
+
+		for _, key := range keys {
+			imsiConfiguration, match := lo.Find(imeiConfigurations, func(item ImeiConfiguration) bool {
+				return string(item.ID) == string(graphql.ID(key.String()))
+			})
+
+			if match {
+				results = append(results, &dataloader.Result{Data: imsiConfiguration})
+
+			}
+
+		}
+
+		return results
+	}, dataloader.WithClearCacheOnBatch())
 }

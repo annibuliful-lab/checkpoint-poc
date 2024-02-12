@@ -1,5 +1,9 @@
 import { PrismaClient } from '@prisma/client';
-import { BACKEND_ENDPOINT, httpClient } from './constants';
+import {
+  BACKEND_ENDPOINT,
+  STATION_LOCATION_ID,
+  httpClient,
+} from './constants';
 import axios from 'axios';
 import { config } from 'dotenv';
 import { createClient } from '../graphql/generated';
@@ -60,8 +64,9 @@ export async function getAuthenticatedClientWithRefreshToken() {
   };
 }
 
-export async function createImeiConfiguration() {
-  const stationLocation = await createStationLocation();
+export async function createImeiConfiguration(
+  stationLocationId: string
+) {
   const tag = nanoid();
   const imei = nanoid();
   const client = await getAuthenticatedClient({
@@ -75,9 +80,9 @@ export async function createImeiConfiguration() {
       },
       __args: {
         imei,
-        stationLocationId: stationLocation.id,
+        stationLocationId,
         permittedLabel: 'NONE',
-        priority: 'NORMAL',
+        blacklistPriority: 'NORMAL',
         tags: ['A', tag],
       },
     },
@@ -103,11 +108,42 @@ export async function createImsiConfiguration() {
         stationLocationId: stationLocation.id,
         imsi,
         permittedLabel: 'WHITELIST',
-        priority: 'NORMAL',
+        blacklistPriority: 'NORMAL',
         tags: ['A'],
       },
     },
   });
 
   return created.createImsiConfiguration;
+}
+
+export async function createMobileDeviceConfiguration() {
+  const imei = await createImeiConfiguration(STATION_LOCATION_ID);
+  const imsi = await createImsiConfiguration();
+  const title = nanoid();
+  const client = await getAuthenticatedClient({
+    includeProjectId: true,
+  });
+
+  const mobileResponse = await client.mutation({
+    createMobileDeviceConfiguration: {
+      __scalar: true,
+      referenceImeiConfiguration: {
+        __scalar: true,
+      },
+      referenceImsiConfiguration: {
+        __scalar: true,
+      },
+      __args: {
+        stationLocationId: STATION_LOCATION_ID,
+        referenceImeiConfigurationId: imei.id,
+        referenceImsiConfigurationId: imsi.id,
+        title,
+        permittedLabel: 'NONE',
+        blacklistPriority: 'NORMAL',
+      },
+    },
+  });
+
+  return mobileResponse.createMobileDeviceConfiguration;
 }

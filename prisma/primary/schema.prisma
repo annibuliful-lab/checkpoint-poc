@@ -299,7 +299,7 @@ model ImsiConfiguration {
   mnc                       String                      @db.VarChar(3)
   mcc                       String                      @db.VarChar(3)
   permittedLabel            DevicePermittedLabel        @default(NONE)
-  priority                  BlacklistPriority           @default(NORMAL)
+  blacklistPriority         BlacklistPriority           @default(NORMAL)
   createdBy                 String
   updatedBy                 String?
   deletedBy                 String?
@@ -321,7 +321,7 @@ model ImeiConfiguration {
   stationLocation           StationLocation             @relation(fields: [stationLocationId], references: [id])
   imei                      String                      @db.VarChar(24)
   permittedLabel            DevicePermittedLabel        @default(NONE)
-  priority                  BlacklistPriority           @default(NORMAL)
+  blacklistPriority         BlacklistPriority           @default(NORMAL)
   createdBy                 String
   updatedBy                 String?
   deletedBy                 String?
@@ -339,13 +339,16 @@ model MobileDeviceConfiguration {
   id                           String                         @id @db.Uuid
   projectId                    String                         @db.Uuid
   project                      Project                        @relation(fields: [projectId], references: [id])
+  stationLocationId            String                         @db.Uuid
+  stationLocation              StationLocation                @relation(fields: [stationLocationId], references: [id])
   title                        String
   referenceImsiConfigurationId String                         @db.Uuid
   referenceImsi                ImsiConfiguration              @relation(fields: [referenceImsiConfigurationId], references: [id])
   referenceImeiConfigurationId String                         @db.Uuid
   referenceImei                ImeiConfiguration              @relation(fields: [referenceImeiConfigurationId], references: [id])
   msisdn                       String?
-  label                        DevicePermittedLabel           @default(NONE)
+  permittedLabel               DevicePermittedLabel           @default(NONE)
+  blacklistPriority            BlacklistPriority              @default(NORMAL)
   createdBy                    String
   updatedBy                    String?
   deletedBy                    String?
@@ -384,6 +387,7 @@ model StationLocation {
   StationDevice              StationDevice[]
   StationOfficer             StationOfficer[]
   StationLocationTag         StationLocationTag[]
+  MobileDeviceConfiguration  MobileDeviceConfiguration[]
 
   @@index([title(ops: raw("gin_trgm_ops"))], type: Gin)
   @@map("station_location")
@@ -514,7 +518,7 @@ model VehicleLicensePlate {
   country                String?
   accuracy               Decimal
   permittedLabel         DevicePermittedLabel?    @default(NONE)
-  priority               BlacklistPriority?       @default(NORMAL)
+  blacklistPriority      BlacklistPriority?       @default(NORMAL)
   s3Key                  String?
   createdBy              String
   updatedBy              String?

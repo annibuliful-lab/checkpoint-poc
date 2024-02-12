@@ -3,7 +3,6 @@ package authentication
 import (
 	"checkpoint/modules/account"
 	utils "checkpoint/utils"
-	"fmt"
 
 	"github.com/graph-gophers/graphql-go"
 )
@@ -17,7 +16,7 @@ func (AuthenticationResolver) Signup(args SignUpData) (*account.Account, error) 
 		Username: args.Username,
 		Password: args.Password,
 	})
-	fmt.Println(accountInfo)
+
 	if err != nil {
 		return nil, utils.GraphqlError{
 			Code:    code,

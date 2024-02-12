@@ -8,7 +8,7 @@ type ImsiConfiguration {
   createdAt: Time!
   updatedAt: Time
   permittedLabel: String!
-  priority: String!
+  blacklistPriority: String!
   mcc: String!
   mnc: String!
   tags: [Tag!]
@@ -19,7 +19,7 @@ type Mutation {
     stationLocationId: ID!
     imsi: String!
     permittedLabel: String!
-    priority: String!
+    blacklistPriority: String!
     tags: [String!]
   ): ImsiConfiguration!
 
@@ -27,7 +27,7 @@ type Mutation {
     id: ID!
     imsi: String!
     permittedLabel: String
-    priority: String
+    blacklistPriority: String
     tags: [String!]
   ): ImsiConfiguration!
 
@@ -38,7 +38,8 @@ type Query {
   getImsiConfigurations(
     stationLocationId: ID!
     search: String
-    label: String
+    permittedLabel: String
+    blacklistPriority: String
     tags: [String!]
     mnc: String
     mcc: String

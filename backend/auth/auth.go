@@ -80,9 +80,10 @@ func VerifyProjectRole(data VerifyProjectRoleData) bool {
 	return rowsAffected != 0
 }
 
-func AuthContext(next http.Handler) http.Handler {
+func GraphqlContext(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		headers := GetAuthenticationHeaders(r.Header)
+
 		if headers.Authorization == "" {
 			next.ServeHTTP(w, r)
 			return
