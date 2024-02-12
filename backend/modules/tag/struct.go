@@ -1,9 +1,34 @@
 package tag
 
-import "github.com/graph-gophers/graphql-go"
+import (
+	"checkpoint/.gen/checkpoint/public/model"
+
+	"github.com/graph-gophers/graphql-go"
+)
 
 type Tag struct {
 	Id        graphql.ID `json:"id"`
 	Title     string     `json:"title"`
 	ProjectId graphql.ID `json:"projectId"`
+}
+
+type GetTagsInput struct {
+	Search *string `json:"search"`
+	Limit  int64   `json:"limit"`
+	Skip   int64   `json:"skip"`
+}
+
+type ImeiTag struct {
+	model.Tag
+	model.ImeiConfigurationTag
+}
+
+type ImsiTag struct {
+	model.Tag
+	model.ImsiConfigurationTag
+}
+
+type MobileDeviceTag struct {
+	model.Tag
+	model.MobileDeviceConfigurationTag
 }

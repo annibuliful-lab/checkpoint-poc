@@ -6,6 +6,7 @@ import (
 	"checkpoint/db"
 	"checkpoint/utils/graphql_utils"
 	"context"
+	"errors"
 
 	"checkpoint/utils"
 	"log"
@@ -13,6 +14,7 @@ import (
 
 	pg "github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
+	"github.com/graph-gophers/dataloader"
 	"github.com/graph-gophers/graphql-go"
 	"github.com/samber/lo"
 )
@@ -27,20 +29,24 @@ func (ImsiConfigurationService) FindMany(data GetImsiConfigurationsData) ([]Imsi
 		AND(table.ImsiConfiguration.ProjectId.EQ(pg.UUID(data.ProjectId))).
 		AND(table.ImsiConfiguration.StationLocationId.EQ(pg.UUID(data.StationLocationId)))
 
-	var fromCondition pg.ReadableTable = table.ImsiConfiguration
+	var fromConditions pg.ReadableTable = table.ImsiConfiguration
 
-	if data.Label != nil {
-		conditions = conditions.AND(table.ImsiConfiguration.PermittedLabel.EQ(pg.NewEnumValue(*data.Label)))
+	if data.PermittedLabel != nil {
+		conditions = conditions.AND(table.ImsiConfiguration.PermittedLabel.EQ(pg.NewEnumValue(*data.PermittedLabel)))
 	}
 
-	if data.Tags != nil {
+	if data.BlacklistPriority != nil {
+		conditions = conditions.AND(table.ImsiConfiguration.BlacklistPriority.EQ(pg.NewEnumValue(*data.BlacklistPriority)))
+	}
+
+	if data.Tags != nil && len(*data.Tags) != 0 {
 		var tagItems []pg.Expression
 
 		for _, tag := range *data.Tags {
 			tagItems = append(tagItems, pg.String(tag))
 		}
 
-		fromCondition = fromCondition.
+		fromConditions = fromConditions.
 			INNER_JOIN(table.ImsiConfigurationTag, table.ImsiConfigurationTag.ImsiConfigurationId.EQ(table.ImsiConfiguration.ID)).
 			INNER_JOIN(table.Tag, table.ImsiConfigurationTag.TagId.EQ(table.Tag.ID))
 		conditions = conditions.AND(table.Tag.Title.IN(tagItems...))
@@ -60,7 +66,7 @@ func (ImsiConfigurationService) FindMany(data GetImsiConfigurationsData) ([]Imsi
 
 	getImsiConfigurationsStmt := table.ImsiConfiguration.
 		SELECT(table.ImsiConfiguration.AllColumns).
-		FROM(fromCondition).
+		FROM(fromConditions).
 		WHERE(conditions).
 		LIMIT(data.Pagination.Limit).
 		OFFSET(data.Pagination.Skip)
@@ -93,7 +99,7 @@ func (ImsiConfigurationService) FindMany(data GetImsiConfigurationsData) ([]Imsi
 			CreatedAt:         graphql.Time{Time: item.CreatedAt},
 			UpdatedAt:         &updatedAt,
 			PermittedLabel:    string(item.PermittedLabel),
-			Priority:          item.Priority.String(),
+			BlacklistPriority: item.BlacklistPriority.String(),
 			StationLocationId: graphql.ID(item.StationLocationId.String()),
 			Mcc:               item.Mcc,
 			Mnc:               item.Mnc,
@@ -116,7 +122,7 @@ func (ImsiConfigurationService) FindById(data GetImsiConfigurationByIdData) (*Im
 
 	err := getImsiStmt.Query(dbClient, &imsiConfiguration)
 	if err != nil && db.HasNoRow(err) {
-		return nil, 403, utils.ForbiddenOperation
+		return nil, 404, errors.New("imsi id not found")
 	}
 
 	if err != nil {
@@ -143,7 +149,7 @@ func (ImsiConfigurationService) FindById(data GetImsiConfigurationByIdData) (*Im
 		CreatedAt:         graphql.Time{Time: imsiConfiguration.CreatedAt},
 		UpdatedAt:         &updatedAt,
 		PermittedLabel:    imsiConfiguration.PermittedLabel.String(),
-		Priority:          imsiConfiguration.Priority.String(),
+		BlacklistPriority: imsiConfiguration.BlacklistPriority.String(),
 		StationLocationId: graphql.ID(imsiConfiguration.StationLocationId.String()),
 		Mcc:               imsiConfiguration.Mcc,
 		Mnc:               imsiConfiguration.Mnc,
@@ -193,8 +199,8 @@ func (ImsiConfigurationService) Update(data UpdateImsiConfigurationData) (*Imsic
 		columnsToUpdate = append(columnsToUpdate, table.ImsiConfiguration.PermittedLabel)
 	}
 
-	if data.Priority != nil {
-		columnsToUpdate = append(columnsToUpdate, table.ImsiConfiguration.Priority)
+	if data.BlacklistPriority != nil {
+		columnsToUpdate = append(columnsToUpdate, table.ImsiConfiguration.BlacklistPriority)
 	}
 
 	now := time.Now()
@@ -202,13 +208,13 @@ func (ImsiConfigurationService) Update(data UpdateImsiConfigurationData) (*Imsic
 	updateImsiStmt := table.ImsiConfiguration.
 		UPDATE(columnsToUpdate).
 		MODEL(model.ImsiConfiguration{
-			Imsi:           *data.Imsi,
-			Priority:       model.BlacklistPriority(*data.Priority),
-			PermittedLabel: model.DevicePermittedLabel(*data.PermittedLabel),
-			Mcc:            mcc,
-			Mnc:            mnc,
-			UpdatedBy:      &data.UpdatedBy,
-			UpdatedAt:      &now,
+			Imsi:              *data.Imsi,
+			BlacklistPriority: model.BlacklistPriority(*data.BlacklistPriority),
+			PermittedLabel:    model.DevicePermittedLabel(*data.PermittedLabel),
+			Mcc:               mcc,
+			Mnc:               mnc,
+			UpdatedBy:         &data.UpdatedBy,
+			UpdatedAt:         &now,
 		}).
 		WHERE(table.ImsiConfiguration.ID.EQ(pg.UUID(data.ID)).
 			AND(table.ImsiConfiguration.ProjectId.EQ(pg.UUID(data.ProjectId))).
@@ -225,17 +231,17 @@ func (ImsiConfigurationService) Update(data UpdateImsiConfigurationData) (*Imsic
 
 	if err != nil && db.InvalidInput(err) {
 		tx.Rollback()
-		log.Println("invalid-update-imsi-configuraiton-error", err.Error())
+		log.Println("invalid-update-imsi-configuration-error", err.Error())
 		return nil, 400, err
 	}
 
 	if err != nil {
 		tx.Rollback()
-		log.Println("insert-imsi-configuraiton-error", err.Error())
+		log.Println("insert-imsi-configuration-error", err.Error())
 		return nil, 500, utils.InternalServerError
 	}
 
-	if data.Tags != nil {
+	if data.Tags != nil && len(*data.Tags) != 0 {
 		deleteAllImsiTagStmt := table.ImsiConfigurationTag.
 			DELETE().
 			WHERE(table.ImsiConfigurationTag.ImsiConfigurationId.EQ(pg.UUID(data.ID)))
@@ -244,7 +250,7 @@ func (ImsiConfigurationService) Update(data UpdateImsiConfigurationData) (*Imsic
 
 		if err != nil {
 			tx.Rollback()
-			log.Println("delete-all-imsi-configuraiton-error", err.Error())
+			log.Println("delete-all-imsi-configuration-error", err.Error())
 			return nil, 500, utils.InternalServerError
 		}
 
@@ -267,7 +273,7 @@ func (ImsiConfigurationService) Update(data UpdateImsiConfigurationData) (*Imsic
 
 			if err != nil {
 				tx.Rollback()
-				log.Println("upsert-imsi-configuraiton-tag-error", err.Error())
+				log.Println("upsert-imsi-configuration-tag-error", err.Error())
 				return nil, 500, utils.InternalServerError
 			}
 
@@ -311,7 +317,7 @@ func (ImsiConfigurationService) Update(data UpdateImsiConfigurationData) (*Imsic
 		CreatedAt:         graphql.Time{Time: imsiConfiguration.CreatedAt},
 		UpdatedAt:         &updatedAt,
 		PermittedLabel:    imsiConfiguration.PermittedLabel.String(),
-		Priority:          imsiConfiguration.Priority.String(),
+		BlacklistPriority: imsiConfiguration.BlacklistPriority.String(),
 		StationLocationId: graphql.ID(imsiConfiguration.StationLocationId.String()),
 		Mcc:               imsiConfiguration.Mcc,
 		Mnc:               imsiConfiguration.Mnc,
@@ -335,11 +341,11 @@ func (ImsiConfigurationService) Create(data CreateImsiConfigurationData) (*Imsic
 	}
 
 	insertImsiStmt := table.ImsiConfiguration.
-		INSERT(table.ImsiConfiguration.ID, table.ImsiConfiguration.Imsi, table.ImsiConfiguration.Priority, table.ImsiConfiguration.StationLocationId, table.ImsiConfiguration.PermittedLabel, table.ImsiConfiguration.CreatedBy, table.ImsiConfiguration.ProjectId, table.ImsiConfiguration.Mcc, table.ImsiConfiguration.Mnc).
+		INSERT(table.ImsiConfiguration.ID, table.ImsiConfiguration.Imsi, table.ImsiConfiguration.BlacklistPriority, table.ImsiConfiguration.StationLocationId, table.ImsiConfiguration.PermittedLabel, table.ImsiConfiguration.CreatedBy, table.ImsiConfiguration.ProjectId, table.ImsiConfiguration.Mcc, table.ImsiConfiguration.Mnc).
 		MODEL(model.ImsiConfiguration{
 			ID:                uuid.New(),
 			Imsi:              data.Imsi,
-			Priority:          model.BlacklistPriority(data.Priority),
+			BlacklistPriority: model.BlacklistPriority(data.BlacklistPriority),
 			StationLocationId: data.StationLocationId,
 			PermittedLabel:    model.DevicePermittedLabel(data.PermittedLabel),
 			CreatedBy:         data.CreatedBy,
@@ -354,17 +360,17 @@ func (ImsiConfigurationService) Create(data CreateImsiConfigurationData) (*Imsic
 
 	if err != nil && db.InvalidInput(err) {
 		tx.Rollback()
-		log.Println("invalid-insert-imsi-configuraiton-error", err.Error())
+		log.Println("invalid-insert-imsi-configuration-error", err.Error())
 		return nil, 400, err
 	}
 
 	if err != nil {
 		tx.Rollback()
-		log.Println("insert-imsi-configuraiton-error", err.Error())
+		log.Println("insert-imsi-configuration-error", err.Error())
 		return nil, 500, utils.InternalServerError
 	}
 
-	if data.Tags != nil {
+	if data.Tags != nil && len(*data.Tags) != 0 {
 
 		for _, tag := range *data.Tags {
 			upsertTagStmt := table.Tag.
@@ -385,7 +391,7 @@ func (ImsiConfigurationService) Create(data CreateImsiConfigurationData) (*Imsic
 
 			if err != nil {
 				tx.Rollback()
-				log.Println("upsert-imsi-configuraiton-tag-error", err.Error())
+				log.Println("upsert-imsi-configuration-tag-error", err.Error())
 				return nil, 500, utils.InternalServerError
 			}
 
@@ -433,9 +439,87 @@ func (ImsiConfigurationService) Create(data CreateImsiConfigurationData) (*Imsic
 		CreatedAt:         graphql.Time{Time: imsiConfiguration.CreatedAt},
 		UpdatedAt:         &updatedAt,
 		PermittedLabel:    imsiConfiguration.PermittedLabel.String(),
-		Priority:          imsiConfiguration.Priority.String(),
+		BlacklistPriority: imsiConfiguration.BlacklistPriority.String(),
 		StationLocationId: graphql.ID(imsiConfiguration.StationLocationId.String()),
 		Mcc:               imsiConfiguration.Mcc,
 		Mnc:               imsiConfiguration.Mnc,
 	}, 201, nil
+}
+
+func (ImsiConfigurationService) FindByIds(keys []uuid.UUID) ([]Imsiconfiguration, int, error) {
+	dbClient := db.GetPrimaryClient()
+	var ids []pg.Expression
+
+	for _, id := range keys {
+		ids = append(ids, pg.UUID(id))
+	}
+
+	getImsiConfigurationsStmt := table.ImsiConfiguration.
+		SELECT(table.ImsiConfiguration.AllColumns).
+		FROM(table.ImsiConfiguration).
+		WHERE(table.ImsiConfiguration.ID.IN(ids...))
+
+	imsiConfigurations := []model.ImsiConfiguration{}
+
+	err := getImsiConfigurationsStmt.Query(dbClient, &imsiConfigurations)
+
+	if err != nil {
+		log.Println("get-imsi-configurations-error", err.Error())
+		return nil, 500, utils.InternalServerError
+	}
+
+	imsiConfigurationsResponse := lo.Map(imsiConfigurations, func(item model.ImsiConfiguration, index int) Imsiconfiguration {
+		var updatedBy graphql.NullID
+		if item.UpdatedBy != nil {
+			updatedBy = graphql_utils.ConvertStringToNullID(item.UpdatedBy)
+		}
+
+		var updatedAt graphql.NullTime
+		if item.UpdatedAt != nil {
+			updatedAt = graphql.NullTime{Value: &graphql.Time{Time: *item.UpdatedAt}}
+		}
+		return Imsiconfiguration{
+			ID:                graphql.ID(item.ID.String()),
+			ProjectId:         graphql.ID(item.ProjectId.String()),
+			Imsi:              item.Imsi,
+			CreatedBy:         graphql.ID(item.CreatedBy),
+			UpdatedBy:         &updatedBy,
+			CreatedAt:         graphql.Time{Time: item.CreatedAt},
+			UpdatedAt:         &updatedAt,
+			PermittedLabel:    string(item.PermittedLabel),
+			BlacklistPriority: item.BlacklistPriority.String(),
+			StationLocationId: graphql.ID(item.StationLocationId.String()),
+			Mcc:               item.Mcc,
+			Mnc:               item.Mnc,
+		}
+	})
+
+	return imsiConfigurationsResponse, 200, nil
+}
+
+func (service ImsiConfigurationService) Dataloader() *dataloader.Loader {
+	return dataloader.NewBatchedLoader(func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+		var ids []uuid.UUID
+		for _, key := range keys {
+			ids = append(ids, uuid.MustParse(key.String()))
+		}
+
+		imsiConfigurations, _, _ := service.FindByIds(ids)
+
+		var results []*dataloader.Result
+
+		for _, key := range keys {
+			imsiConfiguration, match := lo.Find(imsiConfigurations, func(item Imsiconfiguration) bool {
+				return string(item.ID) == string(graphql.ID(key.String()))
+			})
+
+			if match {
+				results = append(results, &dataloader.Result{Data: imsiConfiguration})
+
+			}
+
+		}
+
+		return results
+	}, dataloader.WithClearCacheOnBatch())
 }

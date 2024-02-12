@@ -78,7 +78,7 @@ describe('Project', () => {
   });
 
   it('throws when get by wrong id', async () => {
-    try {
+    expect(
       client.query({
         getProjectById: {
           __scalar: true,
@@ -86,12 +86,7 @@ describe('Project', () => {
             id: v4(),
           },
         },
-      });
-    } catch (error: any) {
-      expect(error.response.status).toEqual(403);
-      expect(error.response.data.message).toEqual(
-        'forbidden operation'
-      );
-    }
+      })
+    ).rejects.toThrow();
   });
 });

@@ -1,0 +1,60 @@
+type MobileDeviceConfiguration {
+  id: ID!
+  projectId: ID!
+  title: String!
+  stationLocationId: ID!
+  referenceImsiConfigurationId: ID!
+  referenceImsiConfiguration: ImsiConfiguration
+  referenceImeiConfigurationId: ID!
+  referenceImeiConfiguration: ImeiConfiguration
+  msisdn: String
+  permittedLabel: String!
+  blacklistPriority: String!
+  tags: [Tag!]
+  createdBy: ID!
+  updatedBy: ID
+  createdAt: Time!
+  updatedAt: Time
+}
+
+type Mutation {
+  createMobileDeviceConfiguration(
+    stationLocationId: ID!
+    title: String!
+    referenceImsiConfigurationId: ID!
+    referenceImeiConfigurationId: ID!
+    msisdn: String
+    permittedLabel: String!
+    blacklistPriority: String!
+    tags: [String!]
+  ): MobileDeviceConfiguration!
+
+  deleteMobileDeviceConfiguration(id: ID!): DeleteOperation!
+
+  updateMobileDeviceConfiguration(
+    id: ID!
+    title: String
+    referenceImsiConfigurationId: ID
+    referenceImeiConfigurationId: ID
+    msisdn: String
+    permittedLabel: String
+    blacklistPriority: String
+    tags: [String!]
+  ): MobileDeviceConfiguration!
+}
+
+type Query {
+  getMobileDeviceConfigurationById(
+    id: ID!
+  ): MobileDeviceConfiguration!
+
+  getMobileDeviceConfigurations(
+    stationLocationId: ID!
+    search: String
+    permittedLabel: String
+    blacklistPriority: String
+    tags: [String!]
+    limit: Float!
+    skip: Float!
+  ): [MobileDeviceConfiguration!]!
+}

@@ -46,6 +46,16 @@ export async function seedUsers() {
               id: '246bb085-8ccc-4def-ac78-dc2ad5c7760b',
               title: 'userA Project',
               createdBy: 'SEED',
+              stationLocations: {
+                create: {
+                  id: 'e1c6783c-e09c-43dd-b1e5-8041dcd2816e',
+                  title: 'SEED_STATION',
+                  department: 'SEED_DEPARTMENT',
+                  createdBy: 'SEED',
+                  latitude: 0,
+                  longtitude: 0,
+                },
+              },
             },
           },
         },

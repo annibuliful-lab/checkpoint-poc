@@ -1,13 +1,14 @@
 package imsiconfiguration
 
 import (
-	"checkpoint/.gen/checkpoint/public/model"
 	"checkpoint/auth"
 	"checkpoint/modules/tag"
 	"checkpoint/utils"
 	"context"
+	"log"
 
 	"github.com/google/uuid"
+	"github.com/graph-gophers/dataloader"
 	"github.com/graph-gophers/graphql-go"
 	"github.com/samber/lo"
 )
@@ -16,6 +17,7 @@ type ImsiConfigurationResolver struct{}
 
 var imsiConfigurationService = ImsiConfigurationService{}
 var tagService = tag.TagService{}
+var tagDataloader = tagService.ImsiConfigurationDataloader()
 
 func (ImsiConfigurationResolver) DeleteImsiConfiguration(ctx context.Context, args DeleteImsiConfigurationInput) (*utils.DeleteOperation, error) {
 	authorization := auth.GetAuthorizationContext(ctx)
@@ -62,9 +64,9 @@ func (ImsiConfigurationResolver) CreateImsiConfiguration(ctx context.Context, ar
 		PermittedLabel:    args.PermittedLabel,
 		ProjectId:         uuid.MustParse(authorization.ProjectId),
 		StationLocationId: uuid.MustParse(string(args.StationLocationId)),
-		Tags:              *args.Tags,
+		Tags:              args.Tags,
 		CreatedBy:         authorization.AccountId,
-		Priority:          args.Priority,
+		BlacklistPriority: args.BlacklistPriority,
 	})
 
 	if err != nil {
@@ -108,13 +110,13 @@ func (ImsiConfigurationResolver) UpdateImsiConfiguration(ctx context.Context, ar
 	authorization := auth.GetAuthorizationContext(ctx)
 
 	imsiConfiguration, _, err := imsiConfigurationService.Update(UpdateImsiConfigurationData{
-		ID:             uuid.MustParse(string(args.ID)),
-		Imsi:           &args.Imsi,
-		UpdatedBy:      authorization.AccountId,
-		ProjectId:      uuid.MustParse(authorization.ProjectId),
-		PermittedLabel: args.PermittedLabel,
-		Priority:       args.Priority,
-		Tags:           args.Tags,
+		ID:                uuid.MustParse(string(args.ID)),
+		Imsi:              &args.Imsi,
+		UpdatedBy:         authorization.AccountId,
+		ProjectId:         uuid.MustParse(authorization.ProjectId),
+		PermittedLabel:    args.PermittedLabel,
+		BlacklistPriority: args.BlacklistPriority,
+		Tags:              args.Tags,
 	})
 
 	if err != nil {
@@ -127,20 +129,18 @@ func (ImsiConfigurationResolver) UpdateImsiConfiguration(ctx context.Context, ar
 	return imsiConfiguration, nil
 }
 
-func (parent Imsiconfiguration) Tags() (*[]tag.Tag, error) {
-	tagsResponse, err := tagService.FindByImsiConfigurationId(uuid.MustParse(string(parent.ID)))
+func (parent Imsiconfiguration) Tags(ctx context.Context) (*[]tag.Tag, error) {
+	thunk := tagDataloader.Load(ctx, dataloader.StringKey(parent.ID))
+	tagsLoaderResult, err := thunk()
 	if err != nil {
-		return nil, utils.GraphqlError{
-			Code:    err.Error(),
-			Message: err.Error(),
-		}
+		log.Println(err.Error())
+		return nil, nil
 	}
-
-	tags := lo.Map(*tagsResponse, func(item model.Tag, index int) tag.Tag {
+	tags := lo.Map(tagsLoaderResult.([]tag.ImsiTag), func(item tag.ImsiTag, index int) tag.Tag {
 		return tag.Tag{
-			Id:        graphql.ID(item.ID.String()),
-			ProjectId: graphql.ID(item.ProjectId.String()),
-			Title:     item.Title,
+			Id:        graphql.ID(item.Tag.ID.String()),
+			Title:     item.Tag.Title,
+			ProjectId: graphql.ID(item.Tag.ProjectId.String()),
 		}
 	})
 

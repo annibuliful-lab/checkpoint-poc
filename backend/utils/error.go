@@ -16,6 +16,7 @@ var (
 	ContactOwner           = errors.New("please contact project owner")
 	DataConflict           = errors.New("data conflict")
 	IdNotfound             = errors.New("id not found")
+	Notfound               = errors.New("data not found")
 )
 
 type GraphqlError struct {

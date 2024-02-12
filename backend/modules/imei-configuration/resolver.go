@@ -1,13 +1,14 @@
 package imeiconfiguration
 
 import (
-	"checkpoint/.gen/checkpoint/public/model"
 	"checkpoint/auth"
 	"checkpoint/modules/tag"
 	"checkpoint/utils"
 	"context"
+	"log"
 
 	"github.com/google/uuid"
+	"github.com/graph-gophers/dataloader"
 	"github.com/graph-gophers/graphql-go"
 	"github.com/samber/lo"
 )
@@ -16,15 +17,17 @@ type ImeiConfigurationResolver struct{}
 
 var imeiconfigurationService = ImeiConfigurationService{}
 var tagService = tag.TagService{}
+var tagDataloader = tagService.ImeiConfigurationDataloader()
 
 func (ImeiConfigurationResolver) GetImeiConfigurations(ctx context.Context, args GetImeiConfigurationsInput) ([]ImeiConfiguration, error) {
 	authorization := auth.GetAuthorizationContext(ctx)
 
 	imeiConfigurations, _, err := imeiconfigurationService.FindMany(GetImeiConfigurationsData{
-		ProjectId: uuid.MustParse(authorization.ProjectId),
-		Tags:      args.Tags,
-		Search:    args.Search,
-		Label:     args.Label,
+		ProjectId:         uuid.MustParse(authorization.ProjectId),
+		StationLocationId: uuid.MustParse(string(args.StationLocationId)),
+		Tags:              args.Tags,
+		Search:            args.Search,
+		PermittedLabel:    args.PermittedLabel,
 		Pagination: utils.OffsetPagination{
 			Limit: int64(args.Limit),
 			Skip:  int64(args.Skip),
@@ -81,13 +84,13 @@ func (ImeiConfigurationResolver) DeleteImeiConfiguration(ctx context.Context, ar
 func (ImeiConfigurationResolver) UpdateImeiConfiguration(ctx context.Context, args UpdateImeiConfigurationInput) (*ImeiConfiguration, error) {
 	authorization := auth.GetAuthorizationContext(ctx)
 	ImeiConfiguration, _, err := imeiconfigurationService.Update(UpdateImeiConfigurationData{
-		ID:        uuid.MustParse(string(args.ID)),
-		UpdatedBy: authorization.AccountId,
-		Imei:      args.Imei,
-		ProjectId: uuid.MustParse(authorization.ProjectId),
-		Priority:  args.Priority,
-		Label:     args.PermittedLabel,
-		Tags:      args.Tags,
+		ID:                uuid.MustParse(string(args.ID)),
+		UpdatedBy:         authorization.AccountId,
+		Imei:              args.Imei,
+		ProjectId:         uuid.MustParse(authorization.ProjectId),
+		BlacklistPriority: args.BlacklistPriority,
+		PermittedLabel:    args.PermittedLabel,
+		Tags:              args.Tags,
 	})
 
 	if err != nil {
@@ -107,8 +110,8 @@ func (ImeiConfigurationResolver) CreateImeiConfiguration(ctx context.Context, ar
 		Imei:              args.Imei,
 		StationLocationId: uuid.MustParse(string(args.StationLocationId)),
 		ProjectId:         uuid.MustParse(authorization.ProjectId),
-		Priority:          args.Priority,
-		Label:             args.PermittedLabel,
+		BlacklistPriority: args.BlacklistPriority,
+		PermittedLabel:    args.PermittedLabel,
 		Tags:              args.Tags,
 	})
 
@@ -122,20 +125,19 @@ func (ImeiConfigurationResolver) CreateImeiConfiguration(ctx context.Context, ar
 	return ImeiConfiguration, nil
 }
 
-func (parent ImeiConfiguration) Tags() (*[]tag.Tag, error) {
-	tagsResponse, err := tagService.FindByImeiConfigurationId(uuid.MustParse(string(parent.ID)))
-	if err != nil {
-		return nil, utils.GraphqlError{
-			Code:    err.Error(),
-			Message: err.Error(),
-		}
-	}
+func (parent ImeiConfiguration) Tags(ctx context.Context) (*[]tag.Tag, error) {
 
-	tags := lo.Map(*tagsResponse, func(item model.Tag, index int) tag.Tag {
+	thunk := tagDataloader.Load(ctx, dataloader.StringKey(parent.ID))
+	tagsLoaderResult, err := thunk()
+	if err != nil {
+		log.Println(err.Error())
+		return nil, nil
+	}
+	tags := lo.Map(tagsLoaderResult.([]tag.ImeiTag), func(item tag.ImeiTag, index int) tag.Tag {
 		return tag.Tag{
-			Id:        graphql.ID(item.ID.String()),
-			ProjectId: graphql.ID(item.ProjectId.String()),
-			Title:     item.Title,
+			Id:        graphql.ID(item.Tag.ID.String()),
+			Title:     item.Tag.Title,
+			ProjectId: graphql.ID(item.Tag.ProjectId.String()),
 		}
 	})
 

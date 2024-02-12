@@ -104,7 +104,7 @@ describe('Imsi configuration', () => {
         __args: {
           id: created.id,
           imsi: created.imsi,
-          priority: 'WARNING',
+          blacklistPriority: 'WARNING',
           permittedLabel: 'BLACKLIST',
           tags: [tag, 'A'],
         },
@@ -112,8 +112,12 @@ describe('Imsi configuration', () => {
     });
     const imsiConfiguration = updated.updateImsiConfiguration;
     expect(imsiConfiguration.tags?.length).toEqual(2);
-    expect(imsiConfiguration.tags?.[0].title).toEqual(tag);
-    expect(imsiConfiguration.tags?.[1].title).toEqual('A');
+    expect(
+      [tag, 'A'].includes(imsiConfiguration.tags?.[0].title as string)
+    ).toBeTruthy();
+    expect(
+      [tag, 'A'].includes(imsiConfiguration.tags?.[1].title as string)
+    ).toBeTruthy();
     expect(imsiConfiguration.imsi).toEqual(imsi);
     expect(imsiConfiguration.mcc).toEqual(
       imsi[0] + imsi[1] + imsi[2]
@@ -125,7 +129,7 @@ describe('Imsi configuration', () => {
       created.stationLocationId
     );
     expect(imsiConfiguration.permittedLabel).toEqual('BLACKLIST');
-    expect(imsiConfiguration.priority).toEqual('WARNING');
+    expect(imsiConfiguration.blacklistPriority).toEqual('WARNING');
   });
 
   it('creates', async () => {
@@ -141,12 +145,13 @@ describe('Imsi configuration', () => {
           stationLocationId: stationLocation.id,
           imsi,
           permittedLabel: 'WHITELIST',
-          priority: 'NORMAL',
+          blacklistPriority: 'NORMAL',
           tags: ['A'],
         },
       },
     });
     const imsiConfiguration = created.createImsiConfiguration;
+
     expect(imsiConfiguration.tags?.length).toEqual(1);
     expect(imsiConfiguration.tags?.[0].title).toEqual('A');
     expect(imsiConfiguration.imsi).toEqual(imsi);
@@ -160,6 +165,6 @@ describe('Imsi configuration', () => {
       stationLocation.id
     );
     expect(imsiConfiguration.permittedLabel).toEqual('WHITELIST');
-    expect(imsiConfiguration.priority).toEqual('NORMAL');
+    expect(imsiConfiguration.blacklistPriority).toEqual('NORMAL');
   });
 });

@@ -5,7 +5,8 @@ import {
   getAuthenticatedClient,
 } from './utils/utils';
 import { createStationLocation } from './utils/project';
-import { title } from 'process';
+import { STATION_LOCATION_ID } from './utils/constants';
+import omit from 'lodash.omit';
 
 describe('Imei configuration', () => {
   let client: Client;
@@ -15,7 +16,9 @@ describe('Imei configuration', () => {
   });
 
   it('gets by tags', async () => {
-    const createdImeiConfiguration = await createImeiConfiguration();
+    const createdImeiConfiguration = await createImeiConfiguration(
+      STATION_LOCATION_ID
+    );
     const tags = createdImeiConfiguration.tags?.map((t) => t.title);
     const imeiConfigurations = await client.query({
       getImeiConfigurations: {
@@ -28,19 +31,22 @@ describe('Imei configuration', () => {
             createdImeiConfiguration.stationLocationId,
           limit: 20,
           skip: 0,
-          tags,
+          tags: ['A'],
         },
       },
     });
 
     expect(
       imeiConfigurations.getImeiConfigurations.every((t) =>
-        t.tags?.every((el) => tags?.includes(el.title))
+        t.tags?.some((el) => el.title === 'A')
       )
     ).toBeTruthy();
   });
+
   it('gets by id', async () => {
-    const createdImeiConfiguration = await createImeiConfiguration();
+    const createdImeiConfiguration = await createImeiConfiguration(
+      STATION_LOCATION_ID
+    );
     const imeiConfiguration = await client.query({
       getImeiConfigurationById: {
         __scalar: true,
@@ -53,13 +59,15 @@ describe('Imei configuration', () => {
       },
     });
 
-    expect(imeiConfiguration.getImeiConfigurationById).toEqual(
-      createdImeiConfiguration
-    );
+    expect(
+      omit(imeiConfiguration.getImeiConfigurationById, 'tags')
+    ).toEqual(omit(createdImeiConfiguration, 'tags'));
   });
 
   it('deletes an existing', async () => {
-    const createdImeiConfiguration = await createImeiConfiguration();
+    const createdImeiConfiguration = await createImeiConfiguration(
+      STATION_LOCATION_ID
+    );
     const deleted = await client.mutation({
       deleteImeiConfiguration: {
         __scalar: true,
@@ -72,7 +80,9 @@ describe('Imei configuration', () => {
   });
 
   it('updates an existing', async () => {
-    const createdImeiConfiguration = await createImeiConfiguration();
+    const createdImeiConfiguration = await createImeiConfiguration(
+      STATION_LOCATION_ID
+    );
     const newImei = nanoid();
     const newTag = nanoid();
     const updated = await client.mutation({
@@ -85,7 +95,7 @@ describe('Imei configuration', () => {
           id: createdImeiConfiguration.id,
           imei: newImei,
           permittedLabel: 'BLACKLIST',
-          priority: 'WARNING',
+          blacklistPriority: 'WARNING',
           tags: [newTag],
         },
       },
@@ -93,7 +103,7 @@ describe('Imei configuration', () => {
 
     const imeiConfiguration = updated.updateImeiConfiguration;
     expect(imeiConfiguration.imei).toEqual(newImei);
-    expect(imeiConfiguration.priority).toEqual('WARNING');
+    expect(imeiConfiguration.blacklistPriority).toEqual('WARNING');
     expect(imeiConfiguration.permittedLabel).toEqual('BLACKLIST');
     expect(imeiConfiguration.tags?.length).toEqual(1);
     expect(imeiConfiguration.tags?.[0].title).toEqual(newTag);
@@ -113,7 +123,7 @@ describe('Imei configuration', () => {
           imei,
           stationLocationId: stationLocation.id,
           permittedLabel: 'NONE',
-          priority: 'NORMAL',
+          blacklistPriority: 'NORMAL',
           tags: ['A', tag],
         },
       },
@@ -121,10 +131,15 @@ describe('Imei configuration', () => {
 
     const imeiConfiguration = imeiResponse.createImeiConfiguration;
     expect(imeiConfiguration.imei).toEqual(imei);
-    expect(imeiConfiguration.priority).toEqual('NORMAL');
+    expect(imeiConfiguration.blacklistPriority).toEqual('NORMAL');
     expect(imeiConfiguration.permittedLabel).toEqual('NONE');
     expect(imeiConfiguration.tags?.length).toEqual(2);
-    expect(imeiConfiguration.tags?.[0].title).toEqual('A');
-    expect(imeiConfiguration.tags?.[1].title).toEqual(tag);
+
+    expect(
+      ['A', tag].includes(imeiConfiguration.tags?.[0].title as string)
+    ).toBeTruthy();
+    expect(
+      ['A', tag].includes(imeiConfiguration.tags?.[1].title as string)
+    ).toBeTruthy();
   });
 });

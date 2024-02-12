@@ -16,7 +16,7 @@ type Imsiconfiguration struct {
 	CreatedAt         graphql.Time      `json:"createdAt"`
 	UpdatedAt         *graphql.NullTime `json:"updatedAt"`
 	PermittedLabel    string            `json:"label"`
-	Priority          string            `json:"priority"`
+	BlacklistPriority string            `json:"priority"`
 	StationLocationId graphql.ID        `json:"stationLocationId"`
 	Mcc               string            `json:"mcc"`
 	Mnc               string            `json:"mnc"`
@@ -26,7 +26,7 @@ type CreateImeiConfigurationInput struct {
 	StationLocationId graphql.ID `json:"stationLocationId"`
 	Imsi              string     `json:"imsi"`
 	PermittedLabel    string     `json:"permittedLabel"`
-	Priority          string     `json:"priority"`
+	BlacklistPriority string     `json:"priority"`
 	Tags              *[]string  `jcon:"tags"`
 }
 
@@ -35,35 +35,36 @@ type CreateImsiConfigurationData struct {
 	Imsi              string    `json:"imsi"`
 	CreatedBy         string    `json:"createdBy"`
 	PermittedLabel    string    `json:"label"`
-	Priority          string    `json:"priority"`
+	BlacklistPriority string    `json:"priority"`
 	StationLocationId uuid.UUID `json:"stationLocationId"`
 	Tags              *[]string `json:"tags"`
 }
 
 type UpdateImsiConfigurationData struct {
-	ID             uuid.UUID `json:"id"`
-	Imsi           *string   `json:"imsi"`
-	ProjectId      uuid.UUID `json:"projectId"`
-	UpdatedBy      string    `json:"updatedBy"`
-	PermittedLabel *string   `json:"label"`
-	Priority       *string   `json:"priority"`
-	Tags           *[]string `json:"tags"`
+	ID                uuid.UUID `json:"id"`
+	Imsi              *string   `json:"imsi"`
+	ProjectId         uuid.UUID `json:"projectId"`
+	UpdatedBy         string    `json:"updatedBy"`
+	PermittedLabel    *string   `json:"label"`
+	BlacklistPriority *string   `json:"priority"`
+	Tags              *[]string `json:"tags"`
 }
 
 type UpdateImsiConfigurationInput struct {
-	ID             graphql.ID `json:"id"`
-	Imsi           string     `json:"imsi"`
-	ProjectId      graphql.ID `json:"projectId"`
-	PermittedLabel *string    `json:"label"`
-	Priority       *string    `json:"priority"`
-	Tags           *[]string  `json:"tags"`
+	ID                graphql.ID `json:"id"`
+	Imsi              string     `json:"imsi"`
+	ProjectId         graphql.ID `json:"projectId"`
+	PermittedLabel    *string    `json:"label"`
+	BlacklistPriority *string    `json:"priority"`
+	Tags              *[]string  `json:"tags"`
 }
 
 type GetImsiConfigurationsData struct {
 	StationLocationId uuid.UUID `json:"stationLocationId"`
 	Search            *string   `json:"search"`
 	ProjectId         uuid.UUID `json:"projectId"`
-	Label             *string   `json:"label"`
+	PermittedLabel    *string   `json:"permittedLabel"`
+	BlacklistPriority *string   `json:"blacklistPriority"`
 	Tags              *[]string `json:"tags"`
 	Mnc               *string   `json:"mnc"`
 	Mcc               *string   `json:"mcc"`
@@ -73,7 +74,8 @@ type GetImsiConfigurationsData struct {
 type GetImsiConfigurationsInput struct {
 	StationLocationId graphql.ID `json:"stationLocationId"`
 	Search            *string    `json:"search"`
-	Label             *string    `json:"label"`
+	PermittedLabel    *string    `json:"permittedLabel"`
+	BlacklistPriority *string    `json:"blacklistPriority"`
 	Tags              *[]string  `json:"tags"`
 	Mnc               *string    `json:"mnc"`
 	Mcc               *string    `json:"mcc"`

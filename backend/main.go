@@ -45,7 +45,7 @@ func main() {
 	opts := []graphql.SchemaOpt{graphql.UseFieldResolvers(), graphql.MaxParallelism(20), graphql.UseStringDescriptions(), graphql.Directives()}
 	schema := graphql.MustParseSchema(string(mergedSchema[:]), &gql.Resolver{}, opts...)
 
-	app.Post("/graphql", iris.FromStd(auth.AuthContext(&relay.Handler{Schema: schema})))
+	app.Post("/graphql", iris.FromStd(auth.GraphqlContext(&relay.Handler{Schema: schema})))
 
 	idleConnsClosed := make(chan struct{})
 
