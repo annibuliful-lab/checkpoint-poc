@@ -9,14 +9,13 @@ import (
 	"context"
 	"encoding/json"
 	"log"
-	"net/http"
 
 	pg "github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
 	"github.com/samber/lo"
 )
 
-func VerifyAuthentication(headers AuthenticationHeader) {
+func VerifyAuthentication(headers AuthorizationContext) error {
 	ctx := context.Background()
 	dbClient := db.GetPrimaryClient()
 	redisClient := db.GetRedisClient()
@@ -42,23 +41,22 @@ func VerifyAuthentication(headers AuthenticationHeader) {
 			log.Println("update-session-token-error", err.Error())
 		}
 
-		// ctx.StatusCode(iris.StatusForbidden)
-		// ctx.JSON(iris.Map{
-		// 	"message": "Token expired",
-		// })
-		return
+		return utils.GraphqlError{
+			Code:    "Token expired",
+			Message: "Token expired",
+		}
 	}
 
 	if err != nil {
 		log.Println("jwt-error", err.Error())
-		// ctx.StatusCode(iris.StatusForbidden)
-		// ctx.JSON(iris.Map{
-		// 	"message": err.Error(),
-		// })
-		return
+
+		return utils.GraphqlError{
+			Code:    err.Error(),
+			Message: err.Error(),
+		}
 	}
 
-	result, err := redisClient.Get(ctx, utils.GetAuthToken(headers.Authorization)).Result()
+	result, err := redisClient.Get(ctx, headers.Token).Result()
 
 	if err != nil {
 		log.Println("Cache-get-error", err.Error())
@@ -78,19 +76,18 @@ func VerifyAuthentication(headers AuthenticationHeader) {
 			// ctx.JSON(iris.Map{
 			// 	"message": utils.ForbiddenOperation.Error(),
 			// })
-			return
+			return utils.GraphqlError{
+				Code: utils.ForbiddenOperation.Error(),
+			}
 		}
 
 		if !cacheAccount.IsActive {
-			// ctx.StatusCode(iris.StatusForbidden)
-			// ctx.JSON(iris.Map{
-			// 	"message": utils.ContactOwner,
-			// })
-			return
+			return utils.GraphqlError{
+				Message: utils.ContactOwner.Error(),
+			}
 		}
 
-		// ctx.Next()
-		return
+		return nil
 	}
 
 	var account struct {
@@ -107,45 +104,42 @@ func VerifyAuthentication(headers AuthenticationHeader) {
 
 	if err != nil {
 		log.Println("select-account-error", err.Error())
-		// ctx.StatusCode(iris.StatusInternalServerError)
-		// ctx.JSON(iris.Map{
-		// 	"message": utils.InternalServerError,
-		// })
-		return
+
+		return utils.GraphqlError{
+			Message: utils.InternalServerError.Error(),
+		}
 	}
 
 	if !account.IsActive {
-		// ctx.StatusCode(iris.StatusForbidden)
-		// ctx.JSON(iris.Map{
-		// 	"message": utils.ContactOwner,
-		// })
-		return
+		return utils.GraphqlError{
+			Message: utils.ContactOwner.Error(),
+		}
 	}
 
 	jsonData, err := json.Marshal(utils.AuthorizationData{
 		AccountId: payload.AccountId,
 		IsActive:  account.IsActive,
 	})
+
 	if err != nil {
 		log.Println("Json-error", err.Error())
 	}
 
-	err = redisClient.Set(ctx, utils.GetAuthToken(headers.Authorization), jsonData, 0).Err()
+	err = redisClient.Set(ctx, headers.Token, jsonData, 0).Err()
 	if err != nil {
 		log.Println("Cache-error", err.Error())
 	}
 
+	return nil
 }
 
-func VerifyAuthorization(ctx context.Context, headerContext http.Header, permissionData utils.AuthorizationPermissionData) {
-	headers := GetAuthenticationHeaders(headerContext)
+func VerifyAuthorization(ctx context.Context, headers AuthorizationContext, permissionData utils.AuthorizationPermissionData) error {
 
 	if headers.Token == "" || headers.ProjectId == "" {
-		// ctx.StatusCode(iris.StatusForbidden)
-		// ctx.JSON(iris.Map{
-		//     "message": utils.InvalidToken.Error(),
-		// })
-		return
+
+		return utils.GraphqlError{
+			Message: utils.InvalidToken.Error(),
+		}
 	}
 
 	payload, _ := jwt.VerifyToken(headers.Token)
@@ -154,55 +148,59 @@ func VerifyAuthorization(ctx context.Context, headerContext http.Header, permiss
 	// Check if the authorization data is present in the cache
 	result, err := db.GetRedisClient().Get(ctx, key).Result()
 	if err == nil && result != "" {
-		handleCachedAuthorization(ctx, result, permissionData)
-		return
+		cacheError := handleCachedAuthorization(ctx, result, permissionData)
+		if cacheError != nil {
+			return utils.GraphqlError{
+				Message: cacheError.Error(),
+			}
+		}
+
+		return nil
 	}
 
 	projectId, err := uuid.Parse(headers.ProjectId)
 	if err != nil {
-		// ctx.StatusCode(iris.StatusForbidden)
-		// ctx.JSON(iris.Map{
-		//     "message": "project id is required",
-		// })
-		return
+
+		return utils.GraphqlError{
+			Message: "Project id is required",
+		}
 	}
 
 	projectAccount, err := getProjectAccount(payload.AccountId, projectId)
 	if err != nil {
 		log.Println("get-project-account-error", err.Error())
-		// ctx.StatusCode(iris.StatusForbidden)
-		// ctx.JSON(iris.Map{
-		//     "message": utils.ForbiddenOperation.Error(),
-		// })
-		return
+
+		return utils.GraphqlError{
+			Message: utils.ForbiddenOperation.Error(),
+		}
 	}
 
 	accountPermissions, err := getAccountPermissions(projectAccount.ProjectRole.ID)
 	if err != nil {
-		// ctx.StatusCode(iris.StatusInternalServerError)
-		// ctx.JSON(iris.Map{
-		//     "message": utils.InternalServerError.Error(),
-		// })
-		return
+		log.Println("get-account-permission-error", err.Error())
+		return utils.GraphqlError{
+			Message: utils.InternalServerError.Error(),
+		}
 	}
 
 	if !hasPermission(accountPermissions, permissionData) {
-		// ctx.StatusCode(iris.StatusForbidden)
-		// ctx.JSON(iris.Map{
-		//     "message": utils.ForbiddenOperation.Error(),
-		// })
-		return
+
+		return utils.GraphqlError{
+			Message: utils.ForbiddenOperation.Error(),
+		}
 	}
 
 	cacheAuthorization(ctx, key, payload.AccountId, projectId, accountPermissions)
-
+	return nil
 }
 
-func handleCachedAuthorization(ctx context.Context, result string, permissionData utils.AuthorizationPermissionData) {
+func handleCachedAuthorization(ctx context.Context, result string, permissionData utils.AuthorizationPermissionData) error {
 	var data utils.AuthorizationWithPermissionsData
 	if err := json.Unmarshal([]byte(result), &data); err != nil {
 		log.Println("Cache-error", err.Error())
-		return
+		return utils.GraphqlError{
+			Message: err.Error(),
+		}
 	}
 
 	_, match := lo.Find(data.Permissions, func(el utils.AuthorizationPermissionData) bool {
@@ -210,13 +208,13 @@ func handleCachedAuthorization(ctx context.Context, result string, permissionDat
 	})
 
 	if !match {
-		// ctx.StatusCode(iris.StatusForbidden)
-		// ctx.JSON(iris.Map{
-		// 	"message": utils.ForbiddenOperation.Error(),
-		// })
-		return
+
+		return utils.GraphqlError{
+			Message: utils.ForbiddenOperation.Error(),
+		}
 	}
 
+	return nil
 }
 
 func getProjectAccount(accountID uuid.UUID, projectID uuid.UUID) (struct {
@@ -300,10 +298,4 @@ func GetAuthorizationContext(ctx context.Context) AuthorizationContext {
 		ProjectId: ctx.Value("projectId").(string),
 		AccountId: ctx.Value("accountId").(string),
 	}
-}
-
-type AuthorizationContext struct {
-	Token     string `json:"token"`
-	ProjectId string `json:"projectId"`
-	AccountId string `json:"accountId"`
 }

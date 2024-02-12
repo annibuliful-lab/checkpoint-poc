@@ -9,7 +9,9 @@ type Project {
 
 type Mutation {
   createProject(title: String!): Project!
+
   updateProject(id: ID!, title: String!): Project!
+
   deleteProject(id: ID!): DeleteOperation!
 }
 

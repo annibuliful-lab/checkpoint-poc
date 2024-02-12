@@ -15,6 +15,32 @@ describe('Imei configuration', () => {
     client = await getAuthenticatedClient({ includeProjectId: true });
   });
 
+  it('throws error when create new without provide project id', async () => {
+    const client = await getAuthenticatedClient({});
+    const tag = nanoid();
+    const imei = nanoid();
+    try {
+      await client.mutation({
+        createImeiConfiguration: {
+          __scalar: true,
+          tags: {
+            __scalar: true,
+          },
+          __args: {
+            imei,
+            stationLocationId: STATION_LOCATION_ID,
+            permittedLabel: 'NONE',
+            blacklistPriority: 'NORMAL',
+            tags: ['A', tag],
+          },
+        },
+      });
+    } catch (error: any) {
+      expect(error.errors[0].extensions.message).toEqual(
+        'Project id is required'
+      );
+    }
+  });
   it('gets by tags', async () => {
     const createdImeiConfiguration = await createImeiConfiguration(
       STATION_LOCATION_ID

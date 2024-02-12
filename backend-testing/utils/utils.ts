@@ -92,7 +92,6 @@ export async function createImeiConfiguration(
 }
 
 export async function createImsiConfiguration() {
-  const stationLocation = await createStationLocation();
   const client = await getAuthenticatedClient({
     includeProjectId: true,
   });
@@ -105,7 +104,7 @@ export async function createImsiConfiguration() {
         __scalar: true,
       },
       __args: {
-        stationLocationId: stationLocation.id,
+        stationLocationId: STATION_LOCATION_ID,
         imsi,
         permittedLabel: 'WHITELIST',
         blacklistPriority: 'NORMAL',

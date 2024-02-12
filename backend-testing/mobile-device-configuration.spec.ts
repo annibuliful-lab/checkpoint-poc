@@ -208,6 +208,42 @@ describe('Mobile device configuration', () => {
     expect(mobileDevice.blacklistPriority).toEqual('NORMAL');
   });
 
+  it('throws error when create without providing project id', async () => {
+    const imei = await createImeiConfiguration(STATION_LOCATION_ID);
+    const imsi = await createImsiConfiguration();
+    const title = nanoid();
+    const tag = nanoid();
+    try {
+      await client.mutation({
+        createMobileDeviceConfiguration: {
+          __scalar: true,
+          tags: {
+            __scalar: true,
+          },
+          referenceImeiConfiguration: {
+            __scalar: true,
+          },
+          referenceImsiConfiguration: {
+            __scalar: true,
+          },
+          __args: {
+            stationLocationId: STATION_LOCATION_ID,
+            referenceImeiConfigurationId: imei.id,
+            referenceImsiConfigurationId: imsi.id,
+            title,
+            permittedLabel: 'NONE',
+            blacklistPriority: 'NORMAL',
+            tags: [tag],
+          },
+        },
+      });
+    } catch (error: any) {
+      expect(error.errors[0].extensions.message).toEqual(
+        'Project id is required'
+      );
+    }
+  });
+
   it('creates', async () => {
     const imei = await createImeiConfiguration(STATION_LOCATION_ID);
     const imsi = await createImsiConfiguration();

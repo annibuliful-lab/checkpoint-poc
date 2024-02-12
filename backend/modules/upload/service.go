@@ -7,14 +7,14 @@ import (
 )
 
 func signedUrl(ctx context.Context, objectName string) (*string, error) {
-	minioClient, bucketName, err := s3.GetClient()
+	minioClient, err := s3.GetClient()
 
 	if err != nil {
 		return nil, err
 	}
 
 	// Generate a signed URL for the object
-	presignedURL, err := minioClient.PresignedGetObject(ctx, bucketName, objectName, 15*time.Minute, nil)
+	presignedURL, err := minioClient.Client.PresignedGetObject(ctx, minioClient.BucketName, objectName, 15*time.Minute, nil)
 
 	if err != nil {
 		return nil, err

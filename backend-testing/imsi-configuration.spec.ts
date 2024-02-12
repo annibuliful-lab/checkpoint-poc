@@ -7,6 +7,7 @@ import {
 } from './utils/utils';
 import { v4 } from 'uuid';
 import omit from 'lodash.omit';
+import { STATION_LOCATION_ID } from './utils/constants';
 
 describe('Imsi configuration', () => {
   let client: Client;
@@ -133,6 +134,32 @@ describe('Imsi configuration', () => {
     expect(imsiConfiguration.blacklistPriority).toEqual('WARNING');
   });
 
+  it('throws error when create without providing project id', async () => {
+    const imsi = nanoid();
+    const client = await getAuthenticatedClient({});
+
+    try {
+      await client.mutation({
+        createImsiConfiguration: {
+          __scalar: true,
+          tags: {
+            __scalar: true,
+          },
+          __args: {
+            stationLocationId: STATION_LOCATION_ID,
+            imsi,
+            permittedLabel: 'WHITELIST',
+            blacklistPriority: 'NORMAL',
+            tags: ['A'],
+          },
+        },
+      });
+    } catch (error: any) {
+      expect(error.errors[0].extensions.message).toEqual(
+        'Project id is required'
+      );
+    }
+  });
   it('creates', async () => {
     const stationLocation = await createStationLocation();
     const imsi = nanoid();

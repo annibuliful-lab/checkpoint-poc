@@ -31,7 +31,7 @@ func (s PermissionAction) String() string { return permissionActionStates[s] }
 
 func (s *PermissionAction) Deserialize(str string) {
 	var found bool
-	for i, st := range DeviceStatusStates {
+	for i, st := range permissionActionStates {
 		if st == str {
 			found = true
 			(*s) = PermissionAction(i)

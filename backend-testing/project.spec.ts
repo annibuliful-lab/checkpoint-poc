@@ -1,4 +1,3 @@
-import { AxiosInstance, AxiosResponse } from 'axios';
 import { getAuthenticatedClient } from './utils/utils';
 import { nanoid } from 'nanoid';
 import { createProject } from './utils/project';

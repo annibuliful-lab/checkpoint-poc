@@ -19,3 +19,9 @@ type AuthenticationHeader struct {
 	ProjectId     string `json:"projectId"`
 	Token         string `json:"token"`
 }
+
+type AuthorizationContext struct {
+	Token     string `json:"token"`
+	ProjectId string `json:"projectId"`
+	AccountId string `json:"accountId"`
+}

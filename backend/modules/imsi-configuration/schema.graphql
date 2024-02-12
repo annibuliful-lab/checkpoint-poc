@@ -21,7 +21,7 @@ type Mutation {
     permittedLabel: DevicePermittedLabel!
     blacklistPriority: BlacklistPriority!
     tags: [String!]
-  ): ImsiConfiguration!
+  ): ImsiConfiguration! @access(requiredProjectId: true)
 
   updateImsiConfiguration(
     id: ID!
@@ -29,9 +29,10 @@ type Mutation {
     permittedLabel: DevicePermittedLabel
     blacklistPriority: BlacklistPriority
     tags: [String!]
-  ): ImsiConfiguration!
+  ): ImsiConfiguration! @access(requiredProjectId: true)
 
   deleteImsiConfiguration(id: ID!): DeleteOperation!
+    @access(requiredProjectId: true)
 }
 
 type Query {
@@ -45,7 +46,8 @@ type Query {
     mcc: String
     limit: Float!
     skip: Float!
-  ): [ImsiConfiguration!]!
+  ): [ImsiConfiguration!]! @access(requiredProjectId: true)
 
   getImsiConfigurationById(id: ID!): ImsiConfiguration!
+    @access(requiredProjectId: true)
 }

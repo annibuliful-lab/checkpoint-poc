@@ -19,7 +19,7 @@ type Mutation {
     blacklistPriority: BlacklistPriority!
     permittedLabel: DevicePermittedLabel!
     tags: [String!]
-  ): ImeiConfiguration!
+  ): ImeiConfiguration! @access(requiredProjectId: true)
 
   updateImeiConfiguration(
     id: ID!
@@ -27,13 +27,15 @@ type Mutation {
     blacklistPriority: BlacklistPriority!
     permittedLabel: DevicePermittedLabel!
     tags: [String!]
-  ): ImeiConfiguration!
+  ): ImeiConfiguration! @access(requiredProjectId: true)
 
   deleteImeiConfiguration(id: ID!): DeleteOperation!
+    @access(requiredProjectId: true)
 }
 
 type Query {
   getImeiConfigurationById(id: ID!): ImeiConfiguration!
+    @access(requiredProjectId: true)
 
   getImeiConfigurations(
     stationLocationId: ID!
@@ -43,5 +45,5 @@ type Query {
     tags: [String!]
     limit: Int!
     skip: Int!
-  ): [ImeiConfiguration!]!
+  ): [ImeiConfiguration!]! @access(requiredProjectId: true)
 }
