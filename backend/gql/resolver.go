@@ -1,6 +1,7 @@
 package gql
 
 import (
+	"checkpoint/gql/enum"
 	authentication "checkpoint/modules/authentication"
 	imeiconfiguration "checkpoint/modules/imei-configuration"
 	imsiconfiguration "checkpoint/modules/imsi-configuration"
@@ -11,6 +12,12 @@ import (
 )
 
 type Resolver struct {
+	BlacklistPriority    enum.BlacklistPriority
+	DevicePermittedLabel enum.DevicePermittedLabel
+	ImageType            enum.ImageType
+	DeviceStatus         enum.DeviceStatus
+	StationStatus        enum.StationStatus
+	PermissionAction     enum.PermissionAction
 	project.ProjectResolver
 	authentication.AuthenticationResolver
 	projectRole.ProjectRoleResolver

@@ -4,6 +4,7 @@ import (
 	"checkpoint/.gen/checkpoint/public/model"
 	"checkpoint/.gen/checkpoint/public/table"
 	"checkpoint/db"
+	"checkpoint/gql/enum"
 	"checkpoint/utils"
 	"context"
 	"log"
@@ -265,7 +266,7 @@ func (ProjectRoleService) FindMany(data GetProjectRolesData) (*[]ProjectRole, in
 	return &projectRolesResponse, 200, nil
 }
 
-func (ProjectRoleService) GetProjectRolePermissions(id uuid.UUID) (*[]PermissionResponse, string, error) {
+func (ProjectRoleService) GetProjectRolePermissions(id uuid.UUID) (*[]ProjectRolePermission, string, error) {
 	dbClient := db.GetPrimaryClient()
 
 	projectRolePermissionsStmt := pg.
@@ -285,17 +286,16 @@ func (ProjectRoleService) GetProjectRolePermissions(id uuid.UUID) (*[]Permission
 
 	if err != nil {
 		log.Println(err.Error())
-		return &[]PermissionResponse{}, utils.InternalServerError.Error(), utils.InternalServerError
+		return &[]ProjectRolePermission{}, utils.InternalServerError.Error(), utils.InternalServerError
 	}
 
 	permissionsResponse := lo.Map(permissions, func(item struct {
 		RoleId     uuid.UUID `alias:"project_role_permission.roleId"`
 		Permission model.Permission
-	}, index int) PermissionResponse {
-		return PermissionResponse{
-			RoleID:  item.RoleId,
-			ID:      item.Permission.ID,
-			Action:  item.Permission.Action,
+	}, index int) ProjectRolePermission {
+		return ProjectRolePermission{
+			Id:      graphql.ID(item.Permission.ID.String()),
+			Action:  enum.GetPermissionAction(item.Permission.Action.String()),
 			Subject: item.Permission.Subject,
 		}
 	})

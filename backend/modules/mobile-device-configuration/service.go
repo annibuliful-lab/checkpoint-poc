@@ -4,6 +4,7 @@ import (
 	"checkpoint/.gen/checkpoint/public/model"
 	"checkpoint/.gen/checkpoint/public/table"
 	"checkpoint/db"
+	"checkpoint/gql/enum"
 	"checkpoint/utils"
 	"checkpoint/utils/graphql_utils"
 	"context"
@@ -91,8 +92,8 @@ func (MobileDeviceConfigurationService) FindMany(data GetMobileDeviceConfigurati
 			ReferenceImeiConfigurationId: graphql.ID(mobileDeviceConfiguration.ReferenceImeiConfigurationId.String()),
 			Title:                        mobileDeviceConfiguration.Title,
 			Msisdn:                       mobileDeviceConfiguration.Msisdn,
-			PermittedLabel:               mobileDeviceConfiguration.PermittedLabel.String(),
-			BlacklistPriority:            mobileDeviceConfiguration.BlacklistPriority.String(),
+			PermittedLabel:               enum.GetDevicePermittedLabel(mobileDeviceConfiguration.PermittedLabel.String()),
+			BlacklistPriority:            enum.GetBlacklistPriority(mobileDeviceConfiguration.BlacklistPriority.String()),
 			CreatedBy:                    graphql.ID(mobileDeviceConfiguration.CreatedBy),
 			CreatedAt:                    graphql.Time{Time: mobileDeviceConfiguration.CreatedAt},
 			UpdatedBy:                    &updatedBy,
@@ -142,8 +143,8 @@ func (MobileDeviceConfigurationService) FindById(data GetMobileDeviceConfigurati
 		ReferenceImeiConfigurationId: graphql.ID(mobileDeviceConfiguration.ReferenceImeiConfigurationId.String()),
 		Title:                        mobileDeviceConfiguration.Title,
 		Msisdn:                       mobileDeviceConfiguration.Msisdn,
-		PermittedLabel:               mobileDeviceConfiguration.PermittedLabel.String(),
-		BlacklistPriority:            mobileDeviceConfiguration.BlacklistPriority.String(),
+		PermittedLabel:               enum.GetDevicePermittedLabel(mobileDeviceConfiguration.PermittedLabel.String()),
+		BlacklistPriority:            enum.GetBlacklistPriority(mobileDeviceConfiguration.BlacklistPriority.String()),
 		CreatedBy:                    graphql.ID(mobileDeviceConfiguration.CreatedBy),
 		CreatedAt:                    graphql.Time{Time: mobileDeviceConfiguration.CreatedAt},
 		UpdatedBy:                    &updatedBy,
@@ -294,8 +295,8 @@ func (MobileDeviceConfigurationService) Update(data UpdateMobileDeviceConfigurat
 		ReferenceImeiConfigurationId: graphql.ID(mobileDeviceConfiguration.ReferenceImeiConfigurationId.String()),
 		Title:                        mobileDeviceConfiguration.Title,
 		Msisdn:                       mobileDeviceConfiguration.Msisdn,
-		PermittedLabel:               mobileDeviceConfiguration.PermittedLabel.String(),
-		BlacklistPriority:            mobileDeviceConfiguration.BlacklistPriority.String(),
+		PermittedLabel:               enum.GetDevicePermittedLabel(mobileDeviceConfiguration.PermittedLabel.String()),
+		BlacklistPriority:            enum.GetBlacklistPriority(mobileDeviceConfiguration.BlacklistPriority.String()),
 		CreatedBy:                    graphql.ID(mobileDeviceConfiguration.CreatedBy),
 		CreatedAt:                    graphql.Time{Time: mobileDeviceConfiguration.CreatedAt},
 		UpdatedBy:                    &updatedBy,
@@ -453,8 +454,8 @@ func (MobileDeviceConfigurationService) Create(data CreateMobileDeviceConfigurat
 		ReferenceImeiConfigurationId: graphql.ID(mobileDeviceConfiguration.ReferenceImeiConfigurationId.String()),
 		Title:                        mobileDeviceConfiguration.Title,
 		Msisdn:                       mobileDeviceConfiguration.Msisdn,
-		PermittedLabel:               mobileDeviceConfiguration.PermittedLabel.String(),
-		BlacklistPriority:            mobileDeviceConfiguration.BlacklistPriority.String(),
+		PermittedLabel:               enum.GetDevicePermittedLabel(mobileDeviceConfiguration.PermittedLabel.String()),
+		BlacklistPriority:            enum.GetBlacklistPriority(mobileDeviceConfiguration.BlacklistPriority.String()),
 		CreatedBy:                    graphql.ID(mobileDeviceConfiguration.CreatedBy),
 		CreatedAt:                    graphql.Time{Time: mobileDeviceConfiguration.CreatedAt},
 		UpdatedBy:                    &updatedBy,

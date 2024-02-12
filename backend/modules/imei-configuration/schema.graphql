@@ -6,26 +6,26 @@ type ImeiConfiguration {
   updatedBy: ID
   createdAt: Time!
   updatedAt: Time
-  blacklistPriority: String!
+  blacklistPriority: BlacklistPriority!
+  permittedLabel: DevicePermittedLabel!
   stationLocationId: ID!
-  permittedLabel: String!
   tags: [Tag!]
 }
 
 type Mutation {
   createImeiConfiguration(
-    imei: String!
-    blacklistPriority: String!
     stationLocationId: ID!
-    permittedLabel: String!
+    imei: String!
+    blacklistPriority: BlacklistPriority!
+    permittedLabel: DevicePermittedLabel!
     tags: [String!]
   ): ImeiConfiguration!
 
   updateImeiConfiguration(
     id: ID!
     imei: String!
-    blacklistPriority: String!
-    permittedLabel: String!
+    blacklistPriority: BlacklistPriority!
+    permittedLabel: DevicePermittedLabel!
     tags: [String!]
   ): ImeiConfiguration!
 
@@ -38,8 +38,8 @@ type Query {
   getImeiConfigurations(
     stationLocationId: ID!
     search: String
-    permittedLabel: String
-    blacklistPriority: String
+    permittedLabel: DevicePermittedLabel
+    blacklistPriority: BlacklistPriority
     tags: [String!]
     limit: Int!
     skip: Int!

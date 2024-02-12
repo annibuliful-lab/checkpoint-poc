@@ -1,19 +1,19 @@
 package imeiconfiguration
 
 import (
+	"checkpoint/gql/enum"
 	"checkpoint/utils"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/graph-gophers/graphql-go"
 )
 
 type CreateImeiConfigurationInput struct {
-	Imei              string     `json:"imei"`
-	StationLocationId graphql.ID `json:"stationLocationId"`
-	PermittedLabel    string     `json:"permittedLabel"`
-	BlacklistPriority string     `json:"blacklistPriority"`
-	Tags              *[]string  `json:"tags"`
+	Imei              string                    `json:"imei"`
+	StationLocationId graphql.ID                `json:"stationLocationId"`
+	PermittedLabel    enum.DevicePermittedLabel `json:"permittedLabel"`
+	BlacklistPriority enum.BlacklistPriority    `json:"blacklistPriority"`
+	Tags              *[]string                 `json:"tags"`
 }
 
 type CreateImeiConfigurationData struct {
@@ -64,13 +64,13 @@ type GetImeiConfigurationData struct {
 }
 
 type GetImeiConfigurationsInput struct {
-	StationLocationId graphql.ID `json:"stationLocationId"`
-	Search            *string    `json:"search"`
-	PermittedLabel    *string    `json:"permittedLabel"`
-	BlacklistPriority *string    `json:"blacklistPriority"`
-	Tags              *[]string  `json:"tags"`
-	Limit             float64    `json:"limit"`
-	Skip              float64    `json:"skip"`
+	StationLocationId graphql.ID                 `json:"stationLocationId"`
+	Search            *string                    `json:"search"`
+	PermittedLabel    *enum.DevicePermittedLabel `json:"permittedLabel"`
+	BlacklistPriority *enum.BlacklistPriority    `json:"blacklistPriority"`
+	Tags              *[]string                  `json:"tags"`
+	Limit             float64                    `json:"limit"`
+	Skip              float64                    `json:"skip"`
 }
 
 type GetImeiConfigurationsData struct {
@@ -78,34 +78,20 @@ type GetImeiConfigurationsData struct {
 	ProjectId         uuid.UUID `json:"projectId"`
 	Search            *string   `json:"search"`
 	PermittedLabel    *string   `json:"permittedLabel"`
-	BlacklistPriority string    `json:"blacklistPriority"`
+	BlacklistPriority *string   `json:"blacklistPriority"`
 	Tags              *[]string `json:"tags"`
 	Pagination        utils.OffsetPagination
 }
 
 type ImeiConfiguration struct {
-	ID                graphql.ID        `json:"id"`
-	ProjectId         graphql.ID        `json:"projectId"`
-	Imei              string            `json:"imei"`
-	CreatedBy         string            `json:"createdBy"`
-	UpdatedBy         *graphql.NullID   `json:"updatedBy"`
-	CreatedAt         graphql.Time      `json:"createdAt"`
-	UpdatedAt         *graphql.NullTime `json:"updatedAt"`
-	BlacklistPriority string            `json:"priority"`
-	StationLocationId graphql.ID        `json:"stationLocationId"`
-	PermittedLabel    string            `json:"permittedLabel"`
-}
-
-type ImeiConfigurationResponse struct {
-	ID                uuid.UUID  `json:"id"`
-	ProjectId         uuid.UUID  `json:"projectId"`
-	Imei              string     `json:"imei"`
-	CreatedBy         string     `json:"createdBy"`
-	UpdatedBy         *string    `json:"updatedBy"`
-	CreatedAt         time.Time  `json:"createdAt"`
-	UpdatedAt         *time.Time `json:"updatedAt"`
-	BlacklistPriority string     `json:"priority"`
-	StationLocationId uuid.UUID  `json:"stationLocationId"`
-	PermittedLabel    string     `json:"permittedLabel"`
-	Tags              []string   `json:"tags"`
+	ID                graphql.ID                `json:"id"`
+	ProjectId         graphql.ID                `json:"projectId"`
+	Imei              string                    `json:"imei"`
+	CreatedBy         string                    `json:"createdBy"`
+	UpdatedBy         *graphql.NullID           `json:"updatedBy"`
+	CreatedAt         graphql.Time              `json:"createdAt"`
+	UpdatedAt         *graphql.NullTime         `json:"updatedAt"`
+	BlacklistPriority enum.BlacklistPriority    `json:"priority"`
+	StationLocationId graphql.ID                `json:"stationLocationId"`
+	PermittedLabel    enum.DevicePermittedLabel `json:"permittedLabel"`
 }

@@ -10,7 +10,7 @@ type ProjectRolePermission {
   id: ID!
   roleId: ID!
   subject: String!
-  action: String!
+  action: PermissionAction!
 }
 
 type Mutation {

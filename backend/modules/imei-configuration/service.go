@@ -4,6 +4,7 @@ import (
 	"checkpoint/.gen/checkpoint/public/model"
 	table "checkpoint/.gen/checkpoint/public/table"
 	"checkpoint/db"
+	"checkpoint/gql/enum"
 	"checkpoint/utils"
 	"checkpoint/utils/graphql_utils"
 	"context"
@@ -60,6 +61,10 @@ func (ImeiConfigurationService) FindMany(data GetImeiConfigurationsData) ([]Imei
 		conditions = conditions.AND(table.ImeiConfiguration.PermittedLabel.EQ(pg.NewEnumValue(*data.PermittedLabel)))
 	}
 
+	if data.BlacklistPriority != nil {
+		conditions = conditions.AND(table.ImeiConfiguration.BlacklistPriority.EQ(pg.NewEnumValue(*data.BlacklistPriority)))
+	}
+
 	if data.Search != nil {
 		conditions = conditions.AND(table.ImeiConfiguration.Imei.LIKE(pg.String(*data.Search)))
 	}
@@ -109,8 +114,8 @@ func (ImeiConfigurationService) FindMany(data GetImeiConfigurationsData) ([]Imei
 			ProjectId:         graphql.ID(item.ProjectId.String()),
 			StationLocationId: graphql.ID(item.StationLocationId.String()),
 			Imei:              item.Imei,
-			BlacklistPriority: item.BlacklistPriority.String(),
-			PermittedLabel:    item.PermittedLabel.String(),
+			BlacklistPriority: enum.GetBlacklistPriority(item.BlacklistPriority.String()),
+			PermittedLabel:    enum.GetDevicePermittedLabel(item.PermittedLabel.String()),
 			CreatedBy:         item.CreatedBy,
 			CreatedAt:         graphql.Time{Time: item.CreatedAt},
 			UpdatedBy:         &updatedBy,
@@ -158,8 +163,8 @@ func (ImeiConfigurationService) FindById(data GetImeiConfigurationData) (*ImeiCo
 		ProjectId:         graphql.ID(imeiConfiguration.ProjectId.String()),
 		StationLocationId: graphql.ID(imeiConfiguration.StationLocationId.String()),
 		Imei:              imeiConfiguration.Imei,
-		PermittedLabel:    imeiConfiguration.PermittedLabel.String(),
-		BlacklistPriority: imeiConfiguration.BlacklistPriority.String(),
+		PermittedLabel:    enum.GetDevicePermittedLabel(imeiConfiguration.PermittedLabel.String()),
+		BlacklistPriority: enum.GetBlacklistPriority(imeiConfiguration.BlacklistPriority.String()),
 		CreatedBy:         imeiConfiguration.CreatedBy,
 		CreatedAt:         graphql.Time{Time: imeiConfiguration.CreatedAt},
 		UpdatedBy:         &updatedBy,
@@ -275,8 +280,8 @@ func (ImeiConfigurationService) Update(data UpdateImeiConfigurationData) (*ImeiC
 		ProjectId:         graphql.ID(imeiConfiguration.ProjectId.String()),
 		StationLocationId: graphql.ID(imeiConfiguration.StationLocationId.String()),
 		Imei:              imeiConfiguration.Imei,
-		PermittedLabel:    imeiConfiguration.PermittedLabel.String(),
-		BlacklistPriority: imeiConfiguration.BlacklistPriority.String(),
+		PermittedLabel:    enum.GetDevicePermittedLabel(imeiConfiguration.PermittedLabel.String()),
+		BlacklistPriority: enum.GetBlacklistPriority(imeiConfiguration.BlacklistPriority.String()),
 		CreatedBy:         imeiConfiguration.CreatedBy,
 		CreatedAt:         graphql.Time{Time: imeiConfiguration.CreatedAt},
 		UpdatedBy:         &updatedBy,
@@ -376,8 +381,8 @@ func (ImeiConfigurationService) Create(data CreateImeiConfigurationData) (*ImeiC
 		ProjectId:         graphql.ID(imeiConfiguration.ProjectId.String()),
 		StationLocationId: graphql.ID(imeiConfiguration.StationLocationId.String()),
 		Imei:              imeiConfiguration.Imei,
-		PermittedLabel:    imeiConfiguration.PermittedLabel.String(),
-		BlacklistPriority: imeiConfiguration.BlacklistPriority.String(),
+		PermittedLabel:    enum.GetDevicePermittedLabel(imeiConfiguration.PermittedLabel.String()),
+		BlacklistPriority: enum.GetBlacklistPriority(imeiConfiguration.BlacklistPriority.String()),
 		CreatedBy:         imeiConfiguration.CreatedBy,
 		CreatedAt:         graphql.Time{Time: imeiConfiguration.CreatedAt},
 		UpdatedBy:         &updatedBy,
@@ -421,8 +426,8 @@ func (ImeiConfigurationService) FindByIds(keys []uuid.UUID) ([]ImeiConfiguration
 			ProjectId:         graphql.ID(item.ProjectId.String()),
 			StationLocationId: graphql.ID(item.StationLocationId.String()),
 			Imei:              item.Imei,
-			BlacklistPriority: item.BlacklistPriority.String(),
-			PermittedLabel:    item.PermittedLabel.String(),
+			BlacklistPriority: enum.GetBlacklistPriority(item.BlacklistPriority.String()),
+			PermittedLabel:    enum.GetDevicePermittedLabel(item.PermittedLabel.String()),
 			CreatedBy:         item.CreatedBy,
 			CreatedAt:         graphql.Time{Time: item.CreatedAt},
 			UpdatedBy:         &updatedBy,

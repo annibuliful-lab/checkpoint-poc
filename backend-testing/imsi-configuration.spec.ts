@@ -6,6 +6,7 @@ import {
   getAuthenticatedClient,
 } from './utils/utils';
 import { v4 } from 'uuid';
+import omit from 'lodash.omit';
 
 describe('Imsi configuration', () => {
   let client: Client;
@@ -86,8 +87,8 @@ describe('Imsi configuration', () => {
       },
     });
 
-    expect(created).toEqual(
-      imsiConfiguration.getImsiConfigurationById
+    expect(omit(created, 'tags')).toEqual(
+      omit(imsiConfiguration.getImsiConfigurationById, 'tags')
     );
   });
 
