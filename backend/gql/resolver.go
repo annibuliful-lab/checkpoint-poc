@@ -2,11 +2,12 @@ package gql
 
 import (
 	"checkpoint/gql/enum"
-	authentication "checkpoint/modules/authentication"
+	"checkpoint/modules/authentication"
 	imeiconfiguration "checkpoint/modules/imei-configuration"
 	imsiconfiguration "checkpoint/modules/imsi-configuration"
 	mobiledeviceconfiguration "checkpoint/modules/mobile-device-configuration"
-	project "checkpoint/modules/project"
+	"checkpoint/modules/notification"
+	"checkpoint/modules/project"
 	projectRole "checkpoint/modules/project-role"
 	"checkpoint/modules/tag"
 )
@@ -25,4 +26,12 @@ type Resolver struct {
 	imeiconfiguration.ImeiConfigurationResolver
 	mobiledeviceconfiguration.MobileDeviceConfigurationResolver
 	tag.TagResolver
+	notification.NotificationResolver
+}
+
+func GraphqlResolver() *Resolver {
+	r := &Resolver{}
+	r.NotificationResolver.WsResolver()
+
+	return r
 }
