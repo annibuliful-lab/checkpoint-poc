@@ -1,23 +1,23 @@
 package main
 
 import (
-	"log"
-
 	"checkpoint/auth"
-	"checkpoint/db"
 	"checkpoint/gql"
 	"checkpoint/gql/directive"
 	"context"
-	"fmt"
+	"flag"
+	"log"
+	"net/http"
+	"os/signal"
+
 	"os"
-	"time"
 
 	"github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/relay"
-	"github.com/iris-contrib/middleware/cors"
 	"github.com/joho/godotenv"
+	"github.com/rs/cors"
 
-	"github.com/kataras/iris/v12"
+	"github.com/graph-gophers/graphql-transport-ws/graphqlws"
 )
 
 func main() {
@@ -26,22 +26,18 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	dbClient := db.GetPrimaryClient()
-
-	app := iris.New()
-
-	app.UseRouter(cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
-		AllowedMethods:   []string{"GET", "POST", "DELETE", "PATCH"},
-		AllowCredentials: true,
-	}))
-
-	app.Use(iris.Compression)
 	mergedSchema, err := os.ReadFile("generated.graphql")
 
 	if err != nil {
 		log.Fatal("Error loading graphql file")
 	}
+
+	corsMiddleware := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST"},
+		AllowCredentials: true,
+		Debug:            true,
+	})
 
 	opts := []graphql.SchemaOpt{
 		graphql.UseFieldResolvers(),
@@ -50,30 +46,39 @@ func main() {
 		graphql.Directives(&directive.AccessDirective{}),
 	}
 
-	schema := graphql.MustParseSchema(string(mergedSchema[:]), &gql.Resolver{}, opts...)
+	// init graphQL schema
+	s, err := graphql.ParseSchema(string(mergedSchema[:]), gql.GraphqlResolver(), opts...)
+	if err != nil {
+		panic(err)
+	}
 
-	app.Post("/graphql", iris.FromStd(auth.GraphqlContext(&relay.Handler{Schema: schema})))
+	// graphQL handler
+	graphQLHandler := corsMiddleware.Handler(graphqlws.NewHandlerFunc(s, auth.GraphqlContext(&relay.Handler{Schema: s})))
+	http.Handle("/graphql", graphQLHandler)
 
-	idleConnsClosed := make(chan struct{})
+	var listenAddress = flag.String("listen", os.Getenv("BACKEND_PORT"), "Listen address.")
 
-	iris.RegisterOnInterrupt(func() {
-		timeout := 10 * time.Second
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
+	log.Printf("Listening at http://%s", *listenAddress)
 
-		dbClient.Close()
-		app.Shutdown(ctx)
-		close(idleConnsClosed)
-	})
+	httpServer := http.Server{
+		Addr: *listenAddress,
+	}
 
-	routes := app.GetRoutes()
-
-	app.Listen(os.Getenv("BACKEND_PORT"), iris.WithoutInterruptHandler, iris.WithoutServerError(iris.ErrServerClosed), func(a *iris.Application) {
-		fmt.Println("All routes")
-		for _, route := range routes {
-			fmt.Println(route)
+	idleConnectionsClosed := make(chan struct{})
+	go func() {
+		sigint := make(chan os.Signal, 1)
+		signal.Notify(sigint, os.Interrupt)
+		<-sigint
+		if err := httpServer.Shutdown(context.Background()); err != nil {
+			log.Printf("HTTP Server Shutdown Error: %v", err)
 		}
-	})
+		close(idleConnectionsClosed)
+	}()
 
-	<-idleConnsClosed
+	if err := httpServer.ListenAndServe(); err != http.ErrServerClosed {
+		log.Fatalf("HTTP server ListenAndServe Error: %v", err)
+	}
+
+	<-idleConnectionsClosed
+
 }

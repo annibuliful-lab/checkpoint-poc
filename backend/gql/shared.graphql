@@ -1,5 +1,28 @@
 scalar Time
 
+schema {
+  mutation: Mutation
+  query: Query
+  subscription: Subscription
+}
+
+type Subscription {
+  helloSaid: HelloSaidEvent!
+}
+
+type Mutation {
+  sayHello(msg: String!): HelloSaidEvent!
+}
+
+type HelloSaidEvent {
+  id: String!
+  msg: String!
+}
+
+type Query {
+  hello: String!
+}
+
 enum ImageType {
   FRONT
   REAR
