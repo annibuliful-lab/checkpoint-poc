@@ -3,4 +3,5 @@ go 1.21.6
 use (
 	./backend
 	./tools/merge-gql
+	./tools/db-generate
 )

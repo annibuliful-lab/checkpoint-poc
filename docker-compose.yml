@@ -29,8 +29,8 @@ services:
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
       - ./caddy/site:/srv
-      - caddy_data:/data
-      - caddy_config:/config
+      - ./caddy_data:/data
+      - ./caddy_config:/config
 
   postgres:
     container_name: checkpoint-db
@@ -85,8 +85,3 @@ services:
       - ./neo4j_data:/data/
     env_file:
       - .env.neo4j
-
-volumes:
-  caddy_data:
-    external: true
-  caddy_config:
