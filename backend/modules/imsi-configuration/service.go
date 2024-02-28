@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 
+	tagUtils "checkpoint/modules/tag"
 	"checkpoint/utils"
 	"log"
 	"time"
@@ -256,18 +257,11 @@ func (ImsiConfigurationService) Update(data UpdateImsiConfigurationData) (*Imsic
 		}
 
 		for _, tag := range *data.Tags {
-			upsertTagStmt := table.Tag.
-				INSERT(table.Tag.ID, table.Tag.ProjectId, table.Tag.Title, table.Tag.CreatedBy, table.Tag.CreatedAt).
-				MODEL(model.Tag{
-					ID:        uuid.New(),
-					ProjectId: data.ProjectId,
-					Title:     tag,
-					CreatedBy: data.UpdatedBy,
-					CreatedAt: time.Now(),
-				}).
-				ON_CONFLICT(table.Tag.Title, table.Tag.ProjectId).
-				DO_UPDATE(pg.SET(table.Tag.ID.SET(table.Tag.EXCLUDED.ID))).
-				RETURNING(table.Tag.AllColumns)
+			upsertTagStmt := tagUtils.UpsertStatement(tagUtils.UpsertTagData{
+				Tag:       tag,
+				ProjectId: data.ProjectId.String(),
+				CreatedBy: data.UpdatedBy,
+			})
 			tagResult := model.Tag{}
 
 			err := upsertTagStmt.QueryContext(ctx, tx, &tagResult)
@@ -374,18 +368,11 @@ func (ImsiConfigurationService) Create(data CreateImsiConfigurationData) (*Imsic
 	if data.Tags != nil && len(*data.Tags) != 0 {
 
 		for _, tag := range *data.Tags {
-			upsertTagStmt := table.Tag.
-				INSERT(table.Tag.ID, table.Tag.ProjectId, table.Tag.Title, table.Tag.CreatedBy, table.Tag.CreatedAt).
-				MODEL(model.Tag{
-					ID:        uuid.New(),
-					ProjectId: data.ProjectId,
-					Title:     tag,
-					CreatedBy: data.CreatedBy,
-					CreatedAt: time.Now(),
-				}).
-				ON_CONFLICT(table.Tag.Title, table.Tag.ProjectId).
-				DO_UPDATE(pg.SET(table.Tag.ID.SET(table.Tag.EXCLUDED.ID))).
-				RETURNING(table.Tag.AllColumns)
+			upsertTagStmt := tagUtils.UpsertStatement(tagUtils.UpsertTagData{
+				Tag:       tag,
+				ProjectId: data.ProjectId.String(),
+				CreatedBy: data.CreatedBy,
+			})
 			tagResult := model.Tag{}
 
 			err := upsertTagStmt.QueryContext(ctx, tx, &tagResult)

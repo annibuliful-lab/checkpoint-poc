@@ -2,6 +2,7 @@ package main
 
 import (
 	"checkpoint/auth"
+	"checkpoint/db"
 	"checkpoint/gql"
 	"checkpoint/gql/directive"
 	"context"
@@ -64,6 +65,8 @@ func main() {
 		Addr: *listenAddress,
 	}
 
+	dbClient := db.GetPrimaryClient()
+
 	idleConnectionsClosed := make(chan struct{})
 	go func() {
 		sigint := make(chan os.Signal, 1)
@@ -72,6 +75,7 @@ func main() {
 		if err := httpServer.Shutdown(context.Background()); err != nil {
 			log.Printf("HTTP Server Shutdown Error: %v", err)
 		}
+		dbClient.Close()
 		close(idleConnectionsClosed)
 	}()
 

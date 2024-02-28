@@ -9,6 +9,7 @@ import (
 	"checkpoint/modules/notification"
 	"checkpoint/modules/project"
 	projectRole "checkpoint/modules/project-role"
+	stationlocation "checkpoint/modules/station-location"
 	"checkpoint/modules/tag"
 )
 
@@ -27,6 +28,7 @@ type Resolver struct {
 	mobiledeviceconfiguration.MobileDeviceConfigurationResolver
 	tag.TagResolver
 	notification.NotificationResolver
+	stationlocation.StationLocationResolver
 }
 
 func GraphqlResolver() *Resolver {

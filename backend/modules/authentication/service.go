@@ -7,11 +7,12 @@ import (
 	jwt "checkpoint/jwt"
 	utils "checkpoint/utils"
 	"context"
-	"encoding/json"
 	"errors"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/goccy/go-json"
 
 	pg "github.com/go-jet/jet/v2/postgres"
 	"github.com/graph-gophers/graphql-go"

@@ -6,6 +6,12 @@ import (
 	"github.com/graph-gophers/graphql-go"
 )
 
+type UpsertTagData struct {
+	Tag       string `json:"tag"`
+	ProjectId string `json:"projectId"`
+	CreatedBy string `json:"createdBy"`
+}
+
 type Tag struct {
 	Id        graphql.ID `json:"id"`
 	Title     string     `json:"title"`
@@ -31,4 +37,9 @@ type ImsiTag struct {
 type MobileDeviceTag struct {
 	model.Tag
 	model.MobileDeviceConfigurationTag
+}
+
+type StationLocationTag struct {
+	model.StationLocationTag
+	model.Tag
 }

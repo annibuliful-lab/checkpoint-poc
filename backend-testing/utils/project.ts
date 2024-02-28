@@ -28,7 +28,7 @@ export async function createStationLocation() {
       title: nanoid(),
       department: nanoid(),
       latitude: 0,
-      longtitude: 0,
+      longitude: 0,
       projectId: PROJECT_ID,
       createdBy: 'SYSTEM',
     },

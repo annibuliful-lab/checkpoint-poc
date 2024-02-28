@@ -53,7 +53,7 @@ export async function seedUsers() {
                   department: 'SEED_DEPARTMENT',
                   createdBy: 'SEED',
                   latitude: 0,
-                  longtitude: 0,
+                  longitude: 0,
                 },
               },
             },

@@ -6,10 +6,11 @@ import (
 	"checkpoint/jwt"
 	"checkpoint/utils"
 	"context"
-	"encoding/json"
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/goccy/go-json"
 
 	pg "github.com/go-jet/jet/v2/postgres"
 )

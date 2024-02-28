@@ -7,7 +7,6 @@ import {
 import axios from 'axios';
 import { config } from 'dotenv';
 import { createClient } from '../graphql/generated';
-import { createStationLocation } from './project';
 import { nanoid } from 'nanoid';
 config();
 
@@ -64,6 +63,34 @@ export async function getAuthenticatedClientWithRefreshToken() {
   };
 }
 
+export async function createStationLocation() {
+  const title = nanoid();
+  const department = nanoid();
+  const latitude = Number(Math.random().toFixed(6));
+  const longitude = Number(Math.random().toFixed(6));
+  const tag = nanoid();
+  const client = await getAuthenticatedClient({
+    includeProjectId: true,
+  });
+
+  return (
+    await client.mutation({
+      createStationLocation: {
+        __scalar: true,
+        tags: {
+          __scalar: true,
+        },
+        __args: {
+          title,
+          department,
+          latitude,
+          longitude,
+          tags: [tag],
+        },
+      },
+    })
+  ).createStationLocation;
+}
 export async function createImeiConfiguration(
   stationLocationId: string
 ) {
