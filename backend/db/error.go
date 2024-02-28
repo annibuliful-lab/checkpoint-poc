@@ -13,3 +13,7 @@ func IsDuplicate(err error) bool {
 func InvalidInput(err error) bool {
 	return strings.Contains(err.Error(), "invalid input")
 }
+
+func IsInvalidForeignKey(err error) bool {
+	return strings.Contains(err.Error(), "foreign key")
+}

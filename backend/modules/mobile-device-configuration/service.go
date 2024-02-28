@@ -5,6 +5,7 @@ import (
 	"checkpoint/.gen/checkpoint/public/table"
 	"checkpoint/db"
 	"checkpoint/gql/enum"
+	tagUtils "checkpoint/modules/tag"
 	"checkpoint/utils"
 	"checkpoint/utils/graphql_utils"
 	"context"
@@ -228,24 +229,17 @@ func (MobileDeviceConfigurationService) Update(data UpdateMobileDeviceConfigurat
 		_, err = deleteAllTagsStmt.ExecContext(ctx, tx)
 
 		if err != nil {
+			tx.Rollback()
 			log.Println("delete-all-mobile-configuration-tag-error", err.Error())
-
 			return nil, utils.InternalServerError
 		}
 
 		for _, tag := range *data.Tags {
-			upsertTagStmt := table.Tag.
-				INSERT(table.Tag.ID, table.Tag.ProjectId, table.Tag.Title, table.Tag.CreatedAt, table.Tag.CreatedBy).
-				MODEL(model.Tag{
-					ID:        uuid.New(),
-					ProjectId: data.ProjectId,
-					Title:     tag,
-					CreatedBy: data.UpdatedBy,
-					CreatedAt: time.Now(),
-				}).
-				ON_CONFLICT(table.Tag.Title, table.Tag.ProjectId).
-				DO_UPDATE(pg.SET(table.Tag.ID.SET(table.Tag.EXCLUDED.ID))).
-				RETURNING(table.Tag.AllColumns)
+			upsertTagStmt := tagUtils.UpsertStatement(tagUtils.UpsertTagData{
+				Tag:       tag,
+				ProjectId: data.ProjectId.String(),
+				CreatedBy: data.UpdatedBy,
+			})
 
 			tagResult := model.Tag{}
 

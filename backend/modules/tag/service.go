@@ -179,6 +179,44 @@ func (TagService) ImsiConfigurationDataloader() *dataloader.Loader {
 	}, dataloader.WithClearCacheOnBatch())
 }
 
+func (TagService) StationLocationTagDataloader() *dataloader.Loader {
+	return dataloader.NewBatchedLoader(func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+		dbClient := db.GetPrimaryClient()
+		var ids []pg.Expression
+
+		for _, id := range keys {
+			ids = append(ids, pg.UUID(uuid.MustParse(id.String())))
+		}
+
+		stationLocationTags := []StationLocationTag{}
+
+		getStationLocationTagsStmt := table.Tag.
+			SELECT(table.Tag.AllColumns, table.StationLocationTag.AllColumns).
+			FROM(table.Tag.
+				INNER_JOIN(table.StationLocationTag, table.StationLocationTag.TagId.EQ(table.Tag.ID)),
+			).WHERE(table.StationLocationTag.StationLocationId.IN(ids...))
+
+		err := getStationLocationTagsStmt.Query(dbClient, &stationLocationTags)
+
+		if err != nil {
+			log.Println("dataloader-mobile-configuration-tags-error", err.Error())
+			return nil
+		}
+
+		var results []*dataloader.Result
+
+		for _, key := range keys {
+			filtered := lo.Filter(stationLocationTags, func(item StationLocationTag, index int) bool {
+				return item.StationLocationId == uuid.MustParse(key.String())
+			})
+
+			results = append(results, &dataloader.Result{Data: filtered})
+		}
+
+		return results
+	}, dataloader.WithClearCacheOnBatch())
+}
+
 func (TagService) MobileDeviceConfigurationTagDataloader() *dataloader.Loader {
 
 	return dataloader.NewBatchedLoader(func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
@@ -189,7 +227,7 @@ func (TagService) MobileDeviceConfigurationTagDataloader() *dataloader.Loader {
 			ids = append(ids, pg.UUID(uuid.MustParse(id.String())))
 		}
 
-		var mobileTags = []MobileDeviceTag{}
+		mobileTags := []MobileDeviceTag{}
 
 		getByMobileTagsStmt := table.Tag.
 			SELECT(table.Tag.AllColumns, table.MobileDeviceConfigurationTag.AllColumns).

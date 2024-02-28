@@ -369,7 +369,7 @@ model StationLocation {
   description                String?
   department                 String
   latitude                   Decimal                      @db.Decimal(8, 6)
-  longtitude                 Decimal                      @db.Decimal(9, 6)
+  longitude                  Decimal                      @db.Decimal(9, 6)
   createdBy                  String
   updatedBy                  String?
   deletedBy                  String?

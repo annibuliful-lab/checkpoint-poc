@@ -5,6 +5,7 @@ import (
 	table "checkpoint/.gen/checkpoint/public/table"
 	"checkpoint/db"
 	"checkpoint/gql/enum"
+	tagUtils "checkpoint/modules/tag"
 	"checkpoint/utils"
 	"checkpoint/utils/graphql_utils"
 	"context"
@@ -221,18 +222,11 @@ func (ImeiConfigurationService) Update(data UpdateImeiConfigurationData) (*ImeiC
 		}
 
 		for _, tag := range *data.Tags {
-			upsertTagStmt := table.Tag.
-				INSERT(table.Tag.ID, table.Tag.ProjectId, table.Tag.Title, table.Tag.CreatedBy, table.Tag.CreatedAt).
-				MODEL(model.Tag{
-					ID:        uuid.New(),
-					ProjectId: data.ProjectId,
-					Title:     tag,
-					CreatedBy: data.UpdatedBy,
-					CreatedAt: time.Now(),
-				}).
-				ON_CONFLICT(table.Tag.Title, table.Tag.ProjectId).
-				DO_UPDATE(pg.SET(table.Tag.ID.SET(table.Tag.EXCLUDED.ID))).
-				RETURNING(table.Tag.AllColumns)
+			upsertTagStmt := tagUtils.UpsertStatement(tagUtils.UpsertTagData{
+				Tag:       tag,
+				ProjectId: data.ProjectId.String(),
+				CreatedBy: data.UpdatedBy,
+			})
 			tagResult := model.Tag{}
 
 			err := upsertTagStmt.QueryContext(ctx, tx, &tagResult)

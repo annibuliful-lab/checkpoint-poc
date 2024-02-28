@@ -1,0 +1,48 @@
+type StationLocation {
+  id: ID!
+  projectId: ID!
+  title: String!
+  description: String
+  department: String!
+  latitude: Float!
+  longitude: Float!
+  remark: String
+  tags: [Tag!]
+}
+
+type Mutation {
+  createStationLocation(
+    title: String!
+    description: String
+    department: String!
+    latitude: Float!
+    longitude: Float!
+    tags: [String!]
+    remark: String
+  ): StationLocation! @access(requiredProjectId: true)
+
+  updateStationLocation(
+    id: ID!
+    title: String
+    description: String
+    latitude: Float
+    longitude: Float
+    remark: String
+    tags: [String!]
+  ): StationLocation! @access(requiredProjectId: true)
+
+  deleteStationLocation(id: ID!): DeleteOperation!
+    @access(requiredProjectId: true)
+}
+
+type Query {
+  getStationLocationById(id: ID!): StationLocation!
+    @access(requiredProjectId: true)
+
+  getStationLocations(
+    limit: Int!
+    skip: Int!
+    search: String
+    tags: [String!]
+  ): [StationLocation!]! @access(requiredProjectId: true)
+}

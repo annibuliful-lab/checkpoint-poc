@@ -7,8 +7,9 @@ import (
 	"checkpoint/jwt"
 	"checkpoint/utils"
 	"context"
-	"encoding/json"
 	"log"
+
+	"github.com/goccy/go-json"
 
 	pg "github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
