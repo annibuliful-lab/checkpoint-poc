@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid';
 import { Client } from './graphql/generated';
 import {
   createStationLocation,
+  createStationOfficer,
   getAuthenticatedClient,
 } from './utils/utils';
 import omit from 'lodash.omit';
@@ -109,8 +110,14 @@ describe('Station location', () => {
 
   it('gets an existing by id', async () => {
     const createdStationLocation = await createStationLocation();
+    const stationOfficer = await createStationOfficer(
+      createdStationLocation.id
+    );
     const result = await client.query({
       getStationLocationById: {
+        officers: {
+          __scalar: true,
+        },
         __scalar: true,
         tags: {
           __scalar: true,
@@ -121,7 +128,11 @@ describe('Station location', () => {
       },
     });
 
-    expect(result.getStationLocationById).toEqual(
+    expect(result.getStationLocationById.officers?.length).toEqual(1);
+    expect(result.getStationLocationById.officers?.[0]).toEqual(
+      stationOfficer
+    );
+    expect(omit(result.getStationLocationById, 'officers')).toEqual(
       createdStationLocation
     );
   });

@@ -63,6 +63,30 @@ export async function getAuthenticatedClientWithRefreshToken() {
   };
 }
 
+export async function createStationOfficer(
+  stationLocationId: string
+) {
+  const firstname = nanoid();
+  const lastname = nanoid();
+  const msisdn = nanoid(10);
+  const client = await getAuthenticatedClient({
+    includeProjectId: true,
+  });
+  const stationOfficerResponse = await client.mutation({
+    createStationOfficer: {
+      __scalar: true,
+      __args: {
+        stationLocationId,
+        firstname,
+        lastname,
+        msisdn,
+      },
+    },
+  });
+
+  return stationOfficerResponse.createStationOfficer;
+}
+
 export async function createStationLocation() {
   const title = nanoid();
   const department = nanoid();

@@ -1,0 +1,38 @@
+type StationOfficer {
+  id: ID!
+  stationLocationId: ID!
+  firstname: String!
+  lastname: String!
+  msisdn: String!
+}
+
+type Mutation {
+  createStationOfficer(
+    stationLocationId: ID!
+    firstname: String!
+    lastname: String!
+    msisdn: String!
+  ): StationOfficer! @access(requiredProjectId: true)
+
+  updateStationOfficer(
+    id: ID!
+    firstname: String
+    lastname: String
+    msisdn: String
+  ): StationOfficer! @access(requiredProjectId: true)
+
+  deleteStationOfficer(id: ID!): DeleteOperation!
+    @access(requiredProjectId: true)
+}
+
+type Query {
+  getStationOfficerById(id: ID!): StationOfficer!
+    @access(requiredProjectId: true)
+
+  getStationOfficers(
+    stationlocationId: ID!
+    search: String
+    skip: Int!
+    limit: Int!
+  ): [StationOfficer!]! @access(requiredProjectId: true)
+}
