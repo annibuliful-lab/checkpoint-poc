@@ -1,7 +1,9 @@
 package stationlocation
 
 import (
+	"checkpoint/.gen/checkpoint/public/model"
 	"checkpoint/auth"
+	stationofficer "checkpoint/modules/station-officer"
 	"checkpoint/modules/tag"
 	"checkpoint/utils"
 	"context"
@@ -17,7 +19,9 @@ type StationLocationResolver struct{}
 
 var stationLocationService = StationLocationService{}
 var tagService = tag.TagService{}
+var stationOfficerService = stationofficer.StationOfficerService{}
 var tagDataloader = tagService.StationLocationTagDataloader()
+var stationOfficerLoader = stationOfficerService.StationLocationOfficerDataloader()
 
 func (StationLocationResolver) DeleteStationLocation(ctx context.Context, input DeleteStationLocationInput) (*utils.DeleteOperation, error) {
 	authorization := auth.GetAuthorizationContext(ctx)
@@ -189,4 +193,25 @@ func (parent StationLocation) Tags(ctx context.Context) (*[]tag.Tag, error) {
 	})
 
 	return &tags, nil
+}
+
+func (parent StationLocation) Officers(ctx context.Context) (*[]stationofficer.StationOfficer, error) {
+	thunk := stationOfficerLoader.Load(ctx, dataloader.StringKey(parent.ID))
+	officersLoaderResult, err := thunk()
+	if err != nil {
+		log.Println(err.Error())
+		return nil, nil
+	}
+
+	officers := lo.Map(officersLoaderResult.([]model.StationOfficer), func(item model.StationOfficer, index int) stationofficer.StationOfficer {
+		return stationofficer.StationOfficer{
+			ID:                graphql.ID(item.ID.String()),
+			StationLocationId: graphql.ID(item.StationLocationId.String()),
+			Firstname:         item.Firstname,
+			Lastname:          item.Lastname,
+			Msisdn:            item.Msisdn,
+		}
+	})
+
+	return &officers, nil
 }
