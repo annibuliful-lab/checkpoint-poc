@@ -5,17 +5,57 @@ import (
 	"checkpoint/.gen/checkpoint/public/table"
 	"checkpoint/db"
 	"checkpoint/utils"
+	"context"
 	"errors"
 	"log"
 	"time"
 
 	pg "github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
+	"github.com/graph-gophers/dataloader"
 	"github.com/graph-gophers/graphql-go"
 	"github.com/samber/lo"
 )
 
 type StationDeviceService struct{}
+
+func (StationDeviceService) StationLocationDataloader() *dataloader.Loader {
+	dbClient := db.GetPrimaryClient()
+
+	return dataloader.NewBatchedLoader(func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+		var stationLocationIds []pg.Expression
+
+		for _, id := range keys {
+			stationLocationIds = append(stationLocationIds, pg.UUID(uuid.MustParse(id.String())))
+		}
+
+		var stationDevices = []model.StationDevice{}
+
+		getStationDevicesStmt := table.Tag.
+			SELECT(table.StationDevice.AllColumns).
+			FROM(table.StationDevice).
+			WHERE(table.StationDevice.StationLocationId.IN(stationLocationIds...))
+
+		err := getStationDevicesStmt.Query(dbClient, &stationDevices)
+
+		if err != nil {
+			log.Println("dataloader-station-location-error", err.Error())
+			return nil
+		}
+
+		var results []*dataloader.Result
+
+		for _, key := range keys {
+			filtered := lo.Filter(stationDevices, func(item model.StationDevice, index int) bool {
+				return item.StationLocationId == uuid.MustParse(key.String())
+			})
+
+			results = append(results, &dataloader.Result{Data: filtered})
+		}
+
+		return results
+	}, dataloader.WithClearCacheOnBatch())
+}
 
 func (StationDeviceService) FindMany(data GetStationDevicesData) ([]*StationDevice, error) {
 	dbClient := db.GetPrimaryClient()
