@@ -197,3 +197,25 @@ export async function createMobileDeviceConfiguration() {
 
   return mobileResponse.createMobileDeviceConfiguration;
 }
+
+export async function createStationDevice(stationLocationId: string) {
+  const title = nanoid();
+  const softwareVersion = nanoid(3);
+  const hardwareVersion = nanoid(3);
+  const client = await getAuthenticatedClient({
+    includeProjectId: true,
+  });
+  const stationDeviceResponse = await client.mutation({
+    createStationDevice: {
+      __scalar: true,
+      __args: {
+        stationLocationId,
+        title,
+        softwareVersion,
+        hardwareVersion,
+      },
+    },
+  });
+
+  return stationDeviceResponse.createStationDevice;
+}

@@ -1,0 +1,38 @@
+type StationDevice {
+  id: ID!
+  stationLocationId: ID!
+  title: String!
+  softwareVersion: String
+  hardwareVersion: String
+}
+
+type Mutation {
+  createStationDevice(
+    stationLocationId: ID!
+    title: String!
+    softwareVersion: String
+    hardwareVersion: String
+  ): StationDevice! @access(requiredProjectId: true)
+
+  updateStationDevice(
+    id: ID!
+    title: String
+    softwareVersion: String
+    hardwareVersion: String
+  ): StationDevice! @access(requiredProjectId: true)
+
+  deleteStationDevice(id: ID!): DeleteOperation!
+    @access(requiredProjectId: true)
+}
+
+type Query {
+  getStationDeviceById(id: ID!): StationDevice!
+    @access(requiredProjectId: true)
+
+  getStationDevices(
+    stationLocationId: ID!
+    search: String
+    limit: Int!
+    skip: Int!
+  ): [StationDevice!]! @access(requiredProjectId: true)
+}
