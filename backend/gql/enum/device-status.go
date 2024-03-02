@@ -9,8 +9,6 @@ type DeviceStatus int
 const (
 	ONLINE DeviceStatus = iota
 	OFFLINE
-	CLOSED
-	MAINTENANCE
 )
 
 var DeviceStatusStates = [...]string{"ONLINE", "OFFLINE"}
