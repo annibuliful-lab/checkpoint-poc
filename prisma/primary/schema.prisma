@@ -436,6 +436,7 @@ model StationDeviceHealthCheckActivity {
   stationDeviceId String        @db.Uuid
   stationDevice   StationDevice @relation(fields: [stationDeviceId], references: [id])
   status          DeviceStatus
+  activityTime    DateTime
   issue           String? // OFFLINE issue
   createdAt       DateTime      @default(now())
 
