@@ -414,24 +414,24 @@ model StationOfficer {
 }
 
 model StationDevice {
-  id                       String                     @id @db.Uuid
-  station                  StationLocation            @relation(fields: [stationLocationId], references: [id])
-  stationLocationId        String                     @db.Uuid
-  title                    String
-  softwareVersion          String?
-  hardwareVersion          String?
-  StationDeviceHealthCheck StationDeviceHealthCheck[]
-  createdBy                String
-  updatedBy                String?
-  deletedBy                String?
-  deletedAt                DateTime?
-  createdAt                DateTime                   @default(now())
-  updatedAt                DateTime?
+  id                               String                             @id @db.Uuid
+  station                          StationLocation                    @relation(fields: [stationLocationId], references: [id])
+  stationLocationId                String                             @db.Uuid
+  title                            String
+  softwareVersion                  String?
+  hardwareVersion                  String?
+  createdBy                        String
+  updatedBy                        String?
+  deletedBy                        String?
+  deletedAt                        DateTime?
+  createdAt                        DateTime                           @default(now())
+  updatedAt                        DateTime?
+  StationDeviceHealthCheckActivity StationDeviceHealthCheckActivity[]
 
   @@map("station_device")
 }
 
-model StationDeviceHealthCheck {
+model StationDeviceHealthCheckActivity {
   id              String        @id @db.Uuid
   stationDeviceId String        @db.Uuid
   stationDevice   StationDevice @relation(fields: [stationDeviceId], references: [id])
@@ -439,7 +439,7 @@ model StationDeviceHealthCheck {
   issue           String? // OFFLINE issue
   createdAt       DateTime      @default(now())
 
-  @@map("station_device_health_check")
+  @@map("station_device_health_check_activity")
 }
 
 model StationHealthCheckActivity {
