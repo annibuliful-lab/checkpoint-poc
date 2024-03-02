@@ -233,9 +233,16 @@ func (StationLocationService) Delete(data DeleteStationLocationData) error {
 			AND(table.StationLocation.ProjectId.EQ(pg.UUID(data.ProjectId))),
 		)
 
-	_, err := softDeleteStationLocationStmt.Exec(dbClient)
+	result, err := softDeleteStationLocationStmt.Exec(dbClient)
 
-	if err != nil && db.HasNoRow(err) {
+	if err != nil {
+		log.Println("delete-station-location-error", err.Error())
+		return utils.InternalServerError
+	}
+
+	affectedRow, err := result.RowsAffected()
+
+	if affectedRow == 0 {
 		return utils.Notfound
 	}
 

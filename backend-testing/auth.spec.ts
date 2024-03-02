@@ -1,10 +1,5 @@
 import { nanoid } from 'nanoid';
-import { httpClient } from './utils/constants';
-import {
-  getAuthenticatedClient,
-  getAuthenticatedClientWithRefreshToken,
-  graphqlClient,
-} from './utils/utils';
+import { graphqlClient } from './utils/utils';
 import { Client } from './graphql/generated';
 
 describe('Authentication', () => {
