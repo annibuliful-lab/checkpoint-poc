@@ -73,10 +73,6 @@ func VerifyAuthentication(headers AuthorizationContext) error {
 
 		if cacheAccount.AccountId != payload.AccountId {
 			log.Println("Account-mismatch")
-			// ctx.StatusCode(iris.StatusForbidden)
-			// ctx.JSON(iris.Map{
-			// 	"message": utils.ForbiddenOperation.Error(),
-			// })
 			return utils.GraphqlError{
 				Code: utils.ForbiddenOperation.Error(),
 			}
