@@ -9,9 +9,11 @@ type StationStatus int
 const (
 	STATION_ONLINE StationStatus = iota
 	STATION_OFFLINE
+	STATION_CLOSED
+	STATION_MAINTENANCE
 )
 
-var StationStatusStates = [...]string{"ONLINE", "OFFLINE"}
+var StationStatusStates = [...]string{"ONLINE", "OFFLINE", "CLOSED", "MAINTENANCE"}
 
 func GetStationStatus(str string) StationStatus {
 

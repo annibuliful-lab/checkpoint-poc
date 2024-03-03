@@ -4,6 +4,13 @@ type StationDevice {
   title: String!
   softwareVersion: String
   hardwareVersion: String
+  healthActivities(
+    status: DeviceStatus
+    startDate: Time
+    endDate: Time
+    limit: Int!
+    skip: Int!
+  ): [StationDeviceHealthCheckActivity!]!
 }
 
 type Mutation {

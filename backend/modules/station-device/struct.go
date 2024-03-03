@@ -1,6 +1,8 @@
 package stationdevice
 
 import (
+	"checkpoint/gql/enum"
+
 	"github.com/google/uuid"
 	"github.com/graph-gophers/graphql-go"
 )
@@ -72,4 +74,12 @@ type GetStationDevicesData struct {
 	Search            *string
 	Limit             int64
 	Skip              int64
+}
+
+type GetActivitiesInput struct {
+	Status    *enum.DeviceStatus
+	StartDate graphql.NullTime
+	EndDate   graphql.NullTime
+	Limit     float64
+	Skip      float64
 }

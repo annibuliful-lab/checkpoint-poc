@@ -2,6 +2,7 @@ package stationdevice
 
 import (
 	"checkpoint/auth"
+	stationDeviceHealthCheck "checkpoint/modules/station-device-health-check"
 	"checkpoint/utils"
 	"context"
 
@@ -11,6 +12,35 @@ import (
 type StationDeviceResolver struct{}
 
 var stationDeviceService = StationDeviceService{}
+var stationDeviceHealthCheckService = stationDeviceHealthCheck.StationDeviceHealthCheckActivityService{}
+
+func (parent StationDevice) HealthActivities(input GetActivitiesInput) ([]*stationDeviceHealthCheck.StationDeviceHealthCheckActivity, error) {
+	filter := stationDeviceHealthCheck.GetStationDeviceHealthCheckActivitiesData{
+		Limit:           int64(input.Limit),
+		Skip:            int64(input.Skip),
+		StationDeviceId: uuid.MustParse(string(parent.ID)),
+		Status:          input.Status,
+	}
+
+	if input.EndDate.Value != nil {
+		filter.EndDate = &input.EndDate.Value.Time
+	}
+
+	if input.StartDate.Value != nil {
+		filter.StartDate = &input.StartDate.Value.Time
+	}
+
+	activities, err := stationDeviceHealthCheckService.FindMany(filter)
+
+	if err != nil {
+		return nil, utils.GraphqlError{
+			Code:    err.Error(),
+			Message: err.Error(),
+		}
+	}
+
+	return activities, nil
+}
 
 func (StationDeviceResolver) GetStationDevices(ctx context.Context, input GetStationDevicesInput) ([]*StationDevice, error) {
 	stationDevices, err := stationDeviceService.FindMany(GetStationDevicesData{

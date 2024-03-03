@@ -8,6 +8,7 @@ type StationLocation {
   longitude: Float!
   remark: String
   officers: [StationOfficer!]
+  devices: [StationDevice!]
   tags: [Tag!]
 }
 

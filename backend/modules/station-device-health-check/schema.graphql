@@ -1,0 +1,27 @@
+type StationDeviceHealthCheckActivity {
+  id: ID!
+  stationDeviceId: ID!
+  status: DeviceStatus!
+  issue: String
+  activityTime: Time!
+}
+
+type Mutation {
+  createStationDeviceHealthCheckActivity(
+    stationDeviceId: ID!
+    status: DeviceStatus!
+    issue: String
+    activityTime: Time!
+  ): StationDeviceHealthCheckActivity!
+}
+
+type Query {
+  getStationDeviceHealthCheckActivities(
+    stationDeviceId: ID!
+    status: DeviceStatus
+    startDate: Time
+    endDate: Time
+    limit: Int!
+    skip: Int!
+  ): [StationDeviceHealthCheckActivity!]!
+}

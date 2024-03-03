@@ -140,13 +140,12 @@ func (StationOfficerService) Update(data UpdateStationOfficerData) (*StationOffi
 
 	if data.Lastname != nil {
 		columnsToUpdate = append(columnsToUpdate, table.StationOfficer.Lastname)
-		dataFieldsToUpdate.Firstname = *data.Lastname
-
+		dataFieldsToUpdate.Lastname = *data.Lastname
 	}
 
 	if data.Msisdn != nil {
 		columnsToUpdate = append(columnsToUpdate, table.StationOfficer.Msisdn)
-		dataFieldsToUpdate.Firstname = *data.Lastname
+		dataFieldsToUpdate.Msisdn = *data.Msisdn
 	}
 
 	updateStmt := table.StationOfficer.

@@ -8,10 +8,12 @@ import axios from 'axios';
 import { config } from 'dotenv';
 import { createClient } from '../graphql/generated';
 import { nanoid } from 'nanoid';
+import { fetch } from 'undici';
 config();
 
 export const graphqlClient = createClient({
   url: process.env.BACKEND_ENDPOINT,
+  fetch,
 });
 
 export const prismaClient = new PrismaClient();

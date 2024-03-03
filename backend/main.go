@@ -37,7 +37,7 @@ func main() {
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST"},
 		AllowCredentials: true,
-		Debug:            true,
+		// Debug:            true,
 	})
 
 	opts := []graphql.SchemaOpt{

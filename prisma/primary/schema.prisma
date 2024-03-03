@@ -67,8 +67,8 @@ model SessionToken {
   isRefreshToken Boolean   @default(false)
   accountId      String    @db.Uuid
   account        Account   @relation(fields: [accountId], references: [id])
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime?
+  createdAt      DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime? @db.Timestamptz(3)
 
   @@map("session_token")
 }
@@ -93,9 +93,9 @@ model Account {
   createdBy            String
   updatedBy            String?
   deletedBy            String?
-  deletedAt            DateTime?
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime?
+  deletedAt            DateTime?             @db.Timestamptz(3)
+  createdAt            DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt            DateTime?             @db.Timestamptz(3)
 
   @@unique([username])
   @@map("account")
@@ -124,9 +124,9 @@ model Project {
   createdBy                  String
   updatedBy                  String?
   deletedBy                  String?
-  deletedAt                  DateTime?
-  createdAt                  DateTime                    @default(now())
-  updatedAt                  DateTime?
+  deletedAt                  DateTime?                   @db.Timestamptz(3)
+  createdAt                  DateTime                    @default(now()) @db.Timestamptz(3)
+  updatedAt                  DateTime?                   @db.Timestamptz(3)
   ConfigLineNotify           ConfigLineNotify[]
   Tag                        Tag[]
 
@@ -139,9 +139,9 @@ model ProjectRole {
   projectId              String                  @db.Uuid
   project                Project                 @relation(fields: [projectId], references: [id])
   title                  String
-  createdAt              DateTime                @default(now())
-  updatedAt              DateTime                @default(now()) @updatedAt
-  deletedAt              DateTime?
+  createdAt              DateTime                @default(now()) @db.Timestamptz(3)
+  updatedAt              DateTime                @default(now()) @updatedAt @db.Timestamptz(3)
+  deletedAt              DateTime?               @db.Timestamptz(3)
   projectRolePermissions ProjectRolePermission[]
   projectAccounts        ProjectAccount[]
 
@@ -177,9 +177,9 @@ model ProjectAccount {
   createdBy      String
   updatedBy      String?
   deletedBy      String?
-  deletedAt      DateTime?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime?
+  deletedAt      DateTime?        @db.Timestamptz(3)
+  createdAt      DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime?        @db.Timestamptz(3)
   StationOfficer StationOfficer[]
 
   @@map("project_account")
@@ -191,7 +191,7 @@ model Tag {
   projectId                    String                         @db.Uuid
   title                        String
   createdBy                    String
-  createdAt                    DateTime                       @default(now())
+  createdAt                    DateTime                       @default(now()) @db.Timestamptz(3)
   ImsiConfigurationTag         ImsiConfigurationTag[]
   ImeiConfigurationTag         ImeiConfigurationTag[]
   MobileDeviceConfigurationTag MobileDeviceConfigurationTag[]
@@ -211,7 +211,7 @@ model ImsiConfigurationTag {
   imsiConfigurationId String            @db.Uuid
   tag                 Tag               @relation(fields: [tagId], references: [id])
   tagId               String            @db.Uuid
-  createdAt           DateTime          @default(now())
+  createdAt           DateTime          @default(now()) @db.Timestamptz(3)
   createdBy           String
 
   @@map("imsi_configuration_tag")
@@ -223,7 +223,7 @@ model ImeiConfigurationTag {
   imeiConfigurationId String            @db.Uuid
   tag                 Tag               @relation(fields: [tagId], references: [id])
   tagId               String            @db.Uuid
-  createdAt           DateTime          @default(now())
+  createdAt           DateTime          @default(now()) @db.Timestamptz(3)
   createdBy           String
 
   @@map("imei_configuration_tag")
@@ -235,7 +235,7 @@ model MobileDeviceConfigurationTag {
   mobileDeviceConfigurationId String                    @db.Uuid
   tag                         Tag                       @relation(fields: [tagId], references: [id])
   tagId                       String                    @db.Uuid
-  createdAt                   DateTime                  @default(now())
+  createdAt                   DateTime                  @default(now()) @db.Timestamptz(3)
   createdBy                   String
 
   @@map("mobile_device_configuration_tag")
@@ -247,7 +247,7 @@ model StationLocationTag {
   tag               Tag             @relation(fields: [tagId], references: [id])
   stationLocationId String          @db.Uuid
   tagId             String          @db.Uuid
-  createdAt         DateTime        @default(now())
+  createdAt         DateTime        @default(now()) @db.Timestamptz(3)
   createdBy         String
 
   @@map("station_location_tag")
@@ -257,7 +257,7 @@ model LicensePlateConfigurationTag {
   id                          String                    @id @db.Uuid
   licensePlateConfiguration   LicensePlateConfiguration @relation(fields: [licensePlateConfigurationId], references: [id])
   tag                         Tag                       @relation(fields: [tagId], references: [id])
-  createdAt                   DateTime                  @default(now())
+  createdAt                   DateTime                  @default(now()) @db.Timestamptz(3)
   licensePlateConfigurationId String                    @db.Uuid
   tagId                       String                    @db.Uuid
   createdBy                   String
@@ -271,7 +271,7 @@ model VehicleLicensePlateTag {
   tag                          Tag                 @relation(fields: [tagId], references: [id])
   vehicleLicensePlateVehicleId String              @db.Uuid
   tagId                        String              @db.Uuid
-  createdAt                    DateTime            @default(now())
+  createdAt                    DateTime            @default(now()) @db.Timestamptz(3)
   createdBy                    String
 
   @@map("vehicle_license_plate_tag")
@@ -279,7 +279,7 @@ model VehicleLicensePlateTag {
 
 model VehicleTag {
   id        String   @id @db.Uuid
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
   tag       Tag      @relation(fields: [tagId], references: [id])
   vehicle   Vehicle  @relation(fields: [vehicleId], references: [id])
   tagId     String   @db.Uuid
@@ -303,9 +303,9 @@ model ImsiConfiguration {
   createdBy                 String
   updatedBy                 String?
   deletedBy                 String?
-  deletedAt                 DateTime?
-  createdAt                 DateTime                    @default(now())
-  updatedAt                 DateTime?
+  deletedAt                 DateTime?                   @db.Timestamptz(3)
+  createdAt                 DateTime                    @default(now()) @db.Timestamptz(3)
+  updatedAt                 DateTime?                   @db.Timestamptz(3)
   MobileDeviceConfiguration MobileDeviceConfiguration[]
   ImsiConfigurationTag      ImsiConfigurationTag[]
 
@@ -325,9 +325,9 @@ model ImeiConfiguration {
   createdBy                 String
   updatedBy                 String?
   deletedBy                 String?
-  deletedAt                 DateTime?
-  createdAt                 DateTime                    @default(now())
-  updatedAt                 DateTime?
+  deletedAt                 DateTime?                   @db.Timestamptz(3)
+  createdAt                 DateTime                    @default(now()) @db.Timestamptz(3)
+  updatedAt                 DateTime?                   @db.Timestamptz(3)
   MobileDeviceConfiguration MobileDeviceConfiguration[]
   ImeiConfigurationTag      ImeiConfigurationTag[]
 
@@ -352,9 +352,9 @@ model MobileDeviceConfiguration {
   createdBy                    String
   updatedBy                    String?
   deletedBy                    String?
-  deletedAt                    DateTime?
-  createdAt                    DateTime                       @default(now())
-  updatedAt                    DateTime?
+  deletedAt                    DateTime?                      @db.Timestamptz(3)
+  createdAt                    DateTime                       @default(now()) @db.Timestamptz(3)
+  updatedAt                    DateTime?                      @db.Timestamptz(3)
   MobileDeviceConfigurationTag MobileDeviceConfigurationTag[]
 
   @@index([title(ops: raw("gin_trgm_ops"))], type: Gin)
@@ -373,9 +373,9 @@ model StationLocation {
   createdBy                  String
   updatedBy                  String?
   deletedBy                  String?
-  deletedAt                  DateTime?
-  createdAt                  DateTime                     @default(now())
-  updatedAt                  DateTime?
+  deletedAt                  DateTime?                    @db.Timestamptz(3)
+  createdAt                  DateTime                     @default(now()) @db.Timestamptz(3)
+  updatedAt                  DateTime?                    @db.Timestamptz(3)
   vehicles                   Vehicle[]
   remark                     String?
   stationStatus              StationStatus?
@@ -405,41 +405,42 @@ model StationOfficer {
   createdBy         String
   updatedBy         String?
   deletedBy         String?
-  deletedAt         DateTime?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime?
+  deletedAt         DateTime?       @db.Timestamptz(3)
+  createdAt         DateTime        @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime?       @db.Timestamptz(3)
 
   @@index([firstname, lastname])
   @@map("station_officer")
 }
 
 model StationDevice {
-  id                       String                     @id @db.Uuid
-  station                  StationLocation            @relation(fields: [stationLocationId], references: [id])
-  stationLocationId        String                     @db.Uuid
-  title                    String
-  softwareVersion          String?
-  hardwareVersion          String?
-  StationDeviceHealthCheck StationDeviceHealthCheck[]
-  createdBy                String
-  updatedBy                String?
-  deletedBy                String?
-  deletedAt                DateTime?
-  createdAt                DateTime                   @default(now())
-  updatedAt                DateTime?
+  id                               String                             @id @db.Uuid
+  station                          StationLocation                    @relation(fields: [stationLocationId], references: [id])
+  stationLocationId                String                             @db.Uuid
+  title                            String
+  softwareVersion                  String?
+  hardwareVersion                  String?
+  createdBy                        String
+  updatedBy                        String?
+  deletedBy                        String?
+  deletedAt                        DateTime?                          @db.Timestamptz(3)
+  createdAt                        DateTime                           @default(now()) @db.Timestamptz(3)
+  updatedAt                        DateTime?                          @db.Timestamptz(3)
+  StationDeviceHealthCheckActivity StationDeviceHealthCheckActivity[]
 
   @@map("station_device")
 }
 
-model StationDeviceHealthCheck {
+model StationDeviceHealthCheckActivity {
   id              String        @id @db.Uuid
   stationDeviceId String        @db.Uuid
   stationDevice   StationDevice @relation(fields: [stationDeviceId], references: [id])
   status          DeviceStatus
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime?
+  activityTime    DateTime      @db.Timestamptz(3)
+  issue           String? // OFFLINE issue
+  createdAt       DateTime      @default(now()) @db.Timestamptz(3)
 
-  @@map("station_device_health_check")
+  @@map("station_device_health_check_activity")
 }
 
 model StationHealthCheckActivity {
@@ -447,12 +448,12 @@ model StationHealthCheckActivity {
   stationId       String            @db.Uuid
   station         StationLocation   @relation(name: "activity", fields: [stationId], references: [id])
   stationStatus   StationStatus
-  startDatetime   DateTime
-  endDatetime     DateTime?
+  startDatetime   DateTime          @db.Timestamptz(3)
+  endDatetime     DateTime?         @db.Timestamptz(3)
   createdBy       String
-  createdAt       DateTime          @default(now())
+  createdAt       DateTime          @default(now()) @db.Timestamptz(3)
   updatedBy       String?
-  updatedAt       DateTime?
+  updatedAt       DateTime?         @db.Timestamptz(3)
   StationLocation StationLocation[] @relation(name: "current")
 
   @@map("station_health_check_activity")
@@ -472,9 +473,9 @@ model LicensePlateConfiguration {
   createdBy                    String
   updatedBy                    String?
   deletedBy                    String?
-  deletedAt                    DateTime?
-  createdAt                    DateTime                       @default(now())
-  updatedAt                    DateTime?
+  deletedAt                    DateTime?                      @db.Timestamptz(3)
+  createdAt                    DateTime                       @default(now()) @db.Timestamptz(3)
+  updatedAt                    DateTime?                      @db.Timestamptz(3)
   LicensePlateConfigurationTag LicensePlateConfigurationTag[]
 
   @@index([prefix])
@@ -498,8 +499,8 @@ model Vehicle {
   mobileDevices       VehicleMobileDevice[]
   createdBy           String
   updatedBy           String?
-  createdAt           DateTime              @default(now())
-  updatedAt           DateTime?
+  createdAt           DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt           DateTime?             @db.Timestamptz(3)
   VehicleTag          VehicleTag[]
 
   @@index([brand])
@@ -523,9 +524,9 @@ model VehicleLicensePlate {
   createdBy              String
   updatedBy              String?
   deletedBy              String?
-  deletedAt              DateTime?
-  createdAt              DateTime                 @default(now())
-  updatedAt              DateTime?
+  deletedAt              DateTime?                @db.Timestamptz(3)
+  createdAt              DateTime                 @default(now()) @db.Timestamptz(3)
+  updatedAt              DateTime?                @db.Timestamptz(3)
   VehicleLicensePlateTag VehicleLicensePlateTag[]
 
   @@index([prefix])
@@ -543,9 +544,9 @@ model VehicleImage {
   createdBy String
   updatedBy String?
   deletedBy String?
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime?
+  deletedAt DateTime? @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime? @db.Timestamptz(3)
 
   @@map("vehicle_image")
 }
@@ -561,13 +562,13 @@ model VehicleMobileDevice {
   imei             String?              @db.VarChar(24)
   permittedLabel   DevicePermittedLabel @default(NONE)
   signalStrength   Float
-  registerDateTime DateTime
+  registerDateTime DateTime             @db.Timestamptz(3)
   createdBy        String
   updatedBy        String?
   deletedBy        String?
-  deletedAt        DateTime?
-  createdAt        DateTime             @default(now())
-  updatedAt        DateTime?
+  deletedAt        DateTime?            @db.Timestamptz(3)
+  createdAt        DateTime             @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime?            @db.Timestamptz(3)
 
   @@index([mnc, mcc])
   @@index([imei, imsi])
@@ -585,8 +586,8 @@ model ConfigLineNotify {
   active    Boolean  @default(false)
   createdBy String
   updatedBy String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(3)
 
   @@map("config_line_notify")
 }

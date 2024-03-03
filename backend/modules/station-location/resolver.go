@@ -3,6 +3,7 @@ package stationlocation
 import (
 	"checkpoint/.gen/checkpoint/public/model"
 	"checkpoint/auth"
+	stationdevice "checkpoint/modules/station-device"
 	stationofficer "checkpoint/modules/station-officer"
 	"checkpoint/modules/tag"
 	"checkpoint/utils"
@@ -20,8 +21,10 @@ type StationLocationResolver struct{}
 var stationLocationService = StationLocationService{}
 var tagService = tag.TagService{}
 var stationOfficerService = stationofficer.StationOfficerService{}
+var stationDeviceService = stationdevice.StationDeviceService{}
 var tagDataloader = tagService.StationLocationTagDataloader()
 var stationOfficerLoader = stationOfficerService.StationLocationOfficerDataloader()
+var stationDeviceLoader = stationDeviceService.StationLocationDataloader()
 
 func (StationLocationResolver) DeleteStationLocation(ctx context.Context, input DeleteStationLocationInput) (*utils.DeleteOperation, error) {
 	authorization := auth.GetAuthorizationContext(ctx)
@@ -214,4 +217,25 @@ func (parent StationLocation) Officers(ctx context.Context) (*[]stationofficer.S
 	})
 
 	return &officers, nil
+}
+
+func (parent StationLocation) Devices(ctx context.Context) (*[]stationdevice.StationDevice, error) {
+	thunk := stationDeviceLoader.Load(ctx, dataloader.StringKey(parent.ID))
+	devicesLoaderResult, err := thunk()
+	if err != nil {
+		log.Println(err.Error())
+		return nil, nil
+	}
+
+	devices := lo.Map(devicesLoaderResult.([]model.StationDevice), func(item model.StationDevice, index int) stationdevice.StationDevice {
+		return stationdevice.StationDevice{
+			ID:                graphql.ID(item.ID.String()),
+			StationLocationId: graphql.ID(item.StationLocationId.String()),
+			Title:             item.Title,
+			HardwareVersion:   item.HardwareVersion,
+			SoftwareVersion:   item.SoftwareVersion,
+		}
+	})
+
+	return &devices, nil
 }
