@@ -16,6 +16,182 @@ describe('Station device', () => {
     stationLocationId = (await createStationLocation()).id;
   });
 
+  it('gets activities by field resolver with status', async () => {
+    const createdStationDevice = await createStationDevice(
+      stationLocationId
+    );
+    const now = new Date();
+
+    await Promise.all([
+      client.mutation({
+        createStationDeviceHealthCheckActivity: {
+          __scalar: true,
+          __args: {
+            stationDeviceId: createdStationDevice.id,
+            status: 'OFFLINE',
+            activityTime: now,
+          },
+        },
+      }),
+      client.mutation({
+        createStationDeviceHealthCheckActivity: {
+          __scalar: true,
+          __args: {
+            stationDeviceId: createdStationDevice.id,
+            status: 'ONLINE',
+            activityTime: now,
+          },
+        },
+      }),
+    ]);
+
+    const activitiesResponse = await client.query({
+      getStationDeviceById: {
+        __scalar: true,
+        healthActivities: {
+          __scalar: true,
+          __args: {
+            status: 'OFFLINE',
+            limit: 20,
+            skip: 0,
+          },
+        },
+        __args: {
+          id: createdStationDevice.id,
+        },
+      },
+    });
+
+    const activities =
+      activitiesResponse.getStationDeviceById.healthActivities;
+
+    expect(activities.length).toEqual(1);
+    expect(activities[0].status).toEqual('OFFLINE');
+  });
+
+  it('gets activities by status', async () => {
+    const createdStationDevice = await createStationDevice(
+      stationLocationId
+    );
+    const now = new Date();
+
+    await Promise.all([
+      client.mutation({
+        createStationDeviceHealthCheckActivity: {
+          __scalar: true,
+          __args: {
+            stationDeviceId: createdStationDevice.id,
+            status: 'OFFLINE',
+            activityTime: now,
+          },
+        },
+      }),
+      client.mutation({
+        createStationDeviceHealthCheckActivity: {
+          __scalar: true,
+          __args: {
+            stationDeviceId: createdStationDevice.id,
+            status: 'ONLINE',
+            activityTime: now,
+          },
+        },
+      }),
+    ]);
+
+    const activitiesResponse = await client.query({
+      getStationDeviceHealthCheckActivities: {
+        __scalar: true,
+        __args: {
+          stationDeviceId: createdStationDevice.id,
+          limit: 20,
+          skip: 0,
+          status: 'OFFLINE',
+        },
+      },
+    });
+
+    const activities =
+      activitiesResponse.getStationDeviceHealthCheckActivities;
+
+    expect(activities.length).toEqual(1);
+    expect(activities[0].status).toEqual('OFFLINE');
+  });
+
+  it('gets activities by dates', async () => {
+    const createdStationDevice = await createStationDevice(
+      stationLocationId
+    );
+    const now = new Date();
+
+    await Promise.all([
+      client.mutation({
+        createStationDeviceHealthCheckActivity: {
+          __scalar: true,
+          __args: {
+            stationDeviceId: createdStationDevice.id,
+            status: 'OFFLINE',
+            activityTime: now,
+          },
+        },
+      }),
+      client.mutation({
+        createStationDeviceHealthCheckActivity: {
+          __scalar: true,
+          __args: {
+            stationDeviceId: createdStationDevice.id,
+            status: 'ONLINE',
+            activityTime: now,
+          },
+        },
+      }),
+    ]);
+
+    const activitiesResponse = await client.query({
+      getStationDeviceHealthCheckActivities: {
+        __scalar: true,
+        __args: {
+          stationDeviceId: createdStationDevice.id,
+          limit: 20,
+          skip: 0,
+          startDate: now,
+          endDate: now,
+        },
+      },
+    });
+
+    const activities =
+      activitiesResponse.getStationDeviceHealthCheckActivities;
+
+    expect(
+      activities.every(
+        (t) => new Date(t.activityTime).getTime() === now.getTime()
+      )
+    ).toBeTruthy();
+  });
+
+  it('creates new activity', async () => {
+    const createdStationDevice = await createStationDevice(
+      stationLocationId
+    );
+    const now = new Date();
+    const activityResponse = await client.mutation({
+      createStationDeviceHealthCheckActivity: {
+        __scalar: true,
+        __args: {
+          stationDeviceId: createdStationDevice.id,
+          status: 'OFFLINE',
+          activityTime: now,
+        },
+      },
+    });
+
+    const activity =
+      activityResponse.createStationDeviceHealthCheckActivity;
+    expect(activity.stationDeviceId).toEqual(createdStationDevice.id);
+    expect(activity.status).toEqual('OFFLINE');
+    expect(new Date(activity.activityTime)).toEqual(now);
+  });
+
   it('gets by search', async () => {
     const createdStationDevice = await createStationDevice(
       stationLocationId

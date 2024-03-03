@@ -10,6 +10,7 @@ import (
 	"checkpoint/modules/project"
 	projectRole "checkpoint/modules/project-role"
 	stationDevice "checkpoint/modules/station-device"
+	stationDeviceHealthCheck "checkpoint/modules/station-device-health-check"
 	stationlocation "checkpoint/modules/station-location"
 	stationOfficer "checkpoint/modules/station-officer"
 	"checkpoint/modules/tag"
@@ -33,6 +34,7 @@ type Resolver struct {
 	stationlocation.StationLocationResolver
 	stationOfficer.StationOfficerResolver
 	stationDevice.StationDeviceResolver
+	stationDeviceHealthCheck.StationDeviceHealthCheckActivityResolver
 }
 
 func GraphqlResolver() *Resolver {
