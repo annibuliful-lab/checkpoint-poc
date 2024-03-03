@@ -4,6 +4,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -14,6 +15,7 @@ var (
 
 func GetRedisClient() *redis.Client {
 	onceRedis.Do(func() {
+		godotenv.Load()
 
 		redisClient = redis.NewClient(&redis.Options{
 			Addr:     os.Getenv("REDIS_URL"),

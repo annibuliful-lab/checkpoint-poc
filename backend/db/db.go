@@ -6,6 +6,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -16,6 +17,7 @@ var (
 
 func GetPrimaryClient() *sql.DB {
 	onceDb.Do(func() {
+		godotenv.Load()
 
 		connectString := os.Getenv("PRIMARY_DATABASE_URL")
 		database, err := sql.Open("postgres", connectString)
