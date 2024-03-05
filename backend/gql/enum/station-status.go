@@ -17,7 +17,7 @@ var StationStatusStates = [...]string{"ONLINE", "OFFLINE", "CLOSED", "MAINTENANC
 
 func GetStationStatus(str string) StationStatus {
 
-	for i, st := range DeviceStatusStates {
+	for i, st := range StationStatusStates {
 		if st == str {
 			return StationStatus(i)
 		}
@@ -27,11 +27,11 @@ func GetStationStatus(str string) StationStatus {
 
 }
 
-func (s StationStatus) String() string { return DeviceStatusStates[s] }
+func (s StationStatus) String() string { return StationStatusStates[s] }
 
 func (s *StationStatus) Deserialize(str string) {
 	var found bool
-	for i, st := range DeviceStatusStates {
+	for i, st := range StationStatusStates {
 		if st == str {
 			found = true
 			(*s) = StationStatus(i)

@@ -24,13 +24,13 @@ func (StationDeviceHealthCheckActivityService) Create(data CreateStationDeviceHe
 
 	columnsToInsert = append(
 		columnsToInsert,
-		table.StationDeviceHealthCheckActivity.ID,
-		table.StationDeviceHealthCheckActivity.Status,
-		table.StationDeviceHealthCheckActivity.StationDeviceId,
-		table.StationDeviceHealthCheckActivity.ActivityTime,
+		table.StationLocationDeviceHealthCheckActivity.ID,
+		table.StationLocationDeviceHealthCheckActivity.Status,
+		table.StationLocationDeviceHealthCheckActivity.StationDeviceId,
+		table.StationLocationDeviceHealthCheckActivity.ActivityTime,
 	)
 
-	fieldsToInsert := model.StationDeviceHealthCheckActivity{
+	fieldsToInsert := model.StationLocationDeviceHealthCheckActivity{
 		ID:              uuid.New(),
 		StationDeviceId: data.StationDeviceId,
 		Status:          model.DeviceStatus(data.Status.String()),
@@ -38,16 +38,16 @@ func (StationDeviceHealthCheckActivityService) Create(data CreateStationDeviceHe
 	}
 
 	if data.Issue != nil {
-		columnsToInsert = append(columnsToInsert, table.StationDeviceHealthCheckActivity.Issue)
+		columnsToInsert = append(columnsToInsert, table.StationLocationDeviceHealthCheckActivity.Issue)
 		fieldsToInsert.Issue = data.Issue
 	}
 
-	createActivityStmt := table.StationDeviceHealthCheckActivity.
+	createActivityStmt := table.StationLocationDeviceHealthCheckActivity.
 		INSERT(columnsToInsert).
 		MODEL(fieldsToInsert).
-		RETURNING(table.StationDeviceHealthCheckActivity.AllColumns)
+		RETURNING(table.StationLocationDeviceHealthCheckActivity.AllColumns)
 
-	healthCheckActivity := model.StationDeviceHealthCheckActivity{}
+	healthCheckActivity := model.StationLocationDeviceHealthCheckActivity{}
 
 	err := createActivityStmt.Query(dbClient, &healthCheckActivity)
 
@@ -66,11 +66,11 @@ func (StationDeviceHealthCheckActivityService) Create(data CreateStationDeviceHe
 func (StationDeviceHealthCheckActivityService) FindMany(data GetStationDeviceHealthCheckActivitiesData) ([]*StationDeviceHealthCheckActivity, error) {
 	dbClient := db.GetPrimaryClient()
 
-	conditions := table.StationDeviceHealthCheckActivity.StationDeviceId.EQ(pg.UUID(data.StationDeviceId))
+	conditions := table.StationLocationDeviceHealthCheckActivity.StationDeviceId.EQ(pg.UUID(data.StationDeviceId))
 
 	if data.Status != nil {
 		conditions = conditions.AND(
-			table.StationDeviceHealthCheckActivity.Status.
+			table.StationLocationDeviceHealthCheckActivity.Status.
 				EQ(pg.
 					NewEnumValue(data.Status.String()),
 				),
@@ -79,7 +79,7 @@ func (StationDeviceHealthCheckActivityService) FindMany(data GetStationDeviceHea
 
 	if data.StartDate != nil {
 		conditions = conditions.AND(
-			table.StationDeviceHealthCheckActivity.ActivityTime.
+			table.StationLocationDeviceHealthCheckActivity.ActivityTime.
 				GT_EQ(
 					pg.TimestampzT(*data.StartDate),
 				),
@@ -88,7 +88,7 @@ func (StationDeviceHealthCheckActivityService) FindMany(data GetStationDeviceHea
 
 	if data.EndDate != nil {
 		conditions = conditions.AND(
-			table.StationDeviceHealthCheckActivity.ActivityTime.
+			table.StationLocationDeviceHealthCheckActivity.ActivityTime.
 				LT_EQ(
 					pg.TimestampzT(*data.EndDate),
 				),
@@ -96,14 +96,14 @@ func (StationDeviceHealthCheckActivityService) FindMany(data GetStationDeviceHea
 	}
 
 	getActivitiesStmt := pg.
-		SELECT(table.StationDeviceHealthCheckActivity.AllColumns).
-		FROM(table.StationDeviceHealthCheckActivity).
+		SELECT(table.StationLocationDeviceHealthCheckActivity.AllColumns).
+		FROM(table.StationLocationDeviceHealthCheckActivity).
 		WHERE(conditions).
 		LIMIT(data.Limit).
 		OFFSET(data.Skip).
-		ORDER_BY(table.StationDeviceHealthCheckActivity.ActivityTime.DESC())
+		ORDER_BY(table.StationLocationDeviceHealthCheckActivity.ActivityTime.DESC())
 
-	activities := []model.StationDeviceHealthCheckActivity{}
+	activities := []model.StationLocationDeviceHealthCheckActivity{}
 
 	err := getActivitiesStmt.Query(dbClient, &activities)
 
@@ -112,12 +112,12 @@ func (StationDeviceHealthCheckActivityService) FindMany(data GetStationDeviceHea
 		return nil, utils.InternalServerError
 	}
 
-	return lo.Map(activities, func(item model.StationDeviceHealthCheckActivity, index int) *StationDeviceHealthCheckActivity {
+	return lo.Map(activities, func(item model.StationLocationDeviceHealthCheckActivity, index int) *StationDeviceHealthCheckActivity {
 		return transformToGraphql(item)
 	}), nil
 }
 
-func transformToGraphql(item model.StationDeviceHealthCheckActivity) *StationDeviceHealthCheckActivity {
+func transformToGraphql(item model.StationLocationDeviceHealthCheckActivity) *StationDeviceHealthCheckActivity {
 	return &StationDeviceHealthCheckActivity{
 		ID:              graphql.ID(item.ID.String()),
 		StationDeviceId: graphql.ID(item.StationDeviceId.String()),

@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid';
 import { Client } from './graphql/generated';
 import {
   createStationLocation,
+  createStationLocationHealthCheckActivity,
   createStationOfficer,
   getAuthenticatedClient,
 } from './utils/utils';
@@ -13,6 +14,122 @@ describe('Station location', () => {
 
   beforeAll(async () => {
     client = await getAuthenticatedClient({ includeProjectId: true });
+  });
+
+  it('gets health check activities by dates', async () => {
+    const createdStationLocation = await createStationLocation();
+
+    const created = await Promise.all([
+      createStationLocationHealthCheckActivity(
+        'CLOSED',
+        createdStationLocation.id
+      ),
+      createStationLocationHealthCheckActivity(
+        'ONLINE',
+        createdStationLocation.id
+      ),
+    ]);
+
+    const result = await client.query({
+      getStationLocationHealthCheckActivities: {
+        __scalar: true,
+        __args: {
+          stationId: createdStationLocation.id,
+          startDatetime: created[0].startDatetime,
+          limit: 20,
+          skip: 0,
+        },
+      },
+    });
+
+    expect(
+      result.getStationLocationHealthCheckActivities.length
+    ).toEqual(2);
+  });
+
+  it('gets health check activities by status', async () => {
+    const createdStationLocation = await createStationLocation();
+
+    await Promise.all([
+      createStationLocationHealthCheckActivity(
+        'CLOSED',
+        createdStationLocation.id
+      ),
+      createStationLocationHealthCheckActivity(
+        'ONLINE',
+        createdStationLocation.id
+      ),
+    ]);
+
+    const result = await client.query({
+      getStationLocationHealthCheckActivities: {
+        __scalar: true,
+        __args: {
+          stationId: createdStationLocation.id,
+          stationStatus: 'ONLINE',
+          limit: 20,
+          skip: 0,
+        },
+      },
+    });
+    expect(
+      result.getStationLocationHealthCheckActivities.length
+    ).toEqual(1);
+    expect(
+      result.getStationLocationHealthCheckActivities[0].stationStatus
+    ).toEqual('ONLINE');
+  });
+
+  it('updates an existing health check activity', async () => {
+    const createdStationLocation = await createStationLocation();
+
+    const createdActivity =
+      await createStationLocationHealthCheckActivity(
+        'CLOSED',
+        createdStationLocation.id
+      );
+
+    const now = new Date();
+    const updatedResponse = await client.mutation({
+      updateStationLocationHealthCheckActivity: {
+        __scalar: true,
+        __args: {
+          id: createdActivity.id,
+          endDatetime: now,
+          stationStatus: 'ONLINE',
+        },
+      },
+    });
+
+    const updatedActivity =
+      updatedResponse.updateStationLocationHealthCheckActivity;
+
+    expect(updatedActivity.id).toEqual(createdActivity.id);
+    expect(updatedActivity.stationStatus).toEqual('ONLINE');
+    expect(new Date(updatedActivity.endDatetime)).toEqual(now);
+  });
+
+  it('creates an health check activity', async () => {
+    const createdStationLocation = await createStationLocation();
+    const now = new Date();
+    const createdActivityResponse = await client.mutation({
+      createStationLocationHealthCheckActivity: {
+        __scalar: true,
+        __args: {
+          stationId: createdStationLocation.id,
+          stationStatus: 'MAINTENANCE',
+          startDatetime: now,
+        },
+      },
+    });
+
+    const activity =
+      createdActivityResponse.createStationLocationHealthCheckActivity;
+
+    expect(activity.stationId).toEqual(createdStationLocation.id);
+    expect(activity.stationStatus).toEqual('MAINTENANCE');
+    expect(activity.endDatetime).toBeNull();
+    expect(new Date(activity.startDatetime)).toEqual(now);
   });
 
   it('gets by tag', async () => {
