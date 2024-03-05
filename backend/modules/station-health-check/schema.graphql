@@ -1,0 +1,34 @@
+type StationHealthCheckActivity {
+  id: ID!
+  stationId: ID!
+  stationStatus: StationStatus!
+  startDatetime: Time!
+  endDatetime: Time
+}
+
+type Mutation {
+  createStationLocationHealthCheckActivity(
+    stationId: ID!
+    stationStatus: StationStatus!
+    startDatetime: Time!
+    endDatetime: Time
+  ): StationHealthCheckActivity!
+
+  updateStationLocationHealthCheckActivity(
+    id: ID!
+    stationStatus: StationStatus
+    startDatetime: Time
+    endDatetime: Time
+  ): StationHealthCheckActivity!
+}
+
+type Query {
+  getStationLocationHealthCheckActivities(
+    stationId: ID!
+    stationStatus: StationStatus
+    startDatetime: Time
+    endDatetime: Time
+    limit: Int!
+    skip: Int!
+  ): [StationHealthCheckActivity!]!
+}

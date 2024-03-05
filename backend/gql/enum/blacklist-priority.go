@@ -7,12 +7,13 @@ import (
 type BlacklistPriority int
 
 const (
-	NORMAL  BlacklistPriority = iota // default value
-	WARNING BlacklistPriority = 1
-	DANGER  BlacklistPriority = 2
+	BLACKLIST_NONE    BlacklistPriority = iota // default value
+	BLACKLIST_WARNING BlacklistPriority = 1
+	BLACKLIST_DANGER  BlacklistPriority = 2
+	BLACKLIST_NORMAL  BlacklistPriority = 3
 )
 
-var blacklistPriorityStates = [...]string{"WARNING", "DANGER", "NORMAL"}
+var blacklistPriorityStates = [...]string{"WARNING", "DANGER", "NORMAL", "NONE"}
 
 func GetBlacklistPriority(str string) BlacklistPriority {
 

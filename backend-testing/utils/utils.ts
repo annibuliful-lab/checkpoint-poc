@@ -6,7 +6,7 @@ import {
 } from './constants';
 import axios from 'axios';
 import { config } from 'dotenv';
-import { createClient } from '../graphql/generated';
+import { StationStatus, createClient } from '../graphql/generated';
 import { nanoid } from 'nanoid';
 import { fetch } from 'undici';
 config();
@@ -220,4 +220,27 @@ export async function createStationDevice(stationLocationId: string) {
   });
 
   return stationDeviceResponse.createStationDevice;
+}
+
+export async function createStationLocationHealthCheckActivity(
+  stationStatus: StationStatus,
+  stationId: string
+) {
+  const client = await getAuthenticatedClient({
+    includeProjectId: true,
+  });
+
+  const now = new Date();
+  const createdActivityResponse = await client.mutation({
+    createStationLocationHealthCheckActivity: {
+      __scalar: true,
+      __args: {
+        stationId,
+        stationStatus,
+        startDatetime: now,
+      },
+    },
+  });
+
+  return createdActivityResponse.createStationLocationHealthCheckActivity;
 }

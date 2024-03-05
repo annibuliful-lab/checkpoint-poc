@@ -7,9 +7,9 @@ import (
 type DevicePermittedLabel int
 
 const (
-	NONE      DevicePermittedLabel = iota // default value
-	WHITELIST DevicePermittedLabel = 2
-	BLACKLIST DevicePermittedLabel = 1
+	DEVICE_NONE      DevicePermittedLabel = iota // default value
+	DEVICE_WHITELIST DevicePermittedLabel = 2
+	DEVICE_BLACKLIST DevicePermittedLabel = 1
 )
 
 var states = [...]string{"WHITELIST", "BLACKLIST", "NONE"}

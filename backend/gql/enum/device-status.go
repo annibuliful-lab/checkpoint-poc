@@ -7,8 +7,8 @@ import (
 type DeviceStatus int
 
 const (
-	ONLINE DeviceStatus = iota
-	OFFLINE
+	DEVICE_ONLINE DeviceStatus = iota
+	DEVICE_OFFLINE
 )
 
 var DeviceStatusStates = [...]string{"ONLINE", "OFFLINE"}
