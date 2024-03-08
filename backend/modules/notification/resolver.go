@@ -18,7 +18,7 @@ func (*NotificationResolver) Hello() string {
 }
 
 func (r *NotificationResolver) SayHello(args struct{ Msg string }) *helloSaidEvent {
-	e := &helloSaidEvent{msg: args.Msg, id: uuid.New().String()}
+	e := &helloSaidEvent{Msg: args.Msg, ID: uuid.New().String()}
 	go func() {
 		select {
 		case r.helloSaidEvents <- e:
@@ -45,7 +45,6 @@ type helloSaidSubscriber struct {
 func (r *NotificationResolver) broadcastHelloSaid() {
 	subscribers := map[string]*helloSaidSubscriber{}
 	unsubscribe := make(chan string)
-	fmt.Println("broadcastHelloSaid", subscribers)
 
 	// NOTE: subscribing and sending events are at odds.
 	for {
@@ -55,7 +54,6 @@ func (r *NotificationResolver) broadcastHelloSaid() {
 		case s := <-r.helloSaidSubscriber:
 			id := uuid.New().String()
 			subscribers[id] = s
-			fmt.Println()
 		case e := <-r.helloSaidEvents:
 			for id, s := range subscribers {
 				go func(id string, s *helloSaidSubscriber) {
@@ -79,6 +77,7 @@ func (r *NotificationResolver) broadcastHelloSaid() {
 }
 
 func (r *NotificationResolver) HelloSaid(ctx context.Context) <-chan *helloSaidEvent {
+	fmt.Println(ctx.Value("x-project-id"))
 	c := make(chan *helloSaidEvent)
 	// NOTE: this could take a while
 	r.helloSaidSubscriber <- &helloSaidSubscriber{events: c, stop: ctx.Done()}
@@ -87,14 +86,6 @@ func (r *NotificationResolver) HelloSaid(ctx context.Context) <-chan *helloSaidE
 }
 
 type helloSaidEvent struct {
-	id  string
-	msg string
-}
-
-func (r *helloSaidEvent) Msg() string {
-	return r.msg
-}
-
-func (r *helloSaidEvent) ID() string {
-	return r.id
+	ID  string
+	Msg string
 }

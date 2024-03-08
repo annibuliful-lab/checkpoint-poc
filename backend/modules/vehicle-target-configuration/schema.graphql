@@ -1,0 +1,56 @@
+type VehicleTargetConfiguration {
+  id: ID!
+  projectId: ID!
+  prefix: String!
+  number: String!
+  province: String!
+  type: String!
+  country: String
+  permittedLabel: DevicePermittedLabel!
+  blacklistPriority: BlacklistPriority!
+  tags: [Tag!]
+}
+
+type Mutation {
+  createVehicleTargetConfiguration(
+    prefix: String!
+    number: String!
+    province: String!
+    type: String!
+    country: String
+    permittedLabel: DevicePermittedLabel!
+    blacklistPriority: BlacklistPriority!
+    tags: [String!]
+  ): VehicleTargetConfiguration! @access(requiredProjectId: true)
+
+  updateVehicleTargetConfiguration(
+    id: ID!
+    prefix: String
+    number: String
+    province: String
+    type: String
+    country: String
+    permittedLabel: DevicePermittedLabel
+    blacklistPriority: BlacklistPriority
+    tags: [String!]
+  ): VehicleTargetConfiguration! @access(requiredProjectId: true)
+
+  deleteVehicleTargetConfiguration(id: ID!): DeleteOperation!
+    @access(requiredProjectId: true)
+}
+
+type Query {
+  getVehicleTargetConfigurationById(
+    id: ID!
+  ): VehicleTargetConfiguration! @access(requiredProjectId: true)
+
+  getVehicleTargetConfigurations(
+    search: String
+    permittedLabel: DevicePermittedLabel
+    blacklistPriority: BlacklistPriority
+    type: String
+    tags: [String!]
+    limit: Int!
+    skip: Int!
+  ): [VehicleTargetConfiguration!]! @access(requiredProjectId: true)
+}
