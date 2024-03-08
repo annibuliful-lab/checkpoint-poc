@@ -145,7 +145,7 @@ func VerifyAuthorization(ctx context.Context, headers AuthorizationContext, perm
 	// Check if the authorization data is present in the cache
 	result, err := db.GetRedisClient().Get(ctx, key).Result()
 	if err == nil && result != "" {
-		cacheError := handleCachedAuthorization(ctx, result, permissionData)
+		cacheError := handleCachedAuthorization(result, permissionData)
 		if cacheError != nil {
 			return utils.GraphqlError{
 				Message: cacheError.Error(),
@@ -191,7 +191,7 @@ func VerifyAuthorization(ctx context.Context, headers AuthorizationContext, perm
 	return nil
 }
 
-func handleCachedAuthorization(ctx context.Context, result string, permissionData utils.AuthorizationPermissionData) error {
+func handleCachedAuthorization(result string, permissionData utils.AuthorizationPermissionData) error {
 	var data utils.AuthorizationWithPermissionsData
 	if err := json.Unmarshal([]byte(result), &data); err != nil {
 		log.Println("Cache-error", err.Error())

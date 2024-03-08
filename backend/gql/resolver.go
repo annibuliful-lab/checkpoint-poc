@@ -15,6 +15,7 @@ import (
 	stationlocation "checkpoint/modules/station-location"
 	stationOfficer "checkpoint/modules/station-officer"
 	"checkpoint/modules/tag"
+	vehicleTarget "checkpoint/modules/vehicle-target-configuration"
 )
 
 type Resolver struct {
@@ -37,6 +38,7 @@ type Resolver struct {
 	stationDevice.StationDeviceResolver
 	stationDeviceHealthCheck.StationDeviceHealthCheckActivityResolver
 	stationHealthCheck.StationLocationHealthCheckActivityResolver
+	vehicleTarget.VehicleTargetConfigurationResolver
 }
 
 func GraphqlResolver() *Resolver {

@@ -48,13 +48,18 @@ func main() {
 	}
 
 	// init graphQL schema
-	s, err := graphql.ParseSchema(string(mergedSchema[:]), gql.GraphqlResolver(), opts...)
+	schema, err := graphql.ParseSchema(string(mergedSchema[:]), gql.GraphqlResolver(), opts...)
 	if err != nil {
 		panic(err)
 	}
 
 	// graphQL handler
-	graphQLHandler := corsMiddleware.Handler(graphqlws.NewHandlerFunc(s, auth.GraphqlContext(&relay.Handler{Schema: s})))
+	graphQLHandler := corsMiddleware.Handler(
+		graphqlws.NewHandlerFunc(
+			schema,
+			auth.GraphqlContext(&relay.Handler{Schema: schema}),
+		))
+
 	http.Handle("/graphql", graphQLHandler)
 
 	var listenAddress = flag.String("listen", os.Getenv("BACKEND_PORT"), "Listen address.")
