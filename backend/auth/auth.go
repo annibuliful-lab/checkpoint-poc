@@ -6,8 +6,10 @@ import (
 	"checkpoint/jwt"
 	"checkpoint/utils"
 	"context"
+	"errors"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/goccy/go-json"
@@ -110,6 +112,42 @@ func GraphqlContext(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func WebsocketGraphqlContext(ctx context.Context, r *http.Request) (context.Context, error) {
+	headers := GetAuthenticationParams(r.URL.Query())
+
+	if headers.Authorization == "" {
+		return ctx, errors.New("unauthorized")
+	}
+
+	payload, err := jwt.VerifyToken(headers.Token)
+	if err != nil {
+		if err.Error() == utils.TokenExpire.Error() {
+
+			return ctx, errors.New("token expired")
+		}
+
+		return ctx, errors.New("token verification failed")
+	}
+
+	ctx = context.WithValue(ctx, "token", headers.Token)
+	ctx = context.WithValue(ctx, "projectId", headers.ProjectId)
+	ctx = context.WithValue(ctx, "accountId", payload.AccountId.String())
+
+	return ctx, nil
+
+}
+
+func GetAuthenticationParams(params url.Values) AuthenticationHeader {
+	authorization := params.Get("authorization")
+	projectId := params.Get("x-project-id")
+
+	return AuthenticationHeader{
+		Authorization: authorization,
+		ProjectId:     projectId,
+		Token:         GetAuthToken(authorization),
+	}
 }
 
 func GetAuthenticationHeaders(header http.Header) AuthenticationHeader {

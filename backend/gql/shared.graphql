@@ -19,10 +19,6 @@ type HelloSaidEvent {
   msg: String!
 }
 
-type Query {
-  hello: String!
-}
-
 enum ImageType {
   FRONT
   REAR
