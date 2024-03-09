@@ -2,7 +2,6 @@ package notification
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,10 +10,6 @@ import (
 type NotificationResolver struct {
 	helloSaidEvents     chan *helloSaidEvent
 	helloSaidSubscriber chan *helloSaidSubscriber
-}
-
-func (*NotificationResolver) Hello() string {
-	return "hello"
 }
 
 func (r *NotificationResolver) SayHello(args struct{ Msg string }) *helloSaidEvent {
@@ -77,7 +72,7 @@ func (r *NotificationResolver) broadcastHelloSaid() {
 }
 
 func (r *NotificationResolver) HelloSaid(ctx context.Context) <-chan *helloSaidEvent {
-	fmt.Println(ctx.Value("x-project-id"))
+
 	c := make(chan *helloSaidEvent)
 	// NOTE: this could take a while
 	r.helloSaidSubscriber <- &helloSaidSubscriber{events: c, stop: ctx.Done()}

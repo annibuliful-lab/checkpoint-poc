@@ -5,11 +5,13 @@ import (
 	"checkpoint/db"
 	"checkpoint/gql"
 	"checkpoint/gql/directive"
+	uploadmiddleware "checkpoint/gql/upload-middleware"
 	"context"
 	"flag"
 	"log"
 	"net/http"
 	"os/signal"
+	"time"
 
 	"os"
 
@@ -22,7 +24,7 @@ import (
 )
 
 func main() {
-	err := godotenv.Load("./.env")
+	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
@@ -57,8 +59,14 @@ func main() {
 	graphQLHandler := corsMiddleware.Handler(
 		graphqlws.NewHandlerFunc(
 			schema,
-			auth.GraphqlContext(&relay.Handler{Schema: schema}),
-		))
+			auth.GraphqlContext(uploadmiddleware.Handler(&relay.Handler{Schema: schema})),
+			graphqlws.WithContextGenerator(
+				graphqlws.ContextGeneratorFunc(auth.WebsocketGraphqlContext),
+			),
+			graphqlws.WithReadLimit(1024),
+			graphqlws.WithWriteTimeout(5*time.Second),
+		),
+	)
 
 	http.Handle("/graphql", graphQLHandler)
 
