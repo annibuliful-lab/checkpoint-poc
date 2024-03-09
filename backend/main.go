@@ -63,7 +63,6 @@ func main() {
 			graphqlws.WithContextGenerator(
 				graphqlws.ContextGeneratorFunc(auth.WebsocketGraphqlContext),
 			),
-			graphqlws.WithReadLimit(1024),
 			graphqlws.WithWriteTimeout(5*time.Second),
 		),
 	)
