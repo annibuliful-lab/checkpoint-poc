@@ -19,6 +19,28 @@ var imsiConfigurationService = ImsiConfigurationService{}
 var tagService = tag.TagService{}
 var tagDataloader = tagService.ImsiConfigurationDataloader()
 
+func (ImsiConfigurationResolver) UpsertImsiConfiguration(ctx context.Context, input UpsertImsiConfigurationInput) (*ImsiConfiguration, error) {
+	authorization := auth.GetAuthorizationContext(ctx)
+	imsi, err := imsiConfigurationService.Upsert(UpsertImsiConfigurationData{
+		UpdatedBy:         authorization.AccountId,
+		ProjectId:         uuid.MustParse(authorization.ProjectId),
+		StationLocationId: uuid.MustParse(authorization.StationId),
+		Imsi:              input.Imsi,
+		BlacklistPriority: input.BlacklistPriority,
+		PermittedLabel:    input.PermittedLabel,
+		Tags:              input.Tags,
+	})
+
+	if err != nil {
+		return nil, utils.GraphqlError{
+			Code:    err.Error(),
+			Message: err.Error(),
+		}
+	}
+
+	return imsi, nil
+}
+
 func (ImsiConfigurationResolver) DeleteImsiConfiguration(ctx context.Context, args DeleteImsiConfigurationInput) (*utils.DeleteOperation, error) {
 	authorization := auth.GetAuthorizationContext(ctx)
 	_, err := imsiConfigurationService.Delete(DeleteImsiConfigurationData{
@@ -39,7 +61,7 @@ func (ImsiConfigurationResolver) DeleteImsiConfiguration(ctx context.Context, ar
 	}, nil
 }
 
-func (ImsiConfigurationResolver) GetImsiConfigurationById(ctx context.Context, args GetImsiConfigurationByIdInput) (*Imsiconfiguration, error) {
+func (ImsiConfigurationResolver) GetImsiConfigurationById(ctx context.Context, args GetImsiConfigurationByIdInput) (*ImsiConfiguration, error) {
 	authorization := auth.GetAuthorizationContext(ctx)
 	imsiConfiguration, _, err := imsiConfigurationService.FindById(GetImsiConfigurationByIdData{
 		ID:        uuid.MustParse(string(args.ID)),
@@ -56,7 +78,7 @@ func (ImsiConfigurationResolver) GetImsiConfigurationById(ctx context.Context, a
 	return imsiConfiguration, nil
 }
 
-func (ImsiConfigurationResolver) CreateImsiConfiguration(ctx context.Context, args CreateImeiConfigurationInput) (*Imsiconfiguration, error) {
+func (ImsiConfigurationResolver) CreateImsiConfiguration(ctx context.Context, args CreateImsiConfigurationInput) (*ImsiConfiguration, error) {
 	authorization := auth.GetAuthorizationContext(ctx)
 
 	imsiConfiguration, _, err := imsiConfigurationService.Create(CreateImsiConfigurationData{
@@ -80,7 +102,7 @@ func (ImsiConfigurationResolver) CreateImsiConfiguration(ctx context.Context, ar
 
 }
 
-func (ImsiConfigurationResolver) GetImsiConfigurations(ctx context.Context, args GetImsiConfigurationsInput) ([]Imsiconfiguration, error) {
+func (ImsiConfigurationResolver) GetImsiConfigurations(ctx context.Context, args GetImsiConfigurationsInput) ([]ImsiConfiguration, error) {
 	authorization := auth.GetAuthorizationContext(ctx)
 
 	imsiConfigurations, _, err := imsiConfigurationService.FindMany(GetImsiConfigurationsData{
@@ -106,7 +128,7 @@ func (ImsiConfigurationResolver) GetImsiConfigurations(ctx context.Context, args
 	return imsiConfigurations, nil
 }
 
-func (ImsiConfigurationResolver) UpdateImsiConfiguration(ctx context.Context, args UpdateImsiConfigurationInput) (*Imsiconfiguration, error) {
+func (ImsiConfigurationResolver) UpdateImsiConfiguration(ctx context.Context, args UpdateImsiConfigurationInput) (*ImsiConfiguration, error) {
 	authorization := auth.GetAuthorizationContext(ctx)
 
 	var permittedLabel *string
@@ -141,7 +163,7 @@ func (ImsiConfigurationResolver) UpdateImsiConfiguration(ctx context.Context, ar
 	return imsiConfiguration, nil
 }
 
-func (parent Imsiconfiguration) Tags(ctx context.Context) (*[]tag.Tag, error) {
+func (parent ImsiConfiguration) Tags(ctx context.Context) (*[]tag.Tag, error) {
 	thunk := tagDataloader.Load(ctx, dataloader.StringKey(parent.ID))
 	tagsLoaderResult, err := thunk()
 	if err != nil {

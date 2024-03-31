@@ -21,8 +21,8 @@ type Mutation {
   createMobileDeviceConfiguration(
     stationLocationId: ID!
     title: String!
-    referenceImsiConfigurationId: ID!
-    referenceImeiConfigurationId: ID!
+    imsi: String!
+    imei: String!
     msisdn: String
     permittedLabel: DevicePermittedLabel!
     blacklistPriority: BlacklistPriority!
@@ -35,8 +35,8 @@ type Mutation {
   updateMobileDeviceConfiguration(
     id: ID!
     title: String
-    referenceImsiConfigurationId: ID
-    referenceImeiConfigurationId: ID
+    imsi: String
+    imei: String
     msisdn: String
     permittedLabel: DevicePermittedLabel
     blacklistPriority: BlacklistPriority

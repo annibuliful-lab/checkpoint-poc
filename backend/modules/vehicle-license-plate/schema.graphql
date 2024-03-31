@@ -1,0 +1,29 @@
+type VehicleLicensePlate {
+  stationVehicleActivityId: ID!
+  prefix: String!
+  number: String!
+  province: String!
+  type: String!
+  country: String
+  accuracy: Float!
+  permittedLabel: DevicePermittedLabel!
+  blacklistPriority: BlacklistPriority!
+  s3Key: String
+  imageUrl: String
+}
+
+type Mutation {
+  createVehicleLicensePlate(
+    stationVehicleActivityId: ID!
+    prefix: String!
+    number: String!
+    province: String!
+    type: String!
+    country: String
+    accuracy: Float!
+    permittedLabel: DevicePermittedLabel!
+    blacklistPriority: BlacklistPriority!
+    s3Key: String
+  ): VehicleLicensePlate!
+    @access(requiredProjectId: true, requiredStationId: true)
+}

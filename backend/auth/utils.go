@@ -7,7 +7,9 @@ import (
 	"checkpoint/jwt"
 	"checkpoint/utils"
 	"context"
+	"errors"
 	"log"
+	"time"
 
 	"github.com/goccy/go-json"
 
@@ -15,6 +17,79 @@ import (
 	"github.com/google/uuid"
 	"github.com/samber/lo"
 )
+
+func VerifyStationApiAuthentication(apiKey string) (*StationApiAuthenticationContext, error) {
+	dbClient := db.GetPrimaryClient()
+	ctx := context.Background()
+	redisClient := db.GetRedisClient()
+
+	cacheResult, err := redisClient.Get(ctx, apiKey).Result()
+
+	if err != nil {
+		log.Println("veritification-station-api-cache-get-error", err.Error())
+	}
+
+	if cacheResult != "" {
+		var cacheStation StationApiAuthenticationContext
+
+		err = json.Unmarshal([]byte(cacheResult), &cacheStation)
+		if err != nil {
+			log.Println("json-cache-error", err.Error())
+		}
+
+		return &cacheStation, nil
+	}
+
+	getStationStmt := table.StationLocationConfiguration.
+		SELECT(table.StationLocation.ID, table.StationLocation.ProjectId).
+		FROM(
+			table.StationLocation.
+				INNER_JOIN(
+					table.StationLocationConfiguration,
+					table.StationLocationConfiguration.StationLocationId.EQ(table.StationLocation.ID),
+				),
+		).
+		WHERE(
+			table.StationLocationConfiguration.ApiKey.EQ(pg.String(apiKey)).
+				AND(table.StationLocation.DeletedAt.IS_NULL()),
+		)
+
+	stationLocation := model.StationLocation{}
+	err = getStationStmt.Query(dbClient, &stationLocation)
+
+	if err != nil && db.HasNoRow(err) {
+		return nil, errors.New("api key is invalid")
+	}
+
+	if err != nil {
+		log.Println("station-api-access-error", err.Error())
+		return nil, utils.InternalServerError
+	}
+
+	stationId := stationLocation.ID.String()
+	projectId := stationLocation.ProjectId.String()
+
+	jsonData, err := json.Marshal(StationApiAuthenticationContext{
+		StationId: stationId,
+		ProjectId: projectId,
+		ApiKey:    apiKey,
+	})
+
+	if err != nil {
+		log.Println("json-error: ", err.Error())
+	}
+
+	err = redisClient.Set(ctx, apiKey, jsonData, 15*time.Minute).Err()
+
+	if err != nil {
+		log.Println("redis-error: ", err.Error())
+	}
+
+	return &StationApiAuthenticationContext{
+		StationId: stationId,
+		ProjectId: projectId,
+	}, nil
+}
 
 func VerifyAuthentication(headers AuthorizationContext) error {
 	ctx := context.Background()
@@ -60,7 +135,7 @@ func VerifyAuthentication(headers AuthorizationContext) error {
 	result, err := redisClient.Get(ctx, headers.Token).Result()
 
 	if err != nil {
-		log.Println("Cache-get-error", err.Error())
+		log.Println("verification-authentication-cache-get-error", err.Error())
 	}
 
 	if result != "" {
@@ -68,7 +143,7 @@ func VerifyAuthentication(headers AuthorizationContext) error {
 
 		err = json.Unmarshal([]byte(result), &cacheAccount)
 		if err != nil {
-			log.Println("Json-cache-error", err.Error())
+			log.Println("json-cache-error", err.Error())
 		}
 
 		if cacheAccount.AccountId != payload.AccountId {
@@ -125,6 +200,42 @@ func VerifyAuthentication(headers AuthorizationContext) error {
 	err = redisClient.Set(ctx, headers.Token, jsonData, 0).Err()
 	if err != nil {
 		log.Println("Cache-error", err.Error())
+	}
+
+	return nil
+}
+func VerifyProjectStation(ctx context.Context, headers AuthorizationContext) error {
+	if headers.ProjectId == "" || headers.StationId == "" {
+		return utils.GraphqlError{
+			Message: "project id and station id are required",
+		}
+	}
+	redisClient := db.GetRedisClient()
+	dbClient := db.GetPrimaryClient()
+	key := "projectId:" + headers.ProjectId + ",stationId:" + headers.StationId
+	result, err := redisClient.Get(ctx, key).Result()
+	if err == nil && result == "true" {
+		return nil
+	}
+
+	selectStationStmt := table.StationLocation.
+		SELECT(table.StationLocation.ID).
+		WHERE(table.StationLocation.ProjectId.EQ(
+			pg.UUID(uuid.MustParse(headers.ProjectId)),
+		).AND(table.StationLocation.DeletedAt.IS_NULL())).
+		LIMIT(1)
+
+	_, err = selectStationStmt.Exec(dbClient)
+
+	if err != nil && db.HasNoRow(err) {
+		return utils.GraphqlError{
+			Message: "station id is not permitted to access",
+		}
+	}
+
+	err = redisClient.Set(ctx, key, "true", 15*time.Minute).Err()
+	if err != nil {
+		log.Println("cache-project-station-error", err.Error())
 	}
 
 	return nil
@@ -283,16 +394,32 @@ func cacheAuthorization(ctx context.Context, key string, accountID uuid.UUID, pr
 		return
 	}
 
-	err = db.GetRedisClient().Set(ctx, key, jsonData, 0).Err()
+	err = db.GetRedisClient().Set(ctx, key, jsonData, 15*time.Minute).Err()
 	if err != nil {
 		log.Println("Cache-error", err.Error())
 	}
 }
 
+func GetStationAuthorizationContext(ctx context.Context) StationAuthorizationContext {
+
+	return StationAuthorizationContext{
+		StationId: ctx.Value("stationId").(string),
+		ApiKey:    ctx.Value("apiKey").(string),
+		DeviceId:  ctx.Value("deviceId").(string),
+		ProjectId: ctx.Value("projectId").(string),
+	}
+}
+
 func GetAuthorizationContext(ctx context.Context) AuthorizationContext {
-	return AuthorizationContext{
+	auth := AuthorizationContext{
 		Token:     ctx.Value("token").(string),
 		ProjectId: ctx.Value("projectId").(string),
 		AccountId: ctx.Value("accountId").(string),
 	}
+
+	if ctx.Value("stationId") != nil {
+		auth.StationId = ctx.Value("stationId").(string)
+	}
+
+	return auth
 }

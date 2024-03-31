@@ -5,8 +5,10 @@ import (
 	"checkpoint/.gen/checkpoint/public/table"
 	"checkpoint/db"
 	"checkpoint/gql/enum"
+	imeiconfiguration "checkpoint/modules/imei-configuration"
+	imsiconfiguration "checkpoint/modules/imsi-configuration"
 	tagUtils "checkpoint/modules/tag"
-	"checkpoint/utils"
+	utils "checkpoint/utils"
 	"checkpoint/utils/graphql_utils"
 	"context"
 	"log"
@@ -76,31 +78,8 @@ func (MobileDeviceConfigurationService) FindMany(data GetMobileDeviceConfigurati
 	}
 
 	result := lo.Map(mobileDeviceConfigurations, func(mobileDeviceConfiguration model.MobileDeviceConfiguration, index int) MobileDeviceConfiguration {
-		var updatedBy graphql.NullID
-		if mobileDeviceConfiguration.UpdatedBy != nil {
-			updatedBy = graphql_utils.ConvertStringToNullID(mobileDeviceConfiguration.UpdatedBy)
-		}
 
-		var updatedAt graphql.NullTime
-		if mobileDeviceConfiguration.UpdatedAt != nil {
-			updatedAt = graphql.NullTime{Value: &graphql.Time{Time: *mobileDeviceConfiguration.UpdatedAt}}
-		}
-
-		return MobileDeviceConfiguration{
-			ID:                           graphql.ID(mobileDeviceConfiguration.ID.String()),
-			ProjectId:                    graphql.ID(mobileDeviceConfiguration.ProjectId.String()),
-			ReferenceImsiConfigurationId: graphql.ID(mobileDeviceConfiguration.ReferenceImsiConfigurationId.String()),
-			ReferenceImeiConfigurationId: graphql.ID(mobileDeviceConfiguration.ReferenceImeiConfigurationId.String()),
-			Title:                        mobileDeviceConfiguration.Title,
-			Msisdn:                       mobileDeviceConfiguration.Msisdn,
-			PermittedLabel:               enum.GetDevicePermittedLabel(mobileDeviceConfiguration.PermittedLabel.String()),
-			BlacklistPriority:            enum.GetBlacklistPriority(mobileDeviceConfiguration.BlacklistPriority.String()),
-			CreatedBy:                    graphql.ID(mobileDeviceConfiguration.CreatedBy),
-			CreatedAt:                    graphql.Time{Time: mobileDeviceConfiguration.CreatedAt},
-			UpdatedBy:                    &updatedBy,
-			UpdatedAt:                    &updatedAt,
-			StationLocationId:            graphql.ID(mobileDeviceConfiguration.StationLocationId.String()),
-		}
+		return *transformToGraphql(mobileDeviceConfiguration)
 	})
 
 	return result, nil
@@ -127,31 +106,7 @@ func (MobileDeviceConfigurationService) FindById(data GetMobileDeviceConfigurati
 		return nil, utils.InternalServerError
 	}
 
-	var updatedBy graphql.NullID
-	if mobileDeviceConfiguration.UpdatedBy != nil {
-		updatedBy = graphql_utils.ConvertStringToNullID(mobileDeviceConfiguration.UpdatedBy)
-	}
-
-	var updatedAt graphql.NullTime
-	if mobileDeviceConfiguration.UpdatedAt != nil {
-		updatedAt = graphql.NullTime{Value: &graphql.Time{Time: *mobileDeviceConfiguration.UpdatedAt}}
-	}
-
-	return &MobileDeviceConfiguration{
-		ID:                           graphql.ID(mobileDeviceConfiguration.ID.String()),
-		ProjectId:                    graphql.ID(mobileDeviceConfiguration.ProjectId.String()),
-		ReferenceImsiConfigurationId: graphql.ID(mobileDeviceConfiguration.ReferenceImsiConfigurationId.String()),
-		ReferenceImeiConfigurationId: graphql.ID(mobileDeviceConfiguration.ReferenceImeiConfigurationId.String()),
-		Title:                        mobileDeviceConfiguration.Title,
-		Msisdn:                       mobileDeviceConfiguration.Msisdn,
-		PermittedLabel:               enum.GetDevicePermittedLabel(mobileDeviceConfiguration.PermittedLabel.String()),
-		BlacklistPriority:            enum.GetBlacklistPriority(mobileDeviceConfiguration.BlacklistPriority.String()),
-		CreatedBy:                    graphql.ID(mobileDeviceConfiguration.CreatedBy),
-		CreatedAt:                    graphql.Time{Time: mobileDeviceConfiguration.CreatedAt},
-		UpdatedBy:                    &updatedBy,
-		UpdatedAt:                    &updatedAt,
-		StationLocationId:            graphql.ID(mobileDeviceConfiguration.StationLocationId.String()),
-	}, nil
+	return transformToGraphql(mobileDeviceConfiguration), nil
 }
 
 func (MobileDeviceConfigurationService) Update(data UpdateMobileDeviceConfigurationData) (*MobileDeviceConfiguration, error) {
@@ -185,13 +140,43 @@ func (MobileDeviceConfigurationService) Update(data UpdateMobileDeviceConfigurat
 		columnsToUpdate = append(columnsToUpdate, table.MobileDeviceConfiguration.BlacklistPriority)
 	}
 
-	if data.ReferenceImeiConfigurationId != nil {
-		dataFieldsToUpdate.ReferenceImeiConfigurationId = *data.ReferenceImeiConfigurationId
+	if data.Imsi != nil {
+		if !utils.ValidateIMSI(*data.Imsi) {
+			return nil, utils.ErrInvalidIMSI
+		}
+
+		imsiConfiguration, err := imsiService.Upsert(imsiconfiguration.UpsertImsiConfigurationData{
+			UpdatedBy:         data.UpdatedBy,
+			ProjectId:         data.ProjectId,
+			StationLocationId: data.StationId,
+			Imsi:              *data.Imsi,
+		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		dataFieldsToUpdate.ReferenceImeiConfigurationId = uuid.MustParse(string(imsiConfiguration.ID))
 		columnsToUpdate = append(columnsToUpdate, table.MobileDeviceConfiguration.ReferenceImeiConfigurationId)
 	}
 
-	if data.ReferenceImsiConfigurationId != nil {
-		dataFieldsToUpdate.ReferenceImsiConfigurationId = *data.ReferenceImsiConfigurationId
+	if data.Imei != nil {
+		if !utils.ValidateIMEI(*data.Imei) {
+			return nil, utils.ErrInvalidIMEI
+		}
+
+		imsiConfiguration, err := imeiService.Upsert(imeiconfiguration.UpsertImeiConfigurationData{
+			UpdatedBy:         data.UpdatedBy,
+			ProjectId:         data.ProjectId,
+			StationLocationId: data.StationId,
+			Imei:              *data.Imei,
+		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		dataFieldsToUpdate.ReferenceImsiConfigurationId = uuid.MustParse(string(imsiConfiguration.ID))
 		columnsToUpdate = append(columnsToUpdate, table.MobileDeviceConfiguration.ReferenceImsiConfigurationId)
 	}
 
@@ -272,30 +257,7 @@ func (MobileDeviceConfigurationService) Update(data UpdateMobileDeviceConfigurat
 
 	tx.Commit()
 
-	var updatedBy graphql.NullID
-	if mobileDeviceConfiguration.UpdatedBy != nil {
-		updatedBy = graphql_utils.ConvertStringToNullID(mobileDeviceConfiguration.UpdatedBy)
-	}
-
-	var updatedAt graphql.NullTime
-	if mobileDeviceConfiguration.UpdatedAt != nil {
-		updatedAt = graphql.NullTime{Value: &graphql.Time{Time: *mobileDeviceConfiguration.UpdatedAt}}
-	}
-
-	return &MobileDeviceConfiguration{
-		ID:                           graphql.ID(mobileDeviceConfiguration.ID.String()),
-		ProjectId:                    graphql.ID(mobileDeviceConfiguration.ProjectId.String()),
-		ReferenceImsiConfigurationId: graphql.ID(mobileDeviceConfiguration.ReferenceImsiConfigurationId.String()),
-		ReferenceImeiConfigurationId: graphql.ID(mobileDeviceConfiguration.ReferenceImeiConfigurationId.String()),
-		Title:                        mobileDeviceConfiguration.Title,
-		Msisdn:                       mobileDeviceConfiguration.Msisdn,
-		PermittedLabel:               enum.GetDevicePermittedLabel(mobileDeviceConfiguration.PermittedLabel.String()),
-		BlacklistPriority:            enum.GetBlacklistPriority(mobileDeviceConfiguration.BlacklistPriority.String()),
-		CreatedBy:                    graphql.ID(mobileDeviceConfiguration.CreatedBy),
-		CreatedAt:                    graphql.Time{Time: mobileDeviceConfiguration.CreatedAt},
-		UpdatedBy:                    &updatedBy,
-		UpdatedAt:                    &updatedAt,
-	}, nil
+	return transformToGraphql(mobileDeviceConfiguration), nil
 }
 
 func (MobileDeviceConfigurationService) Delete(data DeleteMobileDeviceConfigurationData) (*utils.DeleteOperation, error) {
@@ -361,6 +323,34 @@ func (MobileDeviceConfigurationService) Create(data CreateMobileDeviceConfigurat
 		)
 	}
 
+	imsiConfiguration, err := imsiService.Upsert(imsiconfiguration.UpsertImsiConfigurationData{
+		UpdatedBy:         data.CreatedBy,
+		ProjectId:         data.ProjectId,
+		StationLocationId: data.StationId,
+		Imsi:              data.Imsi,
+		BlacklistPriority: data.BlacklistPriority,
+		PermittedLabel:    data.PermittedLabel,
+		Tags:              data.Tags,
+	})
+
+	if err != nil {
+		return nil, 500, err
+	}
+
+	imeiConfiguration, err := imeiService.Upsert(imeiconfiguration.UpsertImeiConfigurationData{
+		Imei:              data.Imei,
+		StationLocationId: data.StationId,
+		UpdatedBy:         data.CreatedBy,
+		ProjectId:         data.ProjectId,
+		BlacklistPriority: data.BlacklistPriority,
+		PermittedLabel:    data.PermittedLabel,
+		Tags:              data.Tags,
+	})
+
+	if err != nil {
+		return nil, 500, err
+	}
+
 	mobileDeviceConfiguration := model.MobileDeviceConfiguration{}
 	insertMobileDeviceConfigurationStmt := table.MobileDeviceConfiguration.
 		INSERT(columnsToInsert).
@@ -372,8 +362,8 @@ func (MobileDeviceConfigurationService) Create(data CreateMobileDeviceConfigurat
 			BlacklistPriority:            data.BlacklistPriority,
 			PermittedLabel:               data.PermittedLabel,
 			Title:                        data.Title,
-			ReferenceImeiConfigurationId: data.ReferenceImeiConfigurationId,
-			ReferenceImsiConfigurationId: data.ReferenceImsiConfigurationId,
+			ReferenceImeiConfigurationId: uuid.MustParse(string(imeiConfiguration.ID)),
+			ReferenceImsiConfigurationId: uuid.MustParse(string(imsiConfiguration.ID)),
 			StationLocationId:            data.StationLocationId,
 		}).
 		RETURNING(table.MobileDeviceConfiguration.AllColumns)
@@ -430,6 +420,10 @@ func (MobileDeviceConfigurationService) Create(data CreateMobileDeviceConfigurat
 
 	tx.Commit()
 
+	return transformToGraphql(mobileDeviceConfiguration), 200, nil
+}
+
+func transformToGraphql(mobileDeviceConfiguration model.MobileDeviceConfiguration) *MobileDeviceConfiguration {
 	var updatedBy graphql.NullID
 	if mobileDeviceConfiguration.UpdatedBy != nil {
 
@@ -454,5 +448,5 @@ func (MobileDeviceConfigurationService) Create(data CreateMobileDeviceConfigurat
 		CreatedAt:                    graphql.Time{Time: mobileDeviceConfiguration.CreatedAt},
 		UpdatedBy:                    &updatedBy,
 		UpdatedAt:                    &updatedAt,
-	}, 200, nil
+	}
 }

@@ -1,6 +1,9 @@
 package utils
 
-import "log"
+import (
+	"log"
+	"regexp"
+)
 
 func ExtractMCCMNC(imsi string) (mcc string, mnc string, err error) {
 	// Check if the IMSI has a valid length
@@ -25,4 +28,22 @@ func ExtractMCCMNC(imsi string) (mcc string, mnc string, err error) {
 	mnc = imsi[3 : 3+mncLength]
 
 	return
+}
+
+func ValidateIMSI(imsi string) bool {
+
+	pattern := `^\d{3}\d{2,3}$`
+
+	re := regexp.MustCompile(pattern)
+
+	return re.MatchString(imsi)
+}
+
+func ValidateIMEI(imei string) bool {
+
+	pattern := `^\d{15}$`
+
+	re := regexp.MustCompile(pattern)
+
+	return re.MatchString(imei)
 }

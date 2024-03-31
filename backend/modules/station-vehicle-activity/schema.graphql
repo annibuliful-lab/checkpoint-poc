@@ -1,0 +1,69 @@
+# type VehicleMobile {
+#   stationVehicleActivityId: ID!
+#   remarkStatus: RemarkState!
+#   imsi: String!
+#   mnc: String!
+#   mcc: String!
+#   imei: String
+#   permittedLabel: DevicePermittedLabel!
+#   signalStrength: Float!
+#   registerDateTime: Time!
+# }
+
+# type VahicleImage {
+#   stationVehicleActivityId: ID!
+#   type: ImageType!
+#   s3Key: String!
+#   imageUrl: String!
+# }
+
+# type VehicleLicensePlate {
+#   stationVehicleActivityId: ID!
+#   prefix: String!
+#   number: String!
+#   province: String!
+#   type: String!
+#   country: String
+#   accuracy: Float!
+#   permittedLabel: DevicePermittedLabel!
+#   blacklistPriority: BlacklistPriority!
+#   s3Key: String!
+#   imageUrl: String!
+# }
+
+type StationVehicleActivity {
+  id: ID!
+  projectId: ID!
+  stationLocationId: ID!
+  brand: String!
+  color: String!
+  model: String!
+  status: RemarkState!
+}
+
+type StationVehicleActivityConnection {
+  pageInfo: PageInfo!
+  edges: [StationVehicleActivity!]!
+}
+
+type Mutation {
+  createStationVehicleActivity(
+    brand: String!
+    color: String!
+    model: String!
+    status: RemarkState
+  ): StationVehicleActivity! @stationApiAccess
+
+  updateStationVehicleActivity(
+    id: ID!
+    brand: String
+    color: String
+    model: String
+    status: RemarkState
+  ): StationVehicleActivity! @access(requiredProjectId: true)
+}
+
+type Query {
+  getStationVehicleActivityById(id: ID!): StationVehicleActivity!
+    @access(requiredProjectId: true)
+}

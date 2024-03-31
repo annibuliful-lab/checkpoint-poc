@@ -19,7 +19,35 @@ var imeiconfigurationService = ImeiConfigurationService{}
 var tagService = tag.TagService{}
 var tagDataloader = tagService.ImeiConfigurationDataloader()
 
+func (ImeiConfigurationResolver) UpsertImeiConfiguration(ctx context.Context, input UpsertImeiConfigurationInput) (*ImeiConfiguration, error) {
+	if !utils.ValidateIMEI(input.Imei) {
+		return nil, utils.ErrInvalidIMEI
+	}
+
+	authorization := auth.GetAuthorizationContext(ctx)
+
+	imeiConfiguration, err := imeiconfigurationService.Upsert(UpsertImeiConfigurationData{
+		UpdatedBy:         authorization.AccountId,
+		ProjectId:         uuid.MustParse(authorization.ProjectId),
+		StationLocationId: uuid.MustParse(authorization.StationId),
+		Imei:              input.Imei,
+		PermittedLabel:    input.PermittedLabel,
+		BlacklistPriority: input.BlacklistPriority,
+		Tags:              input.Tags,
+	})
+
+	if err != nil {
+		return nil, utils.GraphqlError{
+			Code:    err.Error(),
+			Message: err.Error(),
+		}
+	}
+
+	return imeiConfiguration, nil
+}
+
 func (ImeiConfigurationResolver) GetImeiConfigurations(ctx context.Context, args GetImeiConfigurationsInput) ([]ImeiConfiguration, error) {
+
 	authorization := auth.GetAuthorizationContext(ctx)
 
 	var permittedLabel *string
@@ -95,6 +123,10 @@ func (ImeiConfigurationResolver) DeleteImeiConfiguration(ctx context.Context, ar
 }
 
 func (ImeiConfigurationResolver) UpdateImeiConfiguration(ctx context.Context, args UpdateImeiConfigurationInput) (*ImeiConfiguration, error) {
+	if !utils.ValidateIMEI(args.Imei) {
+		return nil, utils.ErrInvalidIMEI
+	}
+
 	authorization := auth.GetAuthorizationContext(ctx)
 	ImeiConfiguration, _, err := imeiconfigurationService.Update(UpdateImeiConfigurationData{
 		ID:                uuid.MustParse(string(args.ID)),
@@ -117,6 +149,10 @@ func (ImeiConfigurationResolver) UpdateImeiConfiguration(ctx context.Context, ar
 }
 
 func (ImeiConfigurationResolver) CreateImeiConfiguration(ctx context.Context, args CreateImeiConfigurationInput) (*ImeiConfiguration, error) {
+	if !utils.ValidateIMEI(args.Imei) {
+		return nil, utils.ErrInvalidIMEI
+	}
+
 	authorization := auth.GetAuthorizationContext(ctx)
 	ImeiConfiguration, _, err := imeiconfigurationService.Create(CreateImeiConfigurationData{
 		CreatedBy:         authorization.AccountId,

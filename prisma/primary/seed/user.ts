@@ -1,6 +1,7 @@
 import { v4 } from 'uuid';
 import { client } from './client';
 import argon from 'argon2';
+import { nanoid } from 'nanoid';
 
 export async function seedUsers() {
   const userA = await client.account.upsert({
@@ -54,6 +55,18 @@ export async function seedUsers() {
                   createdBy: 'SEED',
                   latitude: 0,
                   longitude: 0,
+                  configuration: {
+                    create: {
+                      apiKey: 'V1StGXR8_Z5jdHi6B-myT',
+                    },
+                  },
+                  StationDevice: {
+                    create: {
+                      id: '81bbfd00-f9f2-4145-b467-9423390f139d',
+                      title: nanoid(),
+                      createdBy: nanoid(),
+                    },
+                  },
                 },
               },
             },
