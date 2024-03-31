@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/kataras/iris/v12"
 )
 
 type AuthenticationHeader struct {
@@ -28,17 +27,6 @@ type AuthorizationWithPermissionsData struct {
 type AuthorizationPermissionData struct {
 	PermissionSubject string
 	PermissionAction  model.PermissionAction
-}
-
-func GetAuthenticationHeaders(ctx iris.Context) AuthenticationHeader {
-	authorization := ctx.GetHeader("authorization")
-	projectId := ctx.GetHeader("x-project-id")
-
-	return AuthenticationHeader{
-		Authorization: authorization,
-		ProjectId:     projectId,
-		Token:         GetAuthToken(authorization),
-	}
 }
 
 func GetAuthToken(authorization string) string {

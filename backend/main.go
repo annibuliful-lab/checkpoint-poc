@@ -4,7 +4,8 @@ import (
 	"checkpoint/auth"
 	"checkpoint/db"
 	"checkpoint/gql"
-	"checkpoint/gql/directive"
+	access "checkpoint/gql/directive/access"
+	stationApi "checkpoint/gql/directive/station-api"
 	uploadmiddleware "checkpoint/gql/upload-middleware"
 	"context"
 	"flag"
@@ -46,7 +47,10 @@ func main() {
 		graphql.UseFieldResolvers(),
 		graphql.MaxParallelism(20),
 		graphql.UseStringDescriptions(),
-		graphql.Directives(&directive.AccessDirective{}),
+		graphql.Directives(
+			&access.AccessDirective{},
+			&stationApi.StationApiDirective{},
+		),
 	}
 
 	// init graphQL schema
@@ -78,6 +82,7 @@ func main() {
 	}
 
 	dbClient := db.GetPrimaryClient()
+	redisClient := db.GetRedisClient()
 
 	idleConnectionsClosed := make(chan struct{})
 	go func() {
@@ -88,6 +93,7 @@ func main() {
 			log.Printf("HTTP Server Shutdown Error: %v", err)
 		}
 		dbClient.Close()
+		redisClient.Close()
 		close(idleConnectionsClosed)
 	}()
 

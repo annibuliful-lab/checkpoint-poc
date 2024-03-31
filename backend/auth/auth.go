@@ -87,6 +87,14 @@ func GraphqlContext(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		headers := GetAuthenticationHeaders(r.Header)
 
+		if headers.ApiKey != "" {
+			ctx := context.WithValue(r.Context(), "apiKey", headers.ApiKey)
+			ctx = context.WithValue(ctx, "deviceId", headers.DeviceId)
+
+			next.ServeHTTP(w, r.WithContext(ctx))
+			return
+		}
+
 		if headers.Authorization == "" {
 			next.ServeHTTP(w, r)
 			return
@@ -109,6 +117,7 @@ func GraphqlContext(next http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), "token", headers.Token)
 		ctx = context.WithValue(ctx, "projectId", headers.ProjectId)
 		ctx = context.WithValue(ctx, "accountId", payload.AccountId.String())
+		ctx = context.WithValue(ctx, "stationId", headers.StationId)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
@@ -134,6 +143,7 @@ func WebsocketGraphqlContext(ctx context.Context, r *http.Request) (context.Cont
 	ctx = context.WithValue(ctx, "token", headers.Token)
 	ctx = context.WithValue(ctx, "projectId", headers.ProjectId)
 	ctx = context.WithValue(ctx, "accountId", payload.AccountId.String())
+	ctx = context.WithValue(ctx, "stationId", headers.StationId)
 
 	return ctx, nil
 
@@ -142,22 +152,30 @@ func WebsocketGraphqlContext(ctx context.Context, r *http.Request) (context.Cont
 func GetAuthenticationParams(params url.Values) AuthenticationHeader {
 	authorization := params.Get("authorization")
 	projectId := params.Get("x-project-id")
+	stationId := params.Get("x-station-id")
 
 	return AuthenticationHeader{
 		Authorization: authorization,
 		ProjectId:     projectId,
 		Token:         GetAuthToken(authorization),
+		StationId:     stationId,
 	}
 }
 
 func GetAuthenticationHeaders(header http.Header) AuthenticationHeader {
 	authorization := header.Get("authorization")
 	projectId := header.Get("x-project-id")
+	apiKey := header.Get("x-api-key")
+	deviceId := header.Get("x-device-id")
+	stationId := header.Get("x-station-id")
 
 	return AuthenticationHeader{
 		Authorization: authorization,
 		ProjectId:     projectId,
 		Token:         GetAuthToken(authorization),
+		ApiKey:        apiKey,
+		DeviceId:      deviceId,
+		StationId:     stationId,
 	}
 }
 
@@ -169,4 +187,11 @@ func writeJSONResponse(w http.ResponseWriter, data interface{}, statusCode int) 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	json.NewEncoder(w).Encode(data)
+}
+
+func GetStationAuthContext(ctx context.Context) StationAuthContext {
+	return StationAuthContext{
+		ApiKey:   ctx.Value("apiKey").(string),
+		DeviceId: ctx.Value("deviceId").(string),
+	}
 }

@@ -9,6 +9,7 @@ import (
 	"checkpoint/utils"
 	"checkpoint/utils/graphql_utils"
 	"context"
+	"database/sql"
 	"errors"
 	"log"
 	"time"
@@ -22,6 +23,123 @@ import (
 )
 
 type ImeiConfigurationService struct{}
+
+func (ImeiConfigurationService) Upsert(data UpsertImeiConfigurationData) (*ImeiConfiguration, error) {
+	dbClient := db.GetPrimaryClient()
+	ctx := context.Background()
+	tx, err := dbClient.BeginTx(ctx, &sql.TxOptions{
+		Isolation: sql.LevelReadUncommitted,
+	})
+
+	if err != nil {
+		log.Println("init-upsert-imei-transaction-error", err.Error())
+		return nil, utils.InternalServerError
+	}
+
+	insertImeiStmt := table.ImeiConfiguration.
+		INSERT(table.ImeiConfiguration.Imei, table.ImeiConfiguration.ID, table.ImeiConfiguration.ProjectId, table.ImeiConfiguration.StationLocationId, table.ImeiConfiguration.CreatedBy, table.ImeiConfiguration.PermittedLabel, table.ImeiConfiguration.BlacklistPriority).
+		MODEL(model.ImeiConfiguration{
+			ID:                uuid.New(),
+			ProjectId:         data.ProjectId,
+			Imei:              data.Imei,
+			CreatedBy:         data.UpdatedBy,
+			PermittedLabel:    model.DevicePermittedLabel(data.PermittedLabel),
+			BlacklistPriority: model.BlacklistPriority(data.BlacklistPriority),
+			StationLocationId: data.StationLocationId,
+		}).
+		ON_CONFLICT(table.ImeiConfiguration.Imei, table.ImeiConfiguration.ProjectId).
+		DO_UPDATE(pg.SET(table.ImeiConfiguration.Imei.SET(pg.String(data.Imei)))).
+		RETURNING(table.ImeiConfiguration.AllColumns)
+
+	imeiConfiguration := model.ImeiConfiguration{}
+
+	err = insertImeiStmt.QueryContext(ctx, tx, &imeiConfiguration)
+
+	if err != nil {
+		tx.Rollback()
+		log.Println("upsert-imei-configuration", err.Error())
+		return nil, utils.InternalServerError
+	}
+
+	if data.Tags != nil && len(*data.Tags) != 0 {
+		deleteAllImeiTagsStmt := table.ImeiConfigurationTag.
+			DELETE().
+			WHERE(table.ImeiConfigurationTag.ImeiConfigurationId.EQ(pg.UUID(imeiConfiguration.ID)))
+		_, err := deleteAllImeiTagsStmt.ExecContext(ctx, tx)
+		if err != nil {
+			tx.Rollback()
+			log.Println("delete-imei-configuration-tag-error", err.Error())
+			return nil, utils.InternalServerError
+		}
+
+		for _, tag := range *data.Tags {
+			upsertTagStmt := table.Tag.
+				INSERT(table.Tag.ID, table.Tag.ProjectId, table.Tag.Title, table.Tag.CreatedBy, table.Tag.CreatedAt).
+				MODEL(model.Tag{
+					ID:        uuid.New(),
+					ProjectId: data.ProjectId,
+					Title:     tag,
+					CreatedBy: data.UpdatedBy,
+					CreatedAt: time.Now(),
+				}).
+				ON_CONFLICT(table.Tag.Title, table.Tag.ProjectId).
+				DO_UPDATE(pg.SET(table.Tag.ID.SET(table.Tag.EXCLUDED.ID))).
+				RETURNING(table.Tag.AllColumns)
+			tagResult := model.Tag{}
+
+			err := upsertTagStmt.QueryContext(ctx, tx, &tagResult)
+
+			if err != nil {
+				tx.Rollback()
+				log.Println("upsert-imei-configuration-tag-error", err.Error())
+				return nil, utils.InternalServerError
+			}
+
+			insertImsiTagStmt := table.ImeiConfigurationTag.
+				INSERT(table.ImeiConfigurationTag.ID, table.ImeiConfigurationTag.ImeiConfigurationId, table.ImeiConfigurationTag.TagId, table.ImeiConfigurationTag.CreatedBy).
+				MODEL(model.ImeiConfigurationTag{
+					ID:                  uuid.New(),
+					ImeiConfigurationId: imeiConfiguration.ID,
+					TagId:               tagResult.ID,
+					CreatedBy:           data.UpdatedBy,
+				})
+
+			_, err = insertImsiTagStmt.ExecContext(ctx, tx)
+
+			if err != nil {
+				tx.Rollback()
+				log.Println("insert-imei-configuration-tag-error", err.Error())
+				return nil, utils.InternalServerError
+			}
+
+		}
+	}
+
+	tx.Commit()
+
+	var updatedBy graphql.NullID
+	if imeiConfiguration.UpdatedBy != nil {
+		updatedBy = graphql_utils.ConvertStringToNullID(imeiConfiguration.UpdatedBy)
+	}
+
+	var updatedAt graphql.NullTime
+	if imeiConfiguration.UpdatedAt != nil {
+		updatedAt = graphql.NullTime{Value: &graphql.Time{Time: *imeiConfiguration.UpdatedAt}}
+	}
+
+	return &ImeiConfiguration{
+		ID:                graphql.ID(imeiConfiguration.ID.String()),
+		ProjectId:         graphql.ID(imeiConfiguration.ProjectId.String()),
+		StationLocationId: graphql.ID(imeiConfiguration.StationLocationId.String()),
+		Imei:              imeiConfiguration.Imei,
+		PermittedLabel:    enum.GetDevicePermittedLabel(imeiConfiguration.PermittedLabel.String()),
+		BlacklistPriority: enum.GetBlacklistPriority(imeiConfiguration.BlacklistPriority.String()),
+		CreatedBy:         imeiConfiguration.CreatedBy,
+		CreatedAt:         graphql.Time{Time: imeiConfiguration.CreatedAt},
+		UpdatedBy:         &updatedBy,
+		UpdatedAt:         &updatedAt,
+	}, nil
+}
 
 func (ImeiConfigurationService) Delete(data DeleteImeiConfigurationData) (int, error) {
 	dbClient := db.GetPrimaryClient()

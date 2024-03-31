@@ -15,6 +15,14 @@ type ImsiConfiguration {
 }
 
 type Mutation {
+  upsertImsiConfiguration(
+    imsi: String!
+    permittedLabel: DevicePermittedLabel!
+    blacklistPriority: BlacklistPriority!
+    tags: [String!]
+  ): ImsiConfiguration!
+    @access(requiredProjectId: true, requiredStationId: true)
+
   createImsiConfiguration(
     stationLocationId: ID!
     imsi: String!

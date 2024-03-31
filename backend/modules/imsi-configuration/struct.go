@@ -1,6 +1,7 @@
 package imsiconfiguration
 
 import (
+	"checkpoint/.gen/checkpoint/public/model"
 	"checkpoint/gql/enum"
 	"checkpoint/utils"
 
@@ -8,7 +9,7 @@ import (
 	"github.com/graph-gophers/graphql-go"
 )
 
-type Imsiconfiguration struct {
+type ImsiConfiguration struct {
 	ID                graphql.ID                `json:"id"`
 	ProjectId         graphql.ID                `json:"projectId"`
 	Imsi              string                    `json:"imsi"`
@@ -23,7 +24,23 @@ type Imsiconfiguration struct {
 	Mnc               string                    `json:"mnc"`
 }
 
-type CreateImeiConfigurationInput struct {
+type UpsertImsiConfigurationInput struct {
+	Imsi              string                     `json:"imsi"`
+	PermittedLabel    model.DevicePermittedLabel `json:"permittedLabel"`
+	BlacklistPriority model.BlacklistPriority    `json:"priority"`
+	Tags              *[]string                  `jcon:"tags"`
+}
+type UpsertImsiConfigurationData struct {
+	UpdatedBy         string
+	ProjectId         uuid.UUID
+	StationLocationId uuid.UUID                  `json:"stationLocationId"`
+	Imsi              string                     `json:"imsi"`
+	PermittedLabel    model.DevicePermittedLabel `json:"permittedLabel"`
+	BlacklistPriority model.BlacklistPriority    `json:"priority"`
+	Tags              *[]string                  `jcon:"tags"`
+}
+
+type CreateImsiConfigurationInput struct {
 	StationLocationId graphql.ID                `json:"stationLocationId"`
 	Imsi              string                    `json:"imsi"`
 	PermittedLabel    enum.DevicePermittedLabel `json:"permittedLabel"`

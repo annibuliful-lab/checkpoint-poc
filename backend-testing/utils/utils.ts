@@ -20,9 +20,12 @@ export const prismaClient = new PrismaClient();
 
 type GetAuthenticatedClientParam = {
   includeProjectId?: boolean;
+  includeStationId?: boolean;
 };
+
 export async function getAuthenticatedClient({
   includeProjectId = false,
+  includeStationId = false,
 }: GetAuthenticatedClientParam) {
   const result = await graphqlClient.mutation({
     signin: {
@@ -41,10 +44,22 @@ export async function getAuthenticatedClient({
       ...(includeProjectId && {
         'x-project-id': '246bb085-8ccc-4def-ac78-dc2ad5c7760b',
       }),
+      ...(includeStationId && {
+        'x-station-id': 'e1c6783c-e09c-43dd-b1e5-8041dcd2816e',
+      }),
     },
   });
 }
 
+export function getStationAuthenticated() {
+  return createClient({
+    url: process.env.BACKEND_ENDPOINT,
+    headers: {
+      'x-api-key': 'V1StGXR8_Z5jdHi6B-myT',
+      'x-device-id': '81bbfd00-f9f2-4145-b467-9423390f139d',
+    },
+  });
+}
 export async function getAuthenticatedClientWithRefreshToken() {
   const result = await httpClient.post('/auth/signin', {
     username: 'userA1234',
@@ -121,7 +136,7 @@ export async function createImeiConfiguration(
   stationLocationId: string
 ) {
   const tag = nanoid();
-  const imei = nanoid();
+  const imei = generateIMEI();
   const client = await getAuthenticatedClient({
     includeProjectId: true,
   });
@@ -147,9 +162,10 @@ export async function createImeiConfiguration(
 export async function createImsiConfiguration() {
   const client = await getAuthenticatedClient({
     includeProjectId: true,
+    includeStationId: true,
   });
 
-  const imsi = nanoid();
+  const imsi = generateIMSI();
   const created = await client.mutation({
     createImsiConfiguration: {
       __scalar: true,
@@ -188,8 +204,8 @@ export async function createMobileDeviceConfiguration() {
       },
       __args: {
         stationLocationId: STATION_LOCATION_ID,
-        referenceImeiConfigurationId: imei.id,
-        referenceImsiConfigurationId: imsi.id,
+        imei: imei.imei,
+        imsi: imsi.imsi,
         title,
         permittedLabel: 'NONE',
         blacklistPriority: 'NORMAL',
@@ -243,4 +259,71 @@ export async function createStationLocationHealthCheckActivity(
   });
 
   return createdActivityResponse.createStationLocationHealthCheckActivity;
+}
+
+export function generateIMSI(): string {
+  // Generate MCC (Mobile Country Code), 3 digits
+  const mcc = String(Math.floor(Math.random() * 1000)).padStart(
+    3,
+    '0'
+  );
+
+  // Generate MNC (Mobile Network Code), 2 digits
+  const mnc = String(Math.floor(Math.random() * 100)).padStart(
+    2,
+    '0'
+  );
+
+  // Generate MSIN (Mobile Subscription Identification Number), 10 digits
+  const msin = String(
+    Math.floor(Math.random() * 10000000000)
+  ).padStart(10, '0');
+
+  // Concatenate MCC, MNC, and MSIN to form IMSI
+  const imsi = mcc + mnc + msin;
+
+  return imsi;
+}
+
+// Generate a random IMEI (International Mobile Equipment Identity) number
+export function generateIMEI(): string {
+  // Function to seed the random number generator
+  function seedRandom() {
+    return Math.floor(Math.random() * 1000000);
+  }
+
+  // Seed the random number generator
+  let seed = seedRandom();
+  Math.random = function () {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  };
+
+  // Generate the first 14 digits randomly
+  const imeiDigits: number[] = [];
+  for (let i = 0; i < 14; i++) {
+    imeiDigits.push(Math.floor(Math.random() * 10));
+  }
+
+  // Calculate the checksum
+  let sum = 0;
+  for (let i = 0; i < imeiDigits.length; i++) {
+    let digit = imeiDigits[i];
+    if (i % 2 === 0) {
+      digit *= 2;
+      if (digit >= 10) {
+        digit = Math.floor(digit / 10) + (digit % 10);
+      }
+    }
+    sum += digit;
+  }
+  const checksum = (10 - (sum % 10)) % 10;
+
+  // Append the checksum to the IMEI digits
+  imeiDigits.push(checksum);
+
+  // Convert the digits to a string
+  const imei = imeiDigits.join('');
+
+  return imei;
 }

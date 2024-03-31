@@ -17,6 +17,8 @@ var (
 	DataConflict           = errors.New("data conflict")
 	IdNotfound             = errors.New("id not found")
 	Notfound               = errors.New("data not found")
+	ErrInvalidIMSI         = errors.New("invalid Imsi")
+	ErrInvalidIMEI         = errors.New("invalid Imei")
 )
 
 type GraphqlError struct {

@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid';
 import { Client } from './graphql/generated';
 import {
   createImeiConfiguration,
+  generateIMEI,
   getAuthenticatedClient,
 } from './utils/utils';
 import { createStationLocation } from './utils/project';
@@ -12,13 +13,37 @@ describe('Imei configuration', () => {
   let client: Client;
 
   beforeAll(async () => {
-    client = await getAuthenticatedClient({ includeProjectId: true });
+    client = await getAuthenticatedClient({
+      includeProjectId: true,
+      includeStationId: true,
+    });
+  });
+
+  it('upsert imei', async () => {
+    const { imei, blacklistPriority, permittedLabel, id } =
+      await createImeiConfiguration(STATION_LOCATION_ID);
+
+    const upsertResponse = await client.mutation({
+      upsertImeiConfiguration: {
+        __args: {
+          imei,
+          blacklistPriority,
+          permittedLabel,
+        },
+        __scalar: true,
+      },
+    });
+
+    const upsertImei = upsertResponse.upsertImeiConfiguration;
+
+    expect(upsertImei.imei).toEqual(imei);
+    expect(upsertImei.id).toEqual(id);
   });
 
   it('throws error when create new without provide project id', async () => {
     const client = await getAuthenticatedClient({});
     const tag = nanoid();
-    const imei = nanoid();
+    const imei = generateIMEI();
     try {
       await client.mutation({
         createImeiConfiguration: {
@@ -45,7 +70,7 @@ describe('Imei configuration', () => {
     const createdImeiConfiguration = await createImeiConfiguration(
       STATION_LOCATION_ID
     );
-    const tags = createdImeiConfiguration.tags?.map((t) => t.title);
+
     const imeiConfigurations = await client.query({
       getImeiConfigurations: {
         __scalar: true,
@@ -109,7 +134,7 @@ describe('Imei configuration', () => {
     const createdImeiConfiguration = await createImeiConfiguration(
       STATION_LOCATION_ID
     );
-    const newImei = nanoid();
+    const newImei = generateIMEI();
     const newTag = nanoid();
     const updated = await client.mutation({
       updateImeiConfiguration: {
@@ -138,7 +163,7 @@ describe('Imei configuration', () => {
   it('creates', async () => {
     const stationLocation = await createStationLocation();
     const tag = nanoid();
-    const imei = nanoid();
+    const imei = generateIMEI();
     const imeiResponse = await client.mutation({
       createImeiConfiguration: {
         __scalar: true,

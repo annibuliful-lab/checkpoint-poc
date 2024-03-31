@@ -12,6 +12,14 @@ datasource db {
   url      = env("PRIMARY_DATABASE_URL")
 }
 
+enum PropertyType {
+  VEHICLE_COLOR
+  LP_TYPE
+  VEHICLE_BRAND
+  VEHICLE_TYPE
+  VEHICLE_MODEL
+}
+
 enum ImageType {
   FRONT
   REAR
@@ -115,7 +123,6 @@ model Project {
   title                      String
   projectRoles               ProjectRole[]
   projectRolePermissions     ProjectRolePermission[]
-  Vehicle                    Vehicle[]
   projectAccounts            ProjectAccount[]
   imsiConfiguration          ImsiConfiguration[]
   imeiConfiguration          ImeiConfiguration[]
@@ -130,6 +137,8 @@ model Project {
   ConfigLineNotify           ConfigLineNotify[]
   Tag                        Tag[]
   VehicleTargetConfiguration VehicleTargetConfiguration[]
+  StationVehicleActivity     StationVehicleActivity[]
+  VehicleProperty            VehicleProperty[]
 
   @@unique([title])
   @@map("project")
@@ -268,7 +277,7 @@ model VehicleTargetConfigurationTag {
 
 model VehicleLicensePlateTag {
   id                           String              @id @db.Uuid
-  vehicleLicensePlate          VehicleLicensePlate @relation(fields: [vehicleLicensePlateVehicleId], references: [vehicleId])
+  vehicleLicensePlate          VehicleLicensePlate @relation(fields: [vehicleLicensePlateVehicleId], references: [stationVehicleActivityId])
   tag                          Tag                 @relation(fields: [tagId], references: [id])
   vehicleLicensePlateVehicleId String              @db.Uuid
   tagId                        String              @db.Uuid
@@ -279,12 +288,12 @@ model VehicleLicensePlateTag {
 }
 
 model VehicleTag {
-  id        String   @id @db.Uuid
-  createdAt DateTime @default(now()) @db.Timestamptz(3)
-  tag       Tag      @relation(fields: [tagId], references: [id])
-  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id])
-  tagId     String   @db.Uuid
-  vehicleId String   @db.Uuid
+  id        String                 @id @db.Uuid
+  createdAt DateTime               @default(now()) @db.Timestamptz(3)
+  tag       Tag                    @relation(fields: [tagId], references: [id])
+  vehicle   StationVehicleActivity @relation(fields: [vehicleId], references: [id])
+  tagId     String                 @db.Uuid
+  vehicleId String                 @db.Uuid
   createdBy String
 
   @@map("vehicle_tag")
@@ -310,7 +319,7 @@ model ImsiConfiguration {
   MobileDeviceConfiguration MobileDeviceConfiguration[]
   ImsiConfigurationTag      ImsiConfigurationTag[]
 
-  @@index([imsi, projectId])
+  @@unique([imsi, projectId])
   @@map("imsi_configuration")
 }
 
@@ -332,7 +341,7 @@ model ImeiConfiguration {
   MobileDeviceConfiguration MobileDeviceConfiguration[]
   ImeiConfigurationTag      ImeiConfigurationTag[]
 
-  @@index([imei, projectId])
+  @@unique([imei, projectId])
   @@map("imei_configuration")
 }
 
@@ -377,7 +386,6 @@ model StationLocation {
   deletedAt                  DateTime?                            @db.Timestamptz(3)
   createdAt                  DateTime                             @default(now()) @db.Timestamptz(3)
   updatedAt                  DateTime?                            @db.Timestamptz(3)
-  vehicles                   Vehicle[]
   remark                     String?
   stationStatus              StationStatus?
   ImsiConfiguration          ImsiConfiguration[]
@@ -389,9 +397,20 @@ model StationLocation {
   StationOfficer             StationOfficer[]
   StationLocationTag         StationLocationTag[]
   MobileDeviceConfiguration  MobileDeviceConfiguration[]
+  StationVehicleActivity     StationVehicleActivity[]
+  configuration              StationLocationConfiguration[]
 
   @@index([title(ops: raw("gin_trgm_ops"))], type: Gin)
   @@map("station_location")
+}
+
+model StationLocationConfiguration {
+  stationLocation   StationLocation @relation(fields: [stationLocationId], references: [id])
+  stationLocationId String          @id @db.Uuid
+  apiKey            String
+
+  @@index([apiKey])
+  @@map("station_location_configuration")
 }
 
 model StationOfficer {
@@ -487,16 +506,31 @@ model VehicleTargetConfiguration {
   @@map("vehicle_target_configuration")
 }
 
-model Vehicle {
+model VehicleProperty {
+  projectId String                   @db.Uuid
+  project   Project                  @relation(fields: [projectId], references: [id])
+  property  String
+  type      PropertyType
+  brands    StationVehicleActivity[] @relation(name: "brand")
+  colors    StationVehicleActivity[] @relation(name: "color")
+  models    StationVehicleActivity[] @relation(name: "model")
+
+  @@id([property, type, projectId])
+  @@map("vehicle_property")
+}
+
+model StationVehicleActivity {
   id                  String                @id @db.Uuid
   projectId           String                @db.Uuid
   project             Project               @relation(fields: [projectId], references: [id])
   stationLocationId   String                @db.Uuid
   stationLocation     StationLocation       @relation(fields: [stationLocationId], references: [id])
-  brand               String
-  color               String
-  model               String
-  status              RemarkState?
+  brandProperty       VehicleProperty       @relation(name: "brand", fields: [brand, brandType, projectId], references: [property, type, projectId])
+  colorProperty       VehicleProperty       @relation(name: "color", fields: [color, colorType, projectId], references: [property, type, projectId])
+  modelProperty       VehicleProperty       @relation(name: "model", fields: [model, modelType, projectId], references: [property, type, projectId])
+  status              RemarkState           @default(IN_QUEUE)
+  issue               String?
+  reportIssueBy       String?
   vehicleLicensePlate VehicleLicensePlate?
   images              VehicleImage[]
   mobileDevices       VehicleMobileDevice[]
@@ -505,32 +539,35 @@ model Vehicle {
   createdAt           DateTime              @default(now()) @db.Timestamptz(3)
   updatedAt           DateTime?             @db.Timestamptz(3)
   VehicleTag          VehicleTag[]
+  color               String
+  colorType           PropertyType          @default(VEHICLE_COLOR)
+  brand               String
+  brandType           PropertyType          @default(VEHICLE_BRAND)
+  model               String
+  modelType           PropertyType          @default(VEHICLE_MODEL)
 
-  @@index([brand])
-  @@index([color])
-  @@index([model])
-  @@map("vehicle")
+  @@map("station_vehicle_activity")
 }
 
 model VehicleLicensePlate {
-  vehicleId              String                   @id @db.Uuid
-  vehicle                Vehicle                  @relation(fields: [vehicleId], references: [id])
-  prefix                 String                   @db.VarChar(4)
-  number                 String                   @db.VarChar(8)
-  province               String                   @db.VarChar(32)
-  type                   String // white, red, yellow
-  country                String?
-  accuracy               Decimal
-  permittedLabel         DevicePermittedLabel?    @default(NONE)
-  blacklistPriority      BlacklistPriority?       @default(NONE)
-  s3Key                  String?
-  createdBy              String
-  updatedBy              String?
-  deletedBy              String?
-  deletedAt              DateTime?                @db.Timestamptz(3)
-  createdAt              DateTime                 @default(now()) @db.Timestamptz(3)
-  updatedAt              DateTime?                @db.Timestamptz(3)
-  VehicleLicensePlateTag VehicleLicensePlateTag[]
+  stationVehicleActivityId String                   @id @db.Uuid
+  stationVehicleActivity   StationVehicleActivity   @relation(fields: [stationVehicleActivityId], references: [id])
+  prefix                   String                   @db.VarChar(4)
+  number                   String                   @db.VarChar(8)
+  province                 String                   @db.VarChar(32)
+  type                     String // white, red, yellow
+  country                  String?
+  accuracy                 Float
+  permittedLabel           DevicePermittedLabel     @default(NONE)
+  blacklistPriority        BlacklistPriority        @default(NONE)
+  s3Key                    String?
+  createdBy                String
+  updatedBy                String?
+  deletedBy                String?
+  deletedAt                DateTime?                @db.Timestamptz(3)
+  createdAt                DateTime                 @default(now()) @db.Timestamptz(3)
+  updatedAt                DateTime?                @db.Timestamptz(3)
+  VehicleLicensePlateTag   VehicleLicensePlateTag[]
 
   @@index([prefix])
   @@index([number, prefix])
@@ -539,39 +576,39 @@ model VehicleLicensePlate {
 }
 
 model VehicleImage {
-  id        String    @id @db.Uuid
-  vehicleId String    @db.Uuid
-  vehicle   Vehicle   @relation(fields: [vehicleId], references: [id])
-  type      ImageType
-  s3Key     String
-  createdBy String
-  updatedBy String?
-  deletedBy String?
-  deletedAt DateTime? @db.Timestamptz(3)
-  createdAt DateTime  @default(now()) @db.Timestamptz(3)
-  updatedAt DateTime? @db.Timestamptz(3)
+  id                       String                 @id @db.Uuid
+  stationVehicleActivityId String                 @db.Uuid
+  stationVehicleActivity   StationVehicleActivity @relation(fields: [stationVehicleActivityId], references: [id])
+  type                     ImageType
+  s3Key                    String
+  createdBy                String
+  updatedBy                String?
+  deletedBy                String?
+  deletedAt                DateTime?              @db.Timestamptz(3)
+  createdAt                DateTime               @default(now()) @db.Timestamptz(3)
+  updatedAt                DateTime?              @db.Timestamptz(3)
 
   @@map("vehicle_image")
 }
 
 model VehicleMobileDevice {
-  id               String               @id @db.Uuid
-  vehicleId        String               @db.Uuid
-  vehicle          Vehicle              @relation(fields: [vehicleId], references: [id])
-  remarkStatus     RemarkState          @default(IN_PROGRESS)
-  imsi             String               @db.VarChar(24)
-  mnc              String               @db.VarChar(3)
-  mcc              String               @db.VarChar(3)
-  imei             String?              @db.VarChar(24)
-  permittedLabel   DevicePermittedLabel @default(NONE)
-  signalStrength   Float
-  registerDateTime DateTime             @db.Timestamptz(3)
-  createdBy        String
-  updatedBy        String?
-  deletedBy        String?
-  deletedAt        DateTime?            @db.Timestamptz(3)
-  createdAt        DateTime             @default(now()) @db.Timestamptz(3)
-  updatedAt        DateTime?            @db.Timestamptz(3)
+  id                       String                 @id @db.Uuid
+  stationVehicleActivityId String                 @db.Uuid
+  stationVehicleActivity   StationVehicleActivity @relation(fields: [stationVehicleActivityId], references: [id])
+  remarkStatus             RemarkState            @default(IN_PROGRESS)
+  imsi                     String                 @db.VarChar(24)
+  mnc                      String                 @db.VarChar(3)
+  mcc                      String                 @db.VarChar(3)
+  imei                     String?                @db.VarChar(24)
+  permittedLabel           DevicePermittedLabel   @default(NONE)
+  signalStrength           Float
+  registerDateTime         DateTime               @db.Timestamptz(3)
+  createdBy                String
+  updatedBy                String?
+  deletedBy                String?
+  deletedAt                DateTime?              @db.Timestamptz(3)
+  createdAt                DateTime               @default(now()) @db.Timestamptz(3)
+  updatedAt                DateTime?              @db.Timestamptz(3)
 
   @@index([mnc, mcc])
   @@index([imei, imsi])

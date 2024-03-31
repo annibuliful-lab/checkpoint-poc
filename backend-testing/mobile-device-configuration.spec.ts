@@ -55,7 +55,7 @@ describe('Mobile device configuration', () => {
           __scalar: true,
           __args: {
             id: mobileDevice.id,
-            referenceImsiConfigurationId: v4(),
+            imsi: v4(),
             permittedLabel: 'BLACKLIST',
             blacklistPriority: 'DANGER',
             msisdn,
@@ -76,7 +76,7 @@ describe('Mobile device configuration', () => {
           __scalar: true,
           __args: {
             id: mobileDevice.id,
-            referenceImeiConfigurationId: v4(),
+            imei: v4(),
             permittedLabel: 'BLACKLIST',
             blacklistPriority: 'DANGER',
             msisdn,
@@ -150,8 +150,8 @@ describe('Mobile device configuration', () => {
           __scalar: true,
           __args: {
             stationLocationId: STATION_LOCATION_ID,
-            referenceImeiConfigurationId: imei.id,
-            referenceImsiConfigurationId: v4(),
+            imei: imei.imei,
+            imsi: v4(),
             title: nanoid(),
             permittedLabel: 'NONE',
             blacklistPriority: 'NORMAL',
@@ -169,8 +169,8 @@ describe('Mobile device configuration', () => {
           __scalar: true,
           __args: {
             stationLocationId: STATION_LOCATION_ID,
-            referenceImeiConfigurationId: v4(),
-            referenceImsiConfigurationId: imsi.id,
+            imei: v4(),
+            imsi: imsi.imsi,
             title: nanoid(),
             permittedLabel: 'NONE',
             blacklistPriority: 'NORMAL',
@@ -190,8 +190,8 @@ describe('Mobile device configuration', () => {
         __scalar: true,
         __args: {
           stationLocationId: STATION_LOCATION_ID,
-          referenceImeiConfigurationId: imei.id,
-          referenceImsiConfigurationId: imsi.id,
+          imei: imei.imei,
+          imsi: imsi.imsi,
           title,
           permittedLabel: 'NONE',
           blacklistPriority: 'NORMAL',
@@ -228,8 +228,8 @@ describe('Mobile device configuration', () => {
           },
           __args: {
             stationLocationId: STATION_LOCATION_ID,
-            referenceImeiConfigurationId: imei.id,
-            referenceImsiConfigurationId: imsi.id,
+            imei: imei.imei,
+            imsi: imsi.imsi,
             title,
             permittedLabel: 'NONE',
             blacklistPriority: 'NORMAL',
@@ -263,8 +263,8 @@ describe('Mobile device configuration', () => {
         },
         __args: {
           stationLocationId: STATION_LOCATION_ID,
-          referenceImeiConfigurationId: imei.id,
-          referenceImsiConfigurationId: imsi.id,
+          imei: imei.imei,
+          imsi: imsi.imsi,
           title,
           permittedLabel: 'NONE',
           blacklistPriority: 'NORMAL',

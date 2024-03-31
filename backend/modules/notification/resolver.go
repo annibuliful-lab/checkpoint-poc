@@ -8,15 +8,15 @@ import (
 )
 
 type NotificationResolver struct {
-	helloSaidEvents     chan *helloSaidEvent
+	HelloSaidEvents     chan *HelloSaidEvent
 	helloSaidSubscriber chan *helloSaidSubscriber
 }
 
-func (r *NotificationResolver) SayHello(args struct{ Msg string }) *helloSaidEvent {
-	e := &helloSaidEvent{Msg: args.Msg, ID: uuid.New().String()}
+func (r *NotificationResolver) SayHello(args struct{ Msg string }) *HelloSaidEvent {
+	e := &HelloSaidEvent{Msg: args.Msg, ID: uuid.New().String()}
 	go func() {
 		select {
-		case r.helloSaidEvents <- e:
+		case r.HelloSaidEvents <- e:
 		case <-time.After(1 * time.Second):
 		}
 	}()
@@ -24,7 +24,7 @@ func (r *NotificationResolver) SayHello(args struct{ Msg string }) *helloSaidEve
 }
 
 func (r *NotificationResolver) WsResolver() *NotificationResolver {
-	r.helloSaidEvents = make(chan *helloSaidEvent)
+	r.HelloSaidEvents = make(chan *HelloSaidEvent)
 	r.helloSaidSubscriber = make(chan *helloSaidSubscriber)
 
 	go r.broadcastHelloSaid()
@@ -34,7 +34,7 @@ func (r *NotificationResolver) WsResolver() *NotificationResolver {
 
 type helloSaidSubscriber struct {
 	stop   <-chan struct{}
-	events chan<- *helloSaidEvent
+	events chan<- *HelloSaidEvent
 }
 
 func (r *NotificationResolver) broadcastHelloSaid() {
@@ -49,7 +49,7 @@ func (r *NotificationResolver) broadcastHelloSaid() {
 		case s := <-r.helloSaidSubscriber:
 			id := uuid.New().String()
 			subscribers[id] = s
-		case e := <-r.helloSaidEvents:
+		case e := <-r.HelloSaidEvents:
 			for id, s := range subscribers {
 				go func(id string, s *helloSaidSubscriber) {
 					select {
@@ -71,16 +71,17 @@ func (r *NotificationResolver) broadcastHelloSaid() {
 	}
 }
 
-func (r *NotificationResolver) HelloSaid(ctx context.Context) <-chan *helloSaidEvent {
+func (r *NotificationResolver) HelloSaid(ctx context.Context) <-chan *HelloSaidEvent {
 
-	c := make(chan *helloSaidEvent)
+	c := make(chan *HelloSaidEvent)
 	// NOTE: this could take a while
 	r.helloSaidSubscriber <- &helloSaidSubscriber{events: c, stop: ctx.Done()}
 
 	return c
 }
 
-type helloSaidEvent struct {
-	ID  string
-	Msg string
+func (NotificationResolver) OnHello(ctx context.Context) <-chan string {
+	c := make(chan string)
+	c <- "Hello"
+	return c
 }
