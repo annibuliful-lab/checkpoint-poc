@@ -6,17 +6,12 @@ schema {
   subscription: Subscription
 }
 
-type Subscription {
-  helloSaid: HelloSaidEvent!
-}
-
-type Mutation {
-  sayHello(msg: String!): HelloSaidEvent!
-}
-
-type HelloSaidEvent {
-  id: String!
-  msg: String!
+enum PropertyType {
+  VEHICLE_COLOR
+  LP_TYPE
+  VEHICLE_BRAND
+  VEHICLE_TYPE
+  VEHICLE_MODEL
 }
 
 enum ImageType {
@@ -77,8 +72,18 @@ type offsetPagination {
   limit: Int!
 }
 
+type PageInfo {
+  skip: Int!
+  limit: Int!
+  total: Int!
+  page: Int!
+}
+
 directive @access(
   requiredProjectId: Boolean
+  requiredStationId: Boolean
   subject: String
   action: PermissionAction
 ) on FIELD_DEFINITION
+
+directive @stationApiAccess on FIELD_DEFINITION

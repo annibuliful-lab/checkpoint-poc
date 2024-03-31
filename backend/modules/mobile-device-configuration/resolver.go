@@ -84,33 +84,6 @@ func (MobileDeviceConfigurationResolver) GetMobileDeviceConfigurationById(ctx co
 func (MobileDeviceConfigurationResolver) UpdateMobileDeviceConfiguration(ctx context.Context, args UpdateMobileDeviceConfigurationInput) (*MobileDeviceConfiguration, error) {
 	authorization := auth.GetAuthorizationContext(ctx)
 
-	if args.ReferenceImeiConfigurationId != nil {
-		_, _, err := imeiService.FindById(imeiconfiguration.GetImeiConfigurationData{
-			ID:        uuid.MustParse(string(*args.ReferenceImeiConfigurationId)),
-			ProjectId: uuid.MustParse(authorization.ProjectId),
-		})
-		if err != nil {
-			return nil, utils.GraphqlError{
-				Code:    err.Error(),
-				Message: err.Error(),
-			}
-		}
-	}
-
-	if args.ReferenceImsiConfigurationId != nil {
-		_, _, err := imsiService.FindById(imsiconfiguration.GetImsiConfigurationByIdData{
-			ID:        uuid.MustParse(string(*args.ReferenceImsiConfigurationId)),
-			ProjectId: uuid.MustParse(authorization.ProjectId),
-		})
-
-		if err != nil {
-			return nil, utils.GraphqlError{
-				Code:    err.Error(),
-				Message: err.Error(),
-			}
-		}
-	}
-
 	var permittedLabel *string
 	if args.PermittedLabel != nil {
 		value := args.PermittedLabel.String()
@@ -126,21 +99,13 @@ func (MobileDeviceConfigurationResolver) UpdateMobileDeviceConfiguration(ctx con
 	var mobileDeviceInput = UpdateMobileDeviceConfigurationData{
 		ID:                uuid.MustParse(string(args.ID)),
 		ProjectId:         uuid.MustParse(authorization.ProjectId),
+		Imsi:              args.Imsi,
+		Imei:              args.Imei,
 		PermittedLabel:    permittedLabel,
 		BlacklistPriority: blacklistPriority,
 		Msisdn:            args.Msisdn,
 		Tags:              args.Tags,
 		UpdatedBy:         authorization.AccountId,
-	}
-
-	if args.ReferenceImeiConfigurationId != nil {
-		id := uuid.MustParse(string(*args.ReferenceImeiConfigurationId))
-		mobileDeviceInput.ReferenceImeiConfigurationId = &id
-	}
-
-	if args.ReferenceImsiConfigurationId != nil {
-		id := uuid.MustParse(string(*args.ReferenceImsiConfigurationId))
-		mobileDeviceInput.ReferenceImsiConfigurationId = &id
 	}
 
 	mobileDevice, err := mobileDeviceService.Update(mobileDeviceInput)
@@ -176,41 +141,17 @@ func (MobileDeviceConfigurationResolver) DeleteMobileDeviceConfiguration(ctx con
 func (MobileDeviceConfigurationResolver) CreateMobileDeviceConfiguration(ctx context.Context, args CreateMobileDeviceConfigurationInput) (*MobileDeviceConfiguration, error) {
 	authorization := auth.GetAuthorizationContext(ctx)
 
-	_, _, err := imeiService.FindById(imeiconfiguration.GetImeiConfigurationData{
-		ID:        uuid.MustParse(string(args.ReferenceImeiConfigurationId)),
-		ProjectId: uuid.MustParse(authorization.ProjectId),
-	})
-
-	if err != nil {
-		return nil, utils.GraphqlError{
-			Code:    err.Error(),
-			Message: err.Error(),
-		}
-	}
-
-	_, _, err = imsiService.FindById(imsiconfiguration.GetImsiConfigurationByIdData{
-		ID:        uuid.MustParse(string(args.ReferenceImsiConfigurationId)),
-		ProjectId: uuid.MustParse(authorization.ProjectId),
-	})
-
-	if err != nil {
-		return nil, utils.GraphqlError{
-			Code:    err.Error(),
-			Message: err.Error(),
-		}
-	}
-
 	mobileDeviceConfiguration, _, err := mobileDeviceService.Create(CreateMobileDeviceConfigurationData{
-		ProjectId:                    uuid.MustParse(authorization.ProjectId),
-		CreatedBy:                    authorization.AccountId,
-		Title:                        args.Title,
-		Msisdn:                       args.Msisdn,
-		ReferenceImsiConfigurationId: uuid.MustParse(string(args.ReferenceImsiConfigurationId)),
-		ReferenceImeiConfigurationId: uuid.MustParse(string(args.ReferenceImeiConfigurationId)),
-		PermittedLabel:               model.DevicePermittedLabel(args.PermittedLabel.String()),
-		BlacklistPriority:            model.BlacklistPriority(args.BlacklistPriority.String()),
-		Tags:                         args.Tags,
-		StationLocationId:            uuid.MustParse(string(args.StationLocationId)),
+		ProjectId:         uuid.MustParse(authorization.ProjectId),
+		CreatedBy:         authorization.AccountId,
+		Imsi:              args.Imsi,
+		Imei:              args.Imei,
+		Title:             args.Title,
+		Msisdn:            args.Msisdn,
+		PermittedLabel:    model.DevicePermittedLabel(args.PermittedLabel.String()),
+		BlacklistPriority: model.BlacklistPriority(args.BlacklistPriority.String()),
+		Tags:              args.Tags,
+		StationLocationId: uuid.MustParse(string(args.StationLocationId)),
 	})
 
 	if err != nil {
@@ -236,7 +177,7 @@ func (parent MobileDeviceConfiguration) ReferenceImeiConfiguration(ctx context.C
 	return &imeiValue
 }
 
-func (parent MobileDeviceConfiguration) ReferenceImsiConfiguration(ctx context.Context) *imsiconfiguration.Imsiconfiguration {
+func (parent MobileDeviceConfiguration) ReferenceImsiConfiguration(ctx context.Context) *imsiconfiguration.ImsiConfiguration {
 	thunk := imsiDataloader.Load(ctx, dataloader.StringKey(parent.ReferenceImsiConfigurationId))
 	imsi, err := thunk()
 	if err != nil {
@@ -244,7 +185,7 @@ func (parent MobileDeviceConfiguration) ReferenceImsiConfiguration(ctx context.C
 		return nil
 	}
 
-	imsiValue := imsi.(imsiconfiguration.Imsiconfiguration)
+	imsiValue := imsi.(imsiconfiguration.ImsiConfiguration)
 
 	return &imsiValue
 }

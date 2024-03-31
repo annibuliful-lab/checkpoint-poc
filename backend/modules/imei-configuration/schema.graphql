@@ -13,6 +13,14 @@ type ImeiConfiguration {
 }
 
 type Mutation {
+  upsertImeiConfiguration(
+    imei: String!
+    blacklistPriority: BlacklistPriority!
+    permittedLabel: DevicePermittedLabel!
+    tags: [String!]
+  ): ImeiConfiguration!
+    @access(requiredProjectId: true, requiredStationId: true)
+
   createImeiConfiguration(
     stationLocationId: ID!
     imei: String!

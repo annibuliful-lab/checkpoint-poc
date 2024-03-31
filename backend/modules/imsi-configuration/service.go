@@ -7,6 +7,7 @@ import (
 	"checkpoint/gql/enum"
 	"checkpoint/utils/graphql_utils"
 	"context"
+	"database/sql"
 	"errors"
 
 	tagUtils "checkpoint/modules/tag"
@@ -23,7 +24,128 @@ import (
 
 type ImsiConfigurationService struct{}
 
-func (ImsiConfigurationService) FindMany(data GetImsiConfigurationsData) ([]Imsiconfiguration, int, error) {
+func (ImsiConfigurationService) Upsert(data UpsertImsiConfigurationData) (*ImsiConfiguration, error) {
+	dbClient := db.GetPrimaryClient()
+	ctx := context.Background()
+
+	mcc, mnc, err := utils.ExtractMCCMNC(data.Imsi)
+
+	if err != nil {
+		return nil, err
+	}
+
+	tx, err := dbClient.BeginTx(ctx, &sql.TxOptions{
+		Isolation: sql.LevelReadUncommitted,
+	})
+
+	if err != nil {
+		log.Println("init-tx-upsert-imsi-error", err.Error())
+		return nil, utils.InternalServerError
+	}
+
+	upsertImsiConfigurationStmt := table.ImsiConfiguration.
+		INSERT(table.ImsiConfiguration.ID, table.ImsiConfiguration.Imsi, table.ImsiConfiguration.BlacklistPriority, table.ImsiConfiguration.StationLocationId, table.ImsiConfiguration.PermittedLabel, table.ImsiConfiguration.CreatedBy, table.ImsiConfiguration.ProjectId, table.ImsiConfiguration.Mcc, table.ImsiConfiguration.Mnc).
+		MODEL(model.ImsiConfiguration{
+			ID:                uuid.New(),
+			Imsi:              data.Imsi,
+			BlacklistPriority: model.BlacklistPriority(data.BlacklistPriority),
+			StationLocationId: data.StationLocationId,
+			PermittedLabel:    model.DevicePermittedLabel(data.PermittedLabel),
+			CreatedBy:         data.UpdatedBy,
+			ProjectId:         data.ProjectId,
+			Mcc:               mcc,
+			Mnc:               mnc,
+		}).
+		ON_CONFLICT(table.ImsiConfiguration.Imsi, table.ImsiConfiguration.ProjectId).
+		DO_UPDATE(pg.SET(table.ImsiConfiguration.Imsi.SET(pg.String(data.Imsi)))).
+		RETURNING(table.ImsiConfiguration.AllColumns)
+
+	imsiConfiguration := model.ImsiConfiguration{}
+
+	err = upsertImsiConfigurationStmt.QueryContext(ctx, tx, &imsiConfiguration)
+	if err != nil {
+		tx.Rollback()
+		log.Println("upsert-imsi-configurations-error", err.Error())
+		return nil, utils.InternalServerError
+	}
+
+	if data.Tags != nil && len(*data.Tags) != 0 {
+		deleteAllImsiTagStmt := table.ImsiConfigurationTag.
+			DELETE().
+			WHERE(table.ImsiConfigurationTag.ImsiConfigurationId.EQ(pg.UUID(imsiConfiguration.ID)))
+
+		_, err = deleteAllImsiTagStmt.ExecContext(ctx, tx)
+
+		if err != nil {
+			tx.Rollback()
+			log.Println("delete-all-imsi-configuration-error", err.Error())
+			return nil, utils.InternalServerError
+		}
+
+		for _, tag := range *data.Tags {
+			upsertTagStmt := tagUtils.UpsertStatement(tagUtils.UpsertTagData{
+				Tag:       tag,
+				ProjectId: data.ProjectId.String(),
+				CreatedBy: data.UpdatedBy,
+			})
+			tagResult := model.Tag{}
+
+			err := upsertTagStmt.QueryContext(ctx, tx, &tagResult)
+
+			if err != nil {
+				tx.Rollback()
+				log.Println("upsert-imsi-configuration-tag-error", err.Error())
+				return nil, utils.InternalServerError
+			}
+
+			insertImsiTagStmt := table.ImsiConfigurationTag.
+				INSERT(table.ImsiConfigurationTag.ID, table.ImsiConfigurationTag.ImsiConfigurationId, table.ImsiConfigurationTag.TagId, table.ImsiConfigurationTag.CreatedBy).
+				MODEL(model.ImsiConfigurationTag{
+					ID:                  uuid.New(),
+					ImsiConfigurationId: imsiConfiguration.ID,
+					TagId:               tagResult.ID,
+					CreatedBy:           data.UpdatedBy,
+				})
+			_, err = insertImsiTagStmt.ExecContext(ctx, tx)
+
+			if err != nil {
+				tx.Rollback()
+				log.Println("insert-imsi-configuration-tag-error", err.Error())
+				return nil, utils.InternalServerError
+			}
+
+		}
+	}
+
+	tx.Commit()
+
+	var updatedBy graphql.NullID
+	if imsiConfiguration.UpdatedBy != nil {
+		updatedBy = graphql_utils.ConvertStringToNullID(imsiConfiguration.UpdatedBy)
+	}
+
+	var updatedAt graphql.NullTime
+	if imsiConfiguration.UpdatedAt != nil {
+		updatedAt = graphql.NullTime{Value: &graphql.Time{Time: *imsiConfiguration.UpdatedAt}}
+	}
+
+	return &ImsiConfiguration{
+		ID:                graphql.ID(imsiConfiguration.ID.String()),
+		ProjectId:         graphql.ID(imsiConfiguration.ProjectId.String()),
+		Imsi:              imsiConfiguration.Imsi,
+		CreatedBy:         graphql.ID(imsiConfiguration.CreatedBy),
+		UpdatedBy:         &updatedBy,
+		CreatedAt:         graphql.Time{Time: imsiConfiguration.CreatedAt},
+		UpdatedAt:         &updatedAt,
+		PermittedLabel:    enum.GetDevicePermittedLabel(imsiConfiguration.PermittedLabel.String()),
+		BlacklistPriority: enum.GetBlacklistPriority(imsiConfiguration.BlacklistPriority.String()),
+		StationLocationId: graphql.ID(imsiConfiguration.StationLocationId.String()),
+		Mcc:               imsiConfiguration.Mcc,
+		Mnc:               imsiConfiguration.Mnc,
+	}, nil
+}
+
+func (ImsiConfigurationService) FindMany(data GetImsiConfigurationsData) ([]ImsiConfiguration, int, error) {
 	dbClient := db.GetPrimaryClient()
 
 	conditions := pg.Bool(true).
@@ -82,7 +204,7 @@ func (ImsiConfigurationService) FindMany(data GetImsiConfigurationsData) ([]Imsi
 		return nil, 500, utils.InternalServerError
 	}
 
-	imsiConfigurationsResponse := lo.Map(imsiConfigurations, func(item model.ImsiConfiguration, index int) Imsiconfiguration {
+	imsiConfigurationsResponse := lo.Map(imsiConfigurations, func(item model.ImsiConfiguration, index int) ImsiConfiguration {
 		var updatedBy graphql.NullID
 		if item.UpdatedBy != nil {
 			updatedBy = graphql_utils.ConvertStringToNullID(item.UpdatedBy)
@@ -92,7 +214,7 @@ func (ImsiConfigurationService) FindMany(data GetImsiConfigurationsData) ([]Imsi
 		if item.UpdatedAt != nil {
 			updatedAt = graphql.NullTime{Value: &graphql.Time{Time: *item.UpdatedAt}}
 		}
-		return Imsiconfiguration{
+		return ImsiConfiguration{
 			ID:                graphql.ID(item.ID.String()),
 			ProjectId:         graphql.ID(item.ProjectId.String()),
 			Imsi:              item.Imsi,
@@ -111,7 +233,7 @@ func (ImsiConfigurationService) FindMany(data GetImsiConfigurationsData) ([]Imsi
 	return imsiConfigurationsResponse, 200, nil
 }
 
-func (ImsiConfigurationService) FindById(data GetImsiConfigurationByIdData) (*Imsiconfiguration, int, error) {
+func (ImsiConfigurationService) FindById(data GetImsiConfigurationByIdData) (*ImsiConfiguration, int, error) {
 	dbClient := db.GetPrimaryClient()
 	getImsiStmt := table.ImsiConfiguration.
 		SELECT(table.ImsiConfiguration.AllColumns).
@@ -142,7 +264,7 @@ func (ImsiConfigurationService) FindById(data GetImsiConfigurationByIdData) (*Im
 		updatedAt = graphql.NullTime{Value: &graphql.Time{Time: *imsiConfiguration.UpdatedAt}}
 	}
 
-	return &Imsiconfiguration{
+	return &ImsiConfiguration{
 		ID:                graphql.ID(imsiConfiguration.ID.String()),
 		ProjectId:         graphql.ID(imsiConfiguration.ProjectId.String()),
 		Imsi:              imsiConfiguration.Imsi,
@@ -178,7 +300,7 @@ func (ImsiConfigurationService) Delete(data DeleteImsiConfigurationData) (int, e
 	return 200, nil
 }
 
-func (ImsiConfigurationService) Update(data UpdateImsiConfigurationData) (*Imsiconfiguration, int, error) {
+func (ImsiConfigurationService) Update(data UpdateImsiConfigurationData) (*ImsiConfiguration, int, error) {
 	dbClient := db.GetPrimaryClient()
 	ctx := context.Background()
 	tx, err := dbClient.Begin()
@@ -303,7 +425,7 @@ func (ImsiConfigurationService) Update(data UpdateImsiConfigurationData) (*Imsic
 
 	tx.Commit()
 
-	return &Imsiconfiguration{
+	return &ImsiConfiguration{
 		ID:                graphql.ID(imsiConfiguration.ID.String()),
 		ProjectId:         graphql.ID(imsiConfiguration.ProjectId.String()),
 		Imsi:              imsiConfiguration.Imsi,
@@ -319,7 +441,7 @@ func (ImsiConfigurationService) Update(data UpdateImsiConfigurationData) (*Imsic
 	}, 200, nil
 }
 
-func (ImsiConfigurationService) Create(data CreateImsiConfigurationData) (*Imsiconfiguration, int, error) {
+func (ImsiConfigurationService) Create(data CreateImsiConfigurationData) (*ImsiConfiguration, int, error) {
 	dbClient := db.GetPrimaryClient()
 	ctx := context.Background()
 
@@ -418,7 +540,7 @@ func (ImsiConfigurationService) Create(data CreateImsiConfigurationData) (*Imsic
 		updatedAt = graphql.NullTime{Value: &graphql.Time{Time: *imsiConfiguration.UpdatedAt}}
 	}
 
-	return &Imsiconfiguration{
+	return &ImsiConfiguration{
 		ID:                graphql.ID(imsiConfiguration.ID.String()),
 		ProjectId:         graphql.ID(imsiConfiguration.ProjectId.String()),
 		Imsi:              imsiConfiguration.Imsi,
@@ -434,7 +556,7 @@ func (ImsiConfigurationService) Create(data CreateImsiConfigurationData) (*Imsic
 	}, 201, nil
 }
 
-func (ImsiConfigurationService) FindByIds(keys []uuid.UUID) ([]Imsiconfiguration, int, error) {
+func (ImsiConfigurationService) FindByIds(keys []uuid.UUID) ([]ImsiConfiguration, int, error) {
 	dbClient := db.GetPrimaryClient()
 	var ids []pg.Expression
 
@@ -456,7 +578,7 @@ func (ImsiConfigurationService) FindByIds(keys []uuid.UUID) ([]Imsiconfiguration
 		return nil, 500, utils.InternalServerError
 	}
 
-	imsiConfigurationsResponse := lo.Map(imsiConfigurations, func(item model.ImsiConfiguration, index int) Imsiconfiguration {
+	imsiConfigurationsResponse := lo.Map(imsiConfigurations, func(item model.ImsiConfiguration, index int) ImsiConfiguration {
 		var updatedBy graphql.NullID
 		if item.UpdatedBy != nil {
 			updatedBy = graphql_utils.ConvertStringToNullID(item.UpdatedBy)
@@ -466,7 +588,7 @@ func (ImsiConfigurationService) FindByIds(keys []uuid.UUID) ([]Imsiconfiguration
 		if item.UpdatedAt != nil {
 			updatedAt = graphql.NullTime{Value: &graphql.Time{Time: *item.UpdatedAt}}
 		}
-		return Imsiconfiguration{
+		return ImsiConfiguration{
 			ID:                graphql.ID(item.ID.String()),
 			ProjectId:         graphql.ID(item.ProjectId.String()),
 			Imsi:              item.Imsi,
@@ -497,7 +619,7 @@ func (service ImsiConfigurationService) Dataloader() *dataloader.Loader {
 		var results []*dataloader.Result
 
 		for _, key := range keys {
-			imsiConfiguration, match := lo.Find(imsiConfigurations, func(item Imsiconfiguration) bool {
+			imsiConfiguration, match := lo.Find(imsiConfigurations, func(item ImsiConfiguration) bool {
 				return string(item.ID) == string(graphql.ID(key.String()))
 			})
 

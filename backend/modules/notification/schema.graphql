@@ -1,0 +1,13 @@
+type Subscription {
+  helloSaid: HelloSaidEvent!
+  onHello: String!
+}
+
+type Mutation {
+  sayHello(msg: String!): HelloSaidEvent!
+}
+
+type HelloSaidEvent {
+  id: String!
+  msg: String!
+}

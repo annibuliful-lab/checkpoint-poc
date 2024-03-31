@@ -1,0 +1,13 @@
+type VehicleProperty {
+  property: String!
+  type: PropertyType!
+}
+
+type Query {
+  getVehicleProperties(
+    type: PropertyType!
+    search: String
+    limit: Int!
+    skip: Int!
+  ): [VehicleProperty!]! @access(requiredProjectId: true)
+}

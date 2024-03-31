@@ -1,6 +1,7 @@
 package imeiconfiguration
 
 import (
+	"checkpoint/.gen/checkpoint/public/model"
 	"checkpoint/gql/enum"
 	"checkpoint/utils"
 
@@ -42,6 +43,23 @@ type UpdateImeiConfigurationData struct {
 	UpdatedBy         string    `json:"createdBy"`
 	PermittedLabel    string    `json:"permittedLabel"`
 	Tags              *[]string `json:"tags"`
+}
+
+type UpsertImeiConfigurationInput struct {
+	Imei              string
+	PermittedLabel    model.DevicePermittedLabel
+	BlacklistPriority model.BlacklistPriority
+	Tags              *[]string
+}
+
+type UpsertImeiConfigurationData struct {
+	UpdatedBy         string
+	ProjectId         uuid.UUID
+	StationLocationId uuid.UUID
+	Imei              string
+	PermittedLabel    model.DevicePermittedLabel
+	BlacklistPriority model.BlacklistPriority
+	Tags              *[]string
 }
 
 type DeleteImeiConfigurationInput struct {

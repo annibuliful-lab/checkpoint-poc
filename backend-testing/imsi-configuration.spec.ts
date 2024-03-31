@@ -13,7 +13,29 @@ describe('Imsi configuration', () => {
   let client: Client;
 
   beforeAll(async () => {
-    client = await getAuthenticatedClient({ includeProjectId: true });
+    client = await getAuthenticatedClient({
+      includeProjectId: true,
+      includeStationId: true,
+    });
+  });
+
+  it('upsert imsi', async () => {
+    const { id, imsi } = await createImsiConfiguration();
+    const upsertResponse = await client.mutation({
+      upsertImsiConfiguration: {
+        __scalar: true,
+        __args: {
+          imsi,
+          permittedLabel: 'NONE',
+          blacklistPriority: 'NORMAL',
+        },
+      },
+    });
+
+    const upsert = upsertResponse.upsertImsiConfiguration;
+
+    expect(upsert.imsi).toEqual(imsi);
+    expect(upsert.id).toEqual(id);
   });
 
   it('gets by tags', async () => {

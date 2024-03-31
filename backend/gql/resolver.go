@@ -14,7 +14,10 @@ import (
 	stationHealthCheck "checkpoint/modules/station-health-check"
 	stationlocation "checkpoint/modules/station-location"
 	stationOfficer "checkpoint/modules/station-officer"
+	vehicleActivity "checkpoint/modules/station-vehicle-activity"
 	"checkpoint/modules/tag"
+	vehicleLicensePlate "checkpoint/modules/vehicle-license-plate"
+	vehicleproperty "checkpoint/modules/vehicle-property"
 	vehicleTarget "checkpoint/modules/vehicle-target-configuration"
 )
 
@@ -39,6 +42,9 @@ type Resolver struct {
 	stationDeviceHealthCheck.StationDeviceHealthCheckActivityResolver
 	stationHealthCheck.StationLocationHealthCheckActivityResolver
 	vehicleTarget.VehicleTargetConfigurationResolver
+	vehicleActivity.StationVehicleActivityResolver
+	vehicleproperty.VehiclePropertyResolver
+	vehicleLicensePlate.VehiclelicensePlateResolver
 }
 
 func GraphqlResolver() *Resolver {
