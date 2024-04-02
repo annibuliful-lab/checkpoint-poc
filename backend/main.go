@@ -40,6 +40,7 @@ func main() {
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST"},
 		AllowCredentials: true,
+		AllowedHeaders:   []string{"*"},
 		// Debug:            true,
 	})
 

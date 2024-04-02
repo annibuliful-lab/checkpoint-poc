@@ -1,0 +1,175 @@
+# query
+query getMobileDeviceConfigurationById($id: ID!) {
+  getMobileDeviceConfigurationById(id: $id) {
+    referenceImsiConfiguration {
+      ...ImsiConfigurationFields
+    }
+    referenceImeiConfiguration {
+      ...ImeiConfigurationFields
+    }
+    tags {
+      ...TagFields
+    }
+    ...MobileDeviceConfigurationFields
+  }
+}
+
+query getMobileDeviceConfigurations(
+  $stationLocationId: ID!
+  $search: String
+  $permittedLabel: DevicePermittedLabel
+  $blacklistPriority: BlacklistPriority
+  $tags: [String!]
+  $limit: Float!
+  $skip: Float!
+) {
+  getMobileDeviceConfigurations(
+    stationLocationId: $stationLocationId
+    search: $search
+    permittedLabel: $permittedLabel
+    blacklistPriority: $blacklistPriority
+    tags: $tags
+    limit: $limit
+    skip: $skip
+  ) {
+    referenceImsiConfiguration {
+      ...ImsiConfigurationFields
+    }
+    referenceImeiConfiguration {
+      ...ImeiConfigurationFields
+    }
+    tags {
+      ...TagFields
+    }
+    ...MobileDeviceConfigurationFields
+  }
+}
+
+# mutation
+mutation createMobileDeviceConfiguration(
+  $stationLocationId: ID!
+  $title: String!
+  $imsi: String!
+  $imei: String!
+  $msisdn: String
+  $permittedLabel: DevicePermittedLabel!
+  $blacklistPriority: BlacklistPriority!
+  $tags: [String!]
+) {
+  createMobileDeviceConfiguration(
+    stationLocationId: $stationLocationId
+    title: $title
+    imsi: $imsi
+    imei: $imei
+    msisdn: $msisdn
+    permittedLabel: $permittedLabel
+    blacklistPriority: $blacklistPriority
+    tags: $tags
+  ) {
+    referenceImsiConfiguration {
+      ...ImsiConfigurationFields
+    }
+    referenceImeiConfiguration {
+      ...ImeiConfigurationFields
+    }
+    tags {
+      ...TagFields
+    }
+    ...MobileDeviceConfigurationFields
+  }
+}
+
+mutation deleteMobileDeviceConfiguration($id: ID!) {
+  deleteMobileDeviceConfiguration(id: $id) {
+    success
+  }
+}
+
+mutation updateMobileDeviceConfiguration(
+  $id: ID!
+  $title: String
+  $imsi: String
+  $imei: String
+  $msisdn: String
+  $permittedLabel: DevicePermittedLabel
+  $blacklistPriority: BlacklistPriority
+  $tags: [String!]
+) {
+  updateMobileDeviceConfiguration(
+    id: $id
+    title: $title
+    imsi: $imsi
+    imei: $imei
+    msisdn: $msisdn
+    permittedLabel: $permittedLabel
+    blacklistPriority: $blacklistPriority
+    tags: $tags
+  ) {
+    referenceImsiConfiguration {
+      ...ImsiConfigurationFields
+    }
+    referenceImeiConfiguration {
+      ...ImeiConfigurationFields
+    }
+    tags {
+      ...TagFields
+    }
+    ...MobileDeviceConfigurationFields
+  }
+}
+
+fragment MobileDeviceConfigurationFields on MobileDeviceConfiguration {
+  id
+  projectId
+  title
+  stationLocationId
+  referenceImsiConfigurationId
+  referenceImeiConfigurationId
+  msisdn
+  permittedLabel
+  blacklistPriority
+  createdBy
+  updatedBy
+  createdAt
+  updatedAt
+}
+
+fragment ImsiConfigurationFields on ImsiConfiguration {
+  id
+  projectId
+  stationLocationId
+  imsi
+  createdBy
+  updatedBy
+  createdAt
+  updatedAt
+  permittedLabel
+  blacklistPriority
+  mcc
+  mnc
+  tags {
+    ...TagFields
+  }
+}
+
+fragment TagFields on Tag {
+  id
+  projectId
+  title
+}
+
+fragment ImeiConfigurationFields on ImeiConfiguration {
+  id
+  projectId
+  imei
+  createdBy
+  updatedBy
+  createdAt
+  updatedAt
+  blacklistPriority
+  permittedLabel
+  stationLocationId
+  tags {
+    ...TagFields
+  }
+}

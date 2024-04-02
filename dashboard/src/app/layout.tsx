@@ -2,13 +2,14 @@ import "@/global.css";
 
 // ----------------------------------------------------------------------
 
-import { primaryFont } from "./theme/typography";
+import { primaryFont } from "../theme/typography";
 
-import ThemeProvider from "./theme";
+import ThemeProvider from "../theme";
 import { SettingsProvider } from "@/components/settings";
 import { MotionLazy } from "@/components/animate/motion-lazy";
 import ProgressBar from "@/components/progress-bar";
 import { ApolloWrapper } from "@/apollo-client/apollo-wrapper";
+import { Provider as AtomProvider } from "jotai";
 // ----------------------------------------------------------------------
 
 export const viewport = {
@@ -31,25 +32,27 @@ export default function RootLayout({ children }: Props) {
   return (
     <html lang="en" className={primaryFont.className}>
       <body>
-        <ApolloWrapper>
-          <SettingsProvider
-            defaultSettings={{
-              themeMode: "light",
-              themeDirection: "ltr",
-              themeContrast: "default",
-              themeLayout: "vertical",
-              themeColorPresets: "blue",
-              themeStretch: false,
-            }}
-          >
-            <ThemeProvider>
-              <MotionLazy>
-                <ProgressBar />
-                {children}
-              </MotionLazy>
-            </ThemeProvider>
-          </SettingsProvider>
-        </ApolloWrapper>
+        <AtomProvider>
+          <ApolloWrapper>
+            <SettingsProvider
+              defaultSettings={{
+                themeMode: "light",
+                themeDirection: "ltr",
+                themeContrast: "default",
+                themeLayout: "vertical",
+                themeColorPresets: "blue",
+                themeStretch: false,
+              }}
+            >
+              <ThemeProvider>
+                <MotionLazy>
+                  <ProgressBar />
+                  {children}
+                </MotionLazy>
+              </ThemeProvider>
+            </SettingsProvider>
+          </ApolloWrapper>
+        </AtomProvider>
       </body>
     </html>
   );

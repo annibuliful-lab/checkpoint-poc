@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box";
 import { alpha } from "@mui/material/styles";
 import ButtonBase from "@mui/material/ButtonBase";
-import { presetOptions } from "@/app/theme/options/presets";
+import { presetOptions } from "@/theme/options/presets";
 
 // ----------------------------------------------------------------------
 
