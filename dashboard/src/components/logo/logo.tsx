@@ -5,6 +5,7 @@ import { useTheme } from "@mui/material/styles";
 import Box, { BoxProps } from "@mui/material/Box";
 
 import { RouterLink } from "@/routes/components";
+import { paths } from "@/routes/paths";
 
 // ----------------------------------------------------------------------
 
@@ -194,7 +195,11 @@ const Logo = forwardRef<HTMLDivElement, LogoProps>(
     }
 
     return (
-      <Link component={RouterLink} href="/" sx={{ display: "contents" }}>
+      <Link
+        component={RouterLink}
+        href={paths.dashboard.station.root}
+        sx={{ display: "contents" }}
+      >
         {logo}
       </Link>
     );

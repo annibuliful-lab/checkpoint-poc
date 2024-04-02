@@ -1,0 +1,7 @@
+query getTags($search: String, $limit: Float!, $skip: Float!) {
+  getTags(search: $search, limit: $limit, skip: $skip) {
+    id
+    projectId
+    title
+  }
+}

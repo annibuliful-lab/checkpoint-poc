@@ -20,8 +20,6 @@ export default function Main({ children, sx, ...other }: BoxProps) {
         minHeight: 1,
         display: "flex",
         flexDirection: "column",
-        p: 2,
-        width: `calc(100% - ${NAV.W_MINI}px)`,
         ...sx,
       }}
       {...other}

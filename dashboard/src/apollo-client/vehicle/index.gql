@@ -1,0 +1,113 @@
+query getVehicleTargetConfigurationById($id: ID!) {
+  getVehicleTargetConfigurationById(id: $id) {
+    tags {
+      ...TagFields
+    }
+    ...VehicleTargetConfigurationFields
+  }
+}
+
+query getVehicleTargetConfigurations(
+  $search: String
+  $permittedLabel: DevicePermittedLabel
+  $blacklistPriority: BlacklistPriority
+  $type: String
+  $tags: [String!]
+  $limit: Int!
+  $skip: Int!
+) {
+  getVehicleTargetConfigurations(
+    search: $search
+    permittedLabel: $permittedLabel
+    blacklistPriority: $blacklistPriority
+    type: $type
+    tags: $tags
+    limit: $limit
+    skip: $skip
+  ) {
+    tags {
+      ...TagFields
+    }
+    ...VehicleTargetConfigurationFields
+  }
+}
+
+mutation createVehicleTargetConfiguration(
+  $prefix: String!
+  $number: String!
+  $province: String!
+  $type: String!
+  $country: String
+  $permittedLabel: DevicePermittedLabel!
+  $blacklistPriority: BlacklistPriority!
+  $tags: [String!]
+) {
+  createVehicleTargetConfiguration(
+    prefix: $prefix
+    number: $number
+    province: $province
+    type: $type
+    country: $country
+    permittedLabel: $permittedLabel
+    blacklistPriority: $blacklistPriority
+    tags: $tags
+  ) {
+    tags {
+      ...TagFields
+    }
+    ...VehicleTargetConfigurationFields
+  }
+}
+
+mutation updateVehicleTargetConfiguration(
+  $id: ID!
+  $prefix: String
+  $number: String
+  $province: String
+  $type: String
+  $country: String
+  $permittedLabel: DevicePermittedLabel
+  $blacklistPriority: BlacklistPriority
+  $tags: [String!]
+) {
+  updateVehicleTargetConfiguration(
+    id: $id
+    prefix: $prefix
+    number: $number
+    province: $province
+    type: $type
+    country: $country
+    permittedLabel: $permittedLabel
+    blacklistPriority: $blacklistPriority
+    tags: $tags
+  ) {
+    tags {
+      ...TagFields
+    }
+    ...VehicleTargetConfigurationFields
+  }
+}
+
+mutation deleteVehicleTargetConfiguration($id: ID!) {
+  deleteVehicleTargetConfiguration(id: $id) {
+    success
+  }
+}
+
+fragment VehicleTargetConfigurationFields on VehicleTargetConfiguration {
+  id
+  projectId
+  prefix
+  number
+  province
+  type
+  country
+  permittedLabel
+  blacklistPriority
+}
+
+fragment TagFields on Tag {
+  id
+  projectId
+  title
+}

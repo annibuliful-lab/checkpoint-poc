@@ -22,7 +22,7 @@ export type NavItemStateProps = {
 };
 
 export type NavItemBaseProps = {
-  title: string;
+  title?: string;
   path: string;
   icon?: React.ReactElement;
   info?: React.ReactElement;
