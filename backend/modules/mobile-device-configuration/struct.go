@@ -85,7 +85,6 @@ type CreateMobileDeviceConfigurationInput struct {
 }
 
 type CreateMobileDeviceConfigurationData struct {
-	StationId         uuid.UUID
 	ProjectId         uuid.UUID                  `json:"projectId"`
 	StationLocationId uuid.UUID                  `json:"stationLocationId"`
 	Title             string                     `json:"title"`

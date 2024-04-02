@@ -326,7 +326,7 @@ func (MobileDeviceConfigurationService) Create(data CreateMobileDeviceConfigurat
 	imsiConfiguration, err := imsiService.Upsert(imsiconfiguration.UpsertImsiConfigurationData{
 		UpdatedBy:         data.CreatedBy,
 		ProjectId:         data.ProjectId,
-		StationLocationId: data.StationId,
+		StationLocationId: data.StationLocationId,
 		Imsi:              data.Imsi,
 		BlacklistPriority: data.BlacklistPriority,
 		PermittedLabel:    data.PermittedLabel,
@@ -339,7 +339,7 @@ func (MobileDeviceConfigurationService) Create(data CreateMobileDeviceConfigurat
 
 	imeiConfiguration, err := imeiService.Upsert(imeiconfiguration.UpsertImeiConfigurationData{
 		Imei:              data.Imei,
-		StationLocationId: data.StationId,
+		StationLocationId: data.StationLocationId,
 		UpdatedBy:         data.CreatedBy,
 		ProjectId:         data.ProjectId,
 		BlacklistPriority: data.BlacklistPriority,
