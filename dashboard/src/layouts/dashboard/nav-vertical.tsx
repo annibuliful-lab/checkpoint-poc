@@ -12,10 +12,12 @@ import { NavSectionVertical } from "@/components/nav-section";
 import Scrollbar from "@/components/scrollbar";
 import Logo from "@/components/logo";
 import { IconButton } from "@mui/material";
-import { Logout } from "@mui/icons-material";
+import { Logout, Notifications } from "@mui/icons-material";
 import { useSetAtom } from "jotai";
 import { authAtom } from "@/auth/store";
 import { apolloCache } from "@/apollo-client/apollo-wrapper";
+import NavItem from "@/components/nav-section/vertical/nav-item";
+import { paths } from "@/routes/paths";
 
 // ----------------------------------------------------------------------
 
@@ -69,11 +71,17 @@ export default function NavVertical({ openNav, onCloseNav }: Props) {
       />
 
       <Box sx={{ flexGrow: 1 }} />
-      <Box sx={{ mx: "auto", mb: 1 }}>
-        <IconButton onClick={handleLogout}>
-          <Logout />
-        </IconButton>
-      </Box>
+      <Stack mb={4} px={2}>
+        <NavItem
+          path={paths.dashboard.notification.root}
+          icon={<Notifications />}
+        />
+        <Box sx={{ mx: "auto" }}>
+          <IconButton onClick={handleLogout}>
+            <Logout />
+          </IconButton>
+        </Box>
+      </Stack>
     </Scrollbar>
   );
 

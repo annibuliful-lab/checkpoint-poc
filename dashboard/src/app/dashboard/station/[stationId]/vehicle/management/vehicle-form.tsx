@@ -172,11 +172,23 @@ export default function VehicleForm({ opened, onClose, vehicle }: Props) {
                   px={2}
                   sx={{ border: "1px solid #0000001F" }}
                 >
-                  <Typography width={120}>Vehicle Info.</Typography>
+                  <Typography width={120}>Vehicle Info</Typography>
                   <Stack direction={"row"} spacing={1} flex={1}>
-                    {/* <RHFTextField size="small" name="brand" label={"Brand"} />
-                    <RHFTextField size="small" name="color" label={"Color"} />
-                    <RHFTextField size="small" name="type" label={"Type"} /> */}
+                    <RHFTextField
+                      size="small"
+                      name="vehicleBrand"
+                      label={"Brand"}
+                    />
+                    <RHFTextField
+                      size="small"
+                      name="vehicleColorName"
+                      label={"Color Name"}
+                    />
+                    <RHFTextField
+                      size="small"
+                      name="vehicleType"
+                      label={"Type"}
+                    />
                   </Stack>
                 </Stack>
                 <Stack height={300} sx={{ border: "1px solid #0000001F" }}>
