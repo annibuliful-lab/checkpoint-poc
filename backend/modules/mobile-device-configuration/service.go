@@ -141,9 +141,6 @@ func (MobileDeviceConfigurationService) Update(data UpdateMobileDeviceConfigurat
 	}
 
 	if data.Imsi != nil {
-		if !utils.ValidateIMSI(*data.Imsi) {
-			return nil, utils.ErrInvalidIMSI
-		}
 
 		imsiConfiguration, err := imsiService.Upsert(imsiconfiguration.UpsertImsiConfigurationData{
 			UpdatedBy:         data.UpdatedBy,
@@ -161,9 +158,6 @@ func (MobileDeviceConfigurationService) Update(data UpdateMobileDeviceConfigurat
 	}
 
 	if data.Imei != nil {
-		if !utils.ValidateIMEI(*data.Imei) {
-			return nil, utils.ErrInvalidIMEI
-		}
 
 		imsiConfiguration, err := imeiService.Upsert(imeiconfiguration.UpsertImeiConfigurationData{
 			UpdatedBy:         data.UpdatedBy,
