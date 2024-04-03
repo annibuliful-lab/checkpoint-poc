@@ -30,7 +30,7 @@ export default function VehicleTable() {
     useDeleteVehicleTargetConfigurationMutation();
   const { data, loading } = useGetVehicleTargetConfigurationsQuery({
     variables: {
-      limit: 100,
+      limit: 100000,
       skip: 0,
     },
   });

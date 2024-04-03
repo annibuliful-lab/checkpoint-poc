@@ -29,9 +29,10 @@ export const httpLink = new HttpLink({
   uri: GRAPHQL.endpoint,
   credentials: "omit",
 });
+export const apolloCache = new NextSSRInMemoryCache();
 function makeClient() {
   return new NextSSRApolloClient({
-    cache: new NextSSRInMemoryCache(),
+    cache: apolloCache,
     credentials: "include",
     link:
       typeof window === "undefined"

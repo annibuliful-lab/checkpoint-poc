@@ -35,6 +35,7 @@ import {
   VehicleTargetConfiguration,
   useCreateVehicleTargetConfigurationMutation,
   useGetTagsQuery,
+  useUpdateVehicleTargetConfigurationMutation,
 } from "@/apollo-client";
 import { IMEI_PRIORITY_OPTIONS, IMEI_STATUS_OPTIONS } from "./const";
 type Props = {
@@ -45,6 +46,8 @@ type Props = {
 export default function VehicleForm({ opened, onClose, vehicle }: Props) {
   const [create, createResponse] =
     useCreateVehicleTargetConfigurationMutation();
+  const [update, updateResponse] =
+    useUpdateVehicleTargetConfigurationMutation();
   const { data } = useGetTagsQuery({
     variables: {
       limit: 100,
@@ -92,14 +95,15 @@ export default function VehicleForm({ opened, onClose, vehicle }: Props) {
   } = methods;
   const onSubmit = handleSubmit(async (values) => {
     const input = values as VehicleFormInput;
-    console.log(input);
-
     if (vehicle?.id) {
-      //
+      await update({
+        variables: { ...input, id: vehicle.id },
+        refetchQueries: [GetVehicleTargetConfigurationsDocument],
+      });
       reset(input);
     } else {
       await create({
-        variables: input as VehicleFormInput,
+        variables: input,
         refetchQueries: [GetVehicleTargetConfigurationsDocument],
       });
       reset();

@@ -8,7 +8,7 @@ import {
 } from "@/components/table";
 import { Card, Table, TableBody, TableContainer } from "@mui/material";
 import React, { useCallback, useMemo, useState } from "react";
-import { IImeiTableFilterValue, IImeiTableFilters } from "./types";
+import { ImeiTableFilterValue, ImeiTableFilters } from "./types";
 import Scrollbar from "@/components/scrollbar";
 import ImeiTableRow from "./table-row";
 import { TABLE_HEAD } from "./const";
@@ -21,7 +21,7 @@ import {
 } from "@/apollo-client";
 import ImeiForm from "./imei-form";
 
-const defaultFilters: IImeiTableFilters = {
+const defaultFilters: ImeiTableFilters = {
   name: "",
 };
 type Props = {
@@ -42,7 +42,7 @@ export default function ImeiTable({ data, loading }: Props) {
     [data]
   );
   const handleFilters = useCallback(
-    (name: string, value: IImeiTableFilterValue) => {
+    (name: string, value: ImeiTableFilterValue) => {
       table.onResetPage();
       setFilters((prevState) => ({
         ...prevState,
