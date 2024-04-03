@@ -48,24 +48,16 @@ export default function VehicleTableRow({ row, onDeleteRow, onEdit }: Props) {
           </Stack>
         </TableCell>
         <TableCell>
-          <Typography fontSize={14} color={"text.primary"}>
-            License Plate Type
-          </Typography>
+          <Typography color={"text.primary"}>{type}</Typography>
         </TableCell>
         <TableCell>
-          <Typography fontSize={14} color={"text.primary"}>
-            Band
-          </Typography>
+          <Typography color={"text.primary"}>Vehicle Band</Typography>
         </TableCell>
         <TableCell>
-          <Typography fontSize={14} color={"text.primary"}>
-            {type}
-          </Typography>
+          <Typography color={"text.primary"}>Vehicle Type</Typography>
         </TableCell>
         <TableCell>
-          <Typography fontSize={14} color={"text.primary"}>
-            Color
-          </Typography>
+          <Typography color={"text.primary"}>Vehicle Color Name</Typography>
         </TableCell>
         <TableCell>
           <Label

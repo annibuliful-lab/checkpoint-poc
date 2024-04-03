@@ -1,5 +1,11 @@
 export const paths = {
   dashboard: {
+    notification: {
+      root: "/dashboard/notification",
+    },
+    setting: {
+      root: "/dashboard/setting",
+    },
     root: "/dashboard",
     station: {
       root: "/dashboard/station",

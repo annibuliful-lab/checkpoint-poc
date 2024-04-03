@@ -6,22 +6,31 @@ import {
 import * as Yup from "yup";
 
 // ----------------------------------------------------------------------
-export const vehicleFormDefaultValues: CreateVehicleTargetConfigurationMutationVariables =
-  {
-    prefix: "",
-    number: "",
-    province: "",
-    type: "",
-    country: "",
-    permittedLabel: DevicePermittedLabel.None,
-    blacklistPriority: BlacklistPriority.Normal,
-    tags: [],
-  };
+export const vehicleFormDefaultValues: CreateVehicleTargetConfigurationMutationVariables & {
+  vehicleBrand: "";
+  vehicleColorName: "";
+  vehicleType: "";
+} = {
+  prefix: "",
+  number: "",
+  province: "",
+  type: "",
+  country: "",
+  vehicleBrand: "",
+  vehicleColorName: "",
+  vehicleType: "",
+  permittedLabel: DevicePermittedLabel.None,
+  blacklistPriority: BlacklistPriority.Normal,
+  tags: [],
+};
 export type VehicleFormInput = typeof vehicleFormDefaultValues;
 export const VehicleFormSchema = Yup.object().shape({
   prefix: Yup.string().required(),
   number: Yup.string().required(),
   province: Yup.string().required(),
+  vehicleBrand: Yup.string().required(),
+  vehicleColorName: Yup.string().required(),
+  vehicleType: Yup.string().required(),
   type: Yup.string().required(),
   permittedLabel: Yup.string().required(),
   blacklistPriority: Yup.string().required(),
