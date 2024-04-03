@@ -1,20 +1,16 @@
 // ----------------------------------------------------------------------
 
-import {
-  ImeiConfiguration,
-  ImsiConfiguration,
-  MobileDeviceConfiguration,
-} from "@/apollo-client";
+import { ImsiConfiguration, MobileDeviceConfiguration } from "@/apollo-client";
 
-export type IImeiTableFilterValue = string | Date | null;
+export type ImeiTableFilterValue = string | Date | null;
 
-export type IImeiTableFilters = {
+export type ImeiTableFilters = {
   name: string;
 };
 
 // ----------------------------------------------------------------------
 
-export type IImeiHistory = {
+export type ImeiHistory = {
   ImeiTime: Date;
   paymentTime: Date;
   deliveryTime: Date;
@@ -25,23 +21,23 @@ export type IImeiHistory = {
   }[];
 };
 
-export type IImeiShippingAddress = {
+export type ImeiShippingAddress = {
   fullAddress: string;
   phoneNumber: string;
 };
 
-export type IImeiPayment = {
+export type ImeiPayment = {
   cardType: string;
   cardNumber: string;
 };
 
-export type IImeiDelivery = {
+export type ImeiDelivery = {
   shipBy: string;
   speedy: string;
   trackingNumber: string;
 };
 
-export type IImeiCustomer = {
+export type ImeiCustomer = {
   id: string;
   name: string;
   email: string;
@@ -49,5 +45,5 @@ export type IImeiCustomer = {
   ipAddress: string;
 };
 
-export type IImeiItem = MobileDeviceConfiguration;
+export type ImeiItem = MobileDeviceConfiguration;
 export type IImsiConfigurationItem = ImsiConfiguration;

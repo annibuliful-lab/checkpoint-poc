@@ -28,6 +28,7 @@ import {
   imeiFormDefaultValues,
 } from "./imei-form.schema";
 import {
+  GetMobileDeviceConfigurationsDocument,
   MobileDeviceConfiguration,
   useCreateMobileDeviceConfigurationMutation,
   useGetTagsQuery,
@@ -97,18 +98,24 @@ export default function ImeiForm({ opened, onClose, dafaultValues }: Props) {
     try {
       const input = values;
       if (dafaultValues?.id) {
-        await update({ variables: { id: dafaultValues?.id, ...input } });
+        await update({
+          variables: { id: dafaultValues?.id, ...input },
+          refetchQueries: [GetMobileDeviceConfigurationsDocument],
+        });
         reset(input);
       } else {
-        await create({ variables: input });
+        await create({
+          variables: input,
+          refetchQueries: [GetMobileDeviceConfigurationsDocument],
+        });
         reset();
       }
+      createResponse.reset();
+      updateResponse.reset();
       onClose();
     } catch (error) {
       console.error(error);
     }
-    createResponse.reset();
-    updateResponse.reset();
   });
 
   useEffect(() => {
@@ -142,7 +149,7 @@ export default function ImeiForm({ opened, onClose, dafaultValues }: Props) {
         >
           <Stack spacing={2}>
             <AlertApolloError
-              error={createResponse.error || updateResponse.error}
+              error={createResponse.error ?? updateResponse.error}
             />
             <Stack direction={"row"} alignItems={"center"}>
               <Typography width={120} variant="subtitle2">

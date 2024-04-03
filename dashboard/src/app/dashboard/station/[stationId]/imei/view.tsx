@@ -7,10 +7,11 @@ import ImeiManageView from "./management/view";
 import { MENU_TABS } from "../const";
 import Transection from "./transaction";
 import ImeiChart from "./chart/chart";
-type Props = {
-  stationLocationId: string;
-};
-export default function ImeiView({ stationLocationId }: Props) {
+import { PropWithStationLocationId } from "../types";
+
+export default function ImeiView({
+  stationLocationId,
+}: PropWithStationLocationId) {
   const menuParams = useSearchParams();
   const content = {
     [MENU_TABS[0]]: (

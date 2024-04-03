@@ -7,11 +7,11 @@ import ImeiFilter from "./filter";
 import ImeiTable from "./table";
 import ImeiForm from "./imei-form";
 import { useGetMobileDeviceConfigurationsQuery } from "@/apollo-client";
+import { PropWithStationLocationId } from "../../types";
 
-type Props = {
-  stationLocationId: string;
-};
-export default function ImeiManageView({ stationLocationId }: Props) {
+export default function ImeiManageView({
+  stationLocationId,
+}: PropWithStationLocationId) {
   const openImeiManageForm = useBoolean();
   const { data, loading } = useGetMobileDeviceConfigurationsQuery({
     variables: {

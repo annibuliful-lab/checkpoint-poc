@@ -9,7 +9,7 @@ import IconButton from "@mui/material/IconButton";
 import { useBoolean } from "@/hooks/use-boolean";
 import Iconify from "@/components/iconify";
 
-import { IImeiItem } from "./types";
+import { ImeiItem } from "./types";
 import CustomPopover, { usePopover } from "@/components/custom-popover";
 import Label from "@/components/label";
 import { ConfirmDialog } from "@/components/custom-dialog";
@@ -21,7 +21,7 @@ import { DevicePermittedLabel } from "@/apollo-client";
 // ----------------------------------------------------------------------
 
 type Props = {
-  row: IImeiItem;
+  row: ImeiItem;
   onDeleteRow: VoidFunction;
   onEdit: VoidFunction;
 };
