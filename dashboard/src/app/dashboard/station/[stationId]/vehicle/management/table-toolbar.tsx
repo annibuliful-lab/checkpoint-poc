@@ -5,13 +5,12 @@ import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
 
 import Iconify from "@/components/iconify";
-import { IStationTableFilterValue, IStationTableFilters } from "./types";
 
 // ----------------------------------------------------------------------
 
 type Props = {
-  filters: IStationTableFilters;
-  onFilters: (name: string, value: IStationTableFilterValue) => void;
+  filters: any;
+  onFilters: (name: string, value: any) => void;
   //
   dateError?: boolean;
 };
