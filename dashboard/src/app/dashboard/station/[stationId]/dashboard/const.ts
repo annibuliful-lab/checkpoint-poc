@@ -1,2 +1,0 @@
-BlacklistPriority;
-DevicePermittedLabel;
