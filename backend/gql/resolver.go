@@ -4,6 +4,7 @@ import (
 	"checkpoint/gql/enum"
 	"checkpoint/modules/authentication"
 	imeiconfiguration "checkpoint/modules/imei-configuration"
+	imeiimsiactivity "checkpoint/modules/imei-imsi-activity"
 	imsiconfiguration "checkpoint/modules/imsi-configuration"
 	mobiledeviceconfiguration "checkpoint/modules/mobile-device-configuration"
 	"checkpoint/modules/notification"
@@ -45,6 +46,7 @@ type Resolver struct {
 	vehicleActivity.StationVehicleActivityResolver
 	vehicleproperty.VehiclePropertyResolver
 	vehicleLicensePlate.VehiclelicensePlateResolver
+	imeiimsiactivity.ImeiImsiActivityResolver
 }
 
 func GraphqlResolver() *Resolver {
