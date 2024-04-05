@@ -1,5 +1,8 @@
 type VehicleTargetConfiguration {
   id: ID!
+  stationLocationId: ID!
+  color: String!
+  brand: String!
   projectId: ID!
   prefix: String!
   number: String!
@@ -13,6 +16,9 @@ type VehicleTargetConfiguration {
 
 type Mutation {
   createVehicleTargetConfiguration(
+    stationLocationId: ID!
+    color: String!
+    brand: String!
     prefix: String!
     number: String!
     province: String!
@@ -25,6 +31,8 @@ type Mutation {
 
   updateVehicleTargetConfiguration(
     id: ID!
+    color: String
+    brand: String
     prefix: String
     number: String
     province: String
@@ -45,6 +53,7 @@ type Query {
   ): VehicleTargetConfiguration! @access(requiredProjectId: true)
 
   getVehicleTargetConfigurations(
+    stationLocationId: ID
     search: String
     permittedLabel: DevicePermittedLabel
     blacklistPriority: BlacklistPriority

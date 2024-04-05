@@ -26,8 +26,8 @@ func (ImsiConfigurationResolver) UpsertImsiConfiguration(ctx context.Context, in
 		ProjectId:         uuid.MustParse(authorization.ProjectId),
 		StationLocationId: uuid.MustParse(authorization.StationId),
 		Imsi:              input.Imsi,
-		BlacklistPriority: input.BlacklistPriority,
-		PermittedLabel:    input.PermittedLabel,
+		BlacklistPriority: &input.BlacklistPriority,
+		PermittedLabel:    &input.PermittedLabel,
 		Tags:              input.Tags,
 	})
 

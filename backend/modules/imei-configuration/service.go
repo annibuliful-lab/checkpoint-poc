@@ -36,17 +36,36 @@ func (ImeiConfigurationService) Upsert(data UpsertImeiConfigurationData) (*ImeiC
 		return nil, utils.InternalServerError
 	}
 
+	var columnToUpsert pg.ColumnList
+	columnToUpsert = append(columnToUpsert,
+		table.ImeiConfiguration.Imei,
+		table.ImeiConfiguration.ID,
+		table.ImeiConfiguration.ProjectId,
+		table.ImeiConfiguration.StationLocationId,
+		table.ImeiConfiguration.CreatedBy,
+	)
+
+	modelToUpsert := model.ImeiConfiguration{
+		ID:                uuid.New(),
+		ProjectId:         data.ProjectId,
+		Imei:              data.Imei,
+		CreatedBy:         data.UpdatedBy,
+		StationLocationId: data.StationLocationId,
+	}
+
+	if data.BlacklistPriority != nil {
+		columnToUpsert = append(columnToUpsert, table.ImeiConfiguration.BlacklistPriority)
+		modelToUpsert.BlacklistPriority = model.BlacklistPriority(*data.BlacklistPriority)
+	}
+
+	if data.PermittedLabel != nil {
+		columnToUpsert = append(columnToUpsert, table.ImeiConfiguration.PermittedLabel)
+		modelToUpsert.PermittedLabel = model.DevicePermittedLabel(*data.PermittedLabel)
+	}
+
 	insertImeiStmt := table.ImeiConfiguration.
-		INSERT(table.ImeiConfiguration.Imei, table.ImeiConfiguration.ID, table.ImeiConfiguration.ProjectId, table.ImeiConfiguration.StationLocationId, table.ImeiConfiguration.CreatedBy, table.ImeiConfiguration.PermittedLabel, table.ImeiConfiguration.BlacklistPriority).
-		MODEL(model.ImeiConfiguration{
-			ID:                uuid.New(),
-			ProjectId:         data.ProjectId,
-			Imei:              data.Imei,
-			CreatedBy:         data.UpdatedBy,
-			PermittedLabel:    model.DevicePermittedLabel(data.PermittedLabel),
-			BlacklistPriority: model.BlacklistPriority(data.BlacklistPriority),
-			StationLocationId: data.StationLocationId,
-		}).
+		INSERT(columnToUpsert).
+		MODEL(modelToUpsert).
 		ON_CONFLICT(table.ImeiConfiguration.Imei, table.ImeiConfiguration.ProjectId).
 		DO_UPDATE(pg.SET(table.ImeiConfiguration.Imei.SET(pg.String(data.Imei)))).
 		RETURNING(table.ImeiConfiguration.AllColumns)
@@ -57,7 +76,7 @@ func (ImeiConfigurationService) Upsert(data UpsertImeiConfigurationData) (*ImeiC
 
 	if err != nil {
 		tx.Rollback()
-		log.Println("upsert-imei-configuration", err.Error())
+		log.Println("upsert-imei-configuration-error", err.Error())
 		return nil, utils.InternalServerError
 	}
 

@@ -6,6 +6,7 @@ import (
 	"checkpoint/db"
 	"checkpoint/gql/enum"
 	tagUtils "checkpoint/modules/tag"
+	vehicleproperty "checkpoint/modules/vehicle-property"
 	"checkpoint/utils"
 	"context"
 	"database/sql"
@@ -28,6 +29,14 @@ func (VehicleTargetConfigurationService) FindMany(data GetVehicleTargetsConfigur
 		AND(table.VehicleTargetConfiguration.ProjectId.EQ(pg.UUID(data.ProjectId)))
 
 	var fromConditions pg.ReadableTable = table.VehicleTargetConfiguration
+
+	if data.StationLocationId != nil {
+		conditions = conditions.AND(
+			table.VehicleTargetConfiguration.StationLocationId.EQ(
+				pg.UUID(data.StationLocationId),
+			),
+		)
+	}
 
 	if data.BlacklistPriority != nil {
 		conditions = conditions.
@@ -204,8 +213,56 @@ func (VehicleTargetConfigurationService) Update(data UpdateVehicleTargetConfigur
 	}
 
 	if data.Type != nil {
+		upsertTypeStmt := vehicleproperty.UpsertStatement(vehicleproperty.UpsertVehiclePropertyData{
+			Property:  *data.Type,
+			Type:      model.PropertyType_VehicleType,
+			ProjectId: data.ProjectId,
+		})
+
+		_, err := upsertTypeStmt.ExecContext(ctx, tx)
+		if err != nil {
+			tx.Rollback()
+			log.Println("tx-upsert-vehicle-target-configuration-type-error", err.Error())
+			return nil, utils.InternalServerError
+		}
+
 		columnsToUpdate = append(columnsToUpdate, table.VehicleTargetConfiguration.Type)
 		fieldsToUpdate.Type = *data.Type
+	}
+
+	if data.Color != nil {
+		upsertColorStmt := vehicleproperty.UpsertStatement(vehicleproperty.UpsertVehiclePropertyData{
+			Property:  *data.Color,
+			Type:      model.PropertyType_VehicleColor,
+			ProjectId: data.ProjectId,
+		})
+
+		_, err = upsertColorStmt.ExecContext(ctx, tx)
+		if err != nil {
+			tx.Rollback()
+			log.Println("tx-upsert-vehicle-target-configuration-color-error", err.Error())
+			return nil, utils.InternalServerError
+		}
+		columnsToUpdate = append(columnsToUpdate, table.VehicleTargetConfiguration.Color)
+		fieldsToUpdate.Color = *data.Color
+	}
+
+	if data.Brand != nil {
+		upsertBrandStmt := vehicleproperty.UpsertStatement(vehicleproperty.UpsertVehiclePropertyData{
+			Property:  *data.Brand,
+			Type:      model.PropertyType_VehicleBrand,
+			ProjectId: data.ProjectId,
+		})
+
+		_, err = upsertBrandStmt.ExecContext(ctx, tx)
+		if err != nil {
+			tx.Rollback()
+			log.Println("tx-upsert-vehicle-target-configuration-brand-error", err.Error())
+			return nil, utils.InternalServerError
+		}
+
+		columnsToUpdate = append(columnsToUpdate, table.VehicleTargetConfiguration.Brand)
+		fieldsToUpdate.Brand = *data.Brand
 	}
 
 	updateVehicleTargetStmt := table.VehicleTargetConfiguration.
@@ -302,26 +359,78 @@ func (VehicleTargetConfigurationService) Create(data CreateVehicleTargetConfigur
 		return nil, utils.InternalServerError
 	}
 
+	upsertColorStmt := vehicleproperty.UpsertStatement(vehicleproperty.UpsertVehiclePropertyData{
+		Property:  data.Color,
+		Type:      model.PropertyType_VehicleColor,
+		ProjectId: data.ProjectId,
+	})
+
+	_, err = upsertColorStmt.ExecContext(ctx, tx)
+	if err != nil {
+		tx.Rollback()
+		log.Println("tx-upsert-vehicle-target-configuration-color-error", err.Error())
+		return nil, utils.InternalServerError
+	}
+
+	upsertTypeStmt := vehicleproperty.UpsertStatement(vehicleproperty.UpsertVehiclePropertyData{
+		Property:  data.Type,
+		Type:      model.PropertyType_VehicleType,
+		ProjectId: data.ProjectId,
+	})
+
+	_, err = upsertTypeStmt.ExecContext(ctx, tx)
+	if err != nil {
+		tx.Rollback()
+		log.Println("tx-upsert-vehicle-target-configuration-type-error", err.Error())
+		return nil, utils.InternalServerError
+	}
+
+	upsertBrandStmt := vehicleproperty.UpsertStatement(vehicleproperty.UpsertVehiclePropertyData{
+		Property:  data.Brand,
+		Type:      model.PropertyType_VehicleBrand,
+		ProjectId: data.ProjectId,
+	})
+
+	_, err = upsertBrandStmt.ExecContext(ctx, tx)
+	if err != nil {
+		tx.Rollback()
+		log.Println("tx-upsert-vehicle-target-configuration-brand-error", err.Error())
+		return nil, utils.InternalServerError
+	}
+
 	createVehicleTargetStmt := table.VehicleTargetConfiguration.
-		INSERT(table.VehicleTargetConfiguration.ID,
+		INSERT(
+			table.VehicleTargetConfiguration.ID,
+			table.VehicleTargetConfiguration.StationLocationId,
 			table.VehicleTargetConfiguration.ProjectId,
 			table.VehicleTargetConfiguration.Prefix,
 			table.VehicleTargetConfiguration.Number,
 			table.VehicleTargetConfiguration.Province,
-			table.VehicleTargetConfiguration.Type,
 			table.VehicleTargetConfiguration.Country,
 			table.VehicleTargetConfiguration.PermittedLabel,
 			table.VehicleTargetConfiguration.BlacklistPriority,
 			table.VehicleTargetConfiguration.CreatedBy,
+			table.VehicleTargetConfiguration.Brand,
+			table.VehicleTargetConfiguration.BrandType,
+			table.VehicleTargetConfiguration.Color,
+			table.VehicleTargetConfiguration.ColorType,
+			table.VehicleTargetConfiguration.Type,
+			table.VehicleTargetConfiguration.TypeType,
 		).
 		MODEL(model.VehicleTargetConfiguration{
 			ID:                uuid.New(),
+			StationLocationId: data.StationLocationId,
 			ProjectId:         data.ProjectId,
 			Prefix:            data.Prefix,
 			Number:            data.Number,
 			Province:          data.Province,
 			Country:           data.Country,
 			Type:              data.Type,
+			TypeType:          model.PropertyType_VehicleType,
+			ColorType:         model.PropertyType_VehicleColor,
+			Color:             data.Color,
+			BrandType:         model.PropertyType_VehicleBrand,
+			Brand:             data.Brand,
 			PermittedLabel:    data.PermittedLabel,
 			BlacklistPriority: data.BlacklistPriority,
 			CreatedBy:         data.CreatedBy,
@@ -388,7 +497,10 @@ func (VehicleTargetConfigurationService) Create(data CreateVehicleTargetConfigur
 func transformToGraphql(item model.VehicleTargetConfiguration) *VehicleTargetConfiguration {
 	return &VehicleTargetConfiguration{
 		ID:                graphql.ID(item.ID.String()),
+		StationLocationId: graphql.ID(item.StationLocationId.String()),
 		ProjectId:         graphql.ID(item.ProjectId.String()),
+		Color:             item.Color,
+		Brand:             item.Brand,
 		Prefix:            item.Prefix,
 		Number:            item.Number,
 		Province:          item.Province,

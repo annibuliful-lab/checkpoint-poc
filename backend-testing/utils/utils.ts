@@ -261,6 +261,36 @@ export async function createStationLocationHealthCheckActivity(
   return createdActivityResponse.createStationLocationHealthCheckActivity;
 }
 
+export async function createVehicleTargetConfiguration() {
+  const prefix = nanoid(2);
+  const number = nanoid(6);
+  const province = nanoid(6);
+  const client = await getAuthenticatedClient({
+    includeProjectId: true,
+  });
+  const vehicleTargetResponse = await client.mutation({
+    createVehicleTargetConfiguration: {
+      __scalar: true,
+      __args: {
+        stationLocationId: STATION_LOCATION_ID,
+        color: 'BLACK',
+        brand: 'TOYOTA',
+        prefix,
+        number,
+        province,
+        type: 'VIP',
+        permittedLabel: 'WHITELIST',
+        blacklistPriority: 'WARNING',
+      },
+    },
+  });
+
+  const vehicleTarget =
+    vehicleTargetResponse.createVehicleTargetConfiguration;
+
+  return vehicleTarget;
+}
+
 export function generateIMSI(): string {
   // Generate MCC (Mobile Country Code), 3 digits
   const mcc = String(Math.floor(Math.random() * 1000)).padStart(

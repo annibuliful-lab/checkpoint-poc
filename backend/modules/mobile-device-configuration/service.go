@@ -322,8 +322,8 @@ func (MobileDeviceConfigurationService) Create(data CreateMobileDeviceConfigurat
 		ProjectId:         data.ProjectId,
 		StationLocationId: data.StationLocationId,
 		Imsi:              data.Imsi,
-		BlacklistPriority: data.BlacklistPriority,
-		PermittedLabel:    data.PermittedLabel,
+		BlacklistPriority: &data.BlacklistPriority,
+		PermittedLabel:    &data.PermittedLabel,
 		Tags:              data.Tags,
 	})
 
@@ -336,8 +336,8 @@ func (MobileDeviceConfigurationService) Create(data CreateMobileDeviceConfigurat
 		StationLocationId: data.StationLocationId,
 		UpdatedBy:         data.CreatedBy,
 		ProjectId:         data.ProjectId,
-		BlacklistPriority: data.BlacklistPriority,
-		PermittedLabel:    data.PermittedLabel,
+		BlacklistPriority: &data.BlacklistPriority,
+		PermittedLabel:    &data.PermittedLabel,
 		Tags:              data.Tags,
 	})
 
