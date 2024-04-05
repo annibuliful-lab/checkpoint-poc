@@ -30,15 +30,38 @@
 #   s3Key: String!
 #   imageUrl: String!
 # }
-
+type StationVehicleActivityImsi {
+  status: RemarkState!
+  imsi: String!
+}
+type StationVehicleActivityImei {
+  status: RemarkState!
+  imei: String!
+}
+enum StationVehicleActivityTagStatus {
+  LICENSE_PLATE
+  IMEI
+  IMSI
+}
+type StationVehicleActivityTag {
+  status: StationVehicleActivityTagStatus!
+  tag: String!
+}
 type StationVehicleActivity {
   id: ID!
   projectId: ID!
   stationLocationId: ID!
+  arrivalTime: String!
+  licensePlate: String!
+  licensePlateType: String!
   brand: String!
+  vehicleType: String!
   color: String!
-  model: String!
-  status: RemarkState!
+  colorName: String!
+  remark: String
+  tags: [StationVehicleActivityTag!]
+  imeis: [StationVehicleActivityImei!]
+  imsis: [StationVehicleActivityImsi!]
 }
 
 type StationVehicleActivityConnection {
@@ -64,6 +87,11 @@ type Mutation {
 }
 
 type Query {
+  getStationVehicleActivities(
+    limit: Int!
+    skip: Int!
+    stationId: ID!
+  ): [StationVehicleActivity!] @access(requiredProjectId: true)
   getStationVehicleActivityById(id: ID!): StationVehicleActivity!
     @access(requiredProjectId: true)
 }

@@ -4,7 +4,6 @@ import (
 	"checkpoint/.gen/checkpoint/public/model"
 	"checkpoint/.gen/checkpoint/public/table"
 	"checkpoint/db"
-	"checkpoint/gql/enum"
 	vehicleproperty "checkpoint/modules/vehicle-property"
 	"checkpoint/utils"
 	"context"
@@ -129,13 +128,18 @@ func (StationVehicleActivityService) Create(data CreateStationVehicleActivityDat
 }
 
 func transformToGraphql(data model.StationVehicleActivity) *StationVehicleActivity {
+	remark := `Mock-Remark`
 	return &StationVehicleActivity{
 		ID:                graphql.ID(data.ID.String()),
-		StationLocationId: graphql.ID(data.StationLocationId.String()),
 		ProjectId:         graphql.ID(data.ProjectId.String()),
-		Brand:             data.Brand,
-		Color:             data.Color,
-		Model:             data.Model,
-		Status:            enum.GetRemarkState(data.Status.String()),
+		StationLocationId: graphql.ID(data.StationLocationId.String()),
+		ArrivalTime:       "Mock-ArrivalTime",
+		LicensePlate:      "Mock-licensePlate",
+		LicensePlateType:  "Mock-licensePlateType",
+		Brand:             "Mock-brand",
+		VehicleType:       "Mock-vehicleType",
+		Color:             "Mock-color",
+		ColorName:         "Mock-colorName",
+		Remark:            &remark,
 	}
 }
