@@ -63,6 +63,12 @@ enum RemarkState {
   SUSPICION
 }
 
+enum ActivityTagType {
+  LICENSE_PLATE
+  IMEI
+  IMSI
+}
+
 type DeleteOperation {
   success: Boolean!
 }
