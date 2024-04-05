@@ -31,8 +31,8 @@ func (ImeiConfigurationResolver) UpsertImeiConfiguration(ctx context.Context, in
 		ProjectId:         uuid.MustParse(authorization.ProjectId),
 		StationLocationId: uuid.MustParse(authorization.StationId),
 		Imei:              input.Imei,
-		PermittedLabel:    input.PermittedLabel,
-		BlacklistPriority: input.BlacklistPriority,
+		PermittedLabel:    &input.PermittedLabel,
+		BlacklistPriority: &input.BlacklistPriority,
 		Tags:              input.Tags,
 	})
 

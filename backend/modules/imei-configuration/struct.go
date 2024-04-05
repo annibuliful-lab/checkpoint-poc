@@ -40,7 +40,7 @@ type UpdateImeiConfigurationData struct {
 	ProjectId         uuid.UUID `json:"projectId"`
 	Imei              string    `json:"imei"`
 	BlacklistPriority string    `json:"blacklistPriority"`
-	UpdatedBy         string    `json:"createdBy"`
+	UpdatedBy         string    `json:"updatedBy"`
 	PermittedLabel    string    `json:"permittedLabel"`
 	Tags              *[]string `json:"tags"`
 }
@@ -57,8 +57,8 @@ type UpsertImeiConfigurationData struct {
 	ProjectId         uuid.UUID
 	StationLocationId uuid.UUID
 	Imei              string
-	PermittedLabel    model.DevicePermittedLabel
-	BlacklistPriority model.BlacklistPriority
+	PermittedLabel    *model.DevicePermittedLabel
+	BlacklistPriority *model.BlacklistPriority
 	Tags              *[]string
 }
 

@@ -9,22 +9,28 @@ import (
 )
 
 type VehicleTargetConfiguration struct {
+	StationLocationId graphql.ID
 	ID                graphql.ID
 	ProjectId         graphql.ID
+	Color             string
+	Brand             string
+	Type              string
 	Prefix            string
 	Number            string
 	Province          string
-	Type              string
 	Country           *string
 	PermittedLabel    enum.DevicePermittedLabel
 	BlacklistPriority enum.BlacklistPriority
 }
 
 type CreateVehicleTargetConfigurationInput struct {
+	StationLocationId graphql.ID
+	Color             string
+	Brand             string
+	Type              string
 	Prefix            string
 	Number            string
 	Province          string
-	Type              string
 	Country           *string
 	PermittedLabel    enum.DevicePermittedLabel
 	BlacklistPriority enum.BlacklistPriority
@@ -32,12 +38,15 @@ type CreateVehicleTargetConfigurationInput struct {
 }
 
 type CreateVehicleTargetConfigurationData struct {
+	StationLocationId uuid.UUID
 	ProjectId         uuid.UUID
+	Color             string
+	Brand             string
+	Type              string
 	CreatedBy         string
 	Prefix            string
 	Number            string
 	Province          string
-	Type              string
 	Country           *string
 	PermittedLabel    model.DevicePermittedLabel
 	BlacklistPriority model.BlacklistPriority
@@ -46,6 +55,8 @@ type CreateVehicleTargetConfigurationData struct {
 
 type UpdateVehicleTargetConfigurationInput struct {
 	ID                graphql.ID
+	Color             *string
+	Brand             *string
 	Prefix            *string
 	Number            *string
 	Province          *string
@@ -60,6 +71,9 @@ type UpdateVehicleTargetConfigurationData struct {
 	ID                uuid.UUID
 	ProjectId         uuid.UUID
 	UpdatedBy         string
+	Color             *string
+	Brand             *string
+	Model             *string
 	Prefix            *string
 	Number            *string
 	Province          *string
@@ -90,6 +104,7 @@ type GetVehicleTargetConfigurationData struct {
 }
 
 type GetVehicleTargetsConfigurationInput struct {
+	StationLocationId *graphql.ID
 	Search            *string
 	Type              *string
 	PermittedLabel    *enum.DevicePermittedLabel
@@ -100,6 +115,7 @@ type GetVehicleTargetsConfigurationInput struct {
 }
 
 type GetVehicleTargetsConfigurationData struct {
+	StationLocationId *uuid.UUID
 	ProjectId         uuid.UUID
 	Type              *string
 	Search            *string

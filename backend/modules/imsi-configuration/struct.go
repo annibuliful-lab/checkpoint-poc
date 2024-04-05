@@ -33,11 +33,11 @@ type UpsertImsiConfigurationInput struct {
 type UpsertImsiConfigurationData struct {
 	UpdatedBy         string
 	ProjectId         uuid.UUID
-	StationLocationId uuid.UUID                  `json:"stationLocationId"`
-	Imsi              string                     `json:"imsi"`
-	PermittedLabel    model.DevicePermittedLabel `json:"permittedLabel"`
-	BlacklistPriority model.BlacklistPriority    `json:"priority"`
-	Tags              *[]string                  `jcon:"tags"`
+	StationLocationId uuid.UUID                   `json:"stationLocationId"`
+	Imsi              string                      `json:"imsi"`
+	PermittedLabel    *model.DevicePermittedLabel `json:"permittedLabel"`
+	BlacklistPriority *model.BlacklistPriority    `json:"priority"`
+	Tags              *[]string                   `jcon:"tags"`
 }
 
 type CreateImsiConfigurationInput struct {

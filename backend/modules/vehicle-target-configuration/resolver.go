@@ -17,12 +17,15 @@ type VehicleTargetConfigurationResolver struct{}
 func (VehicleTargetConfigurationResolver) CreateVehicleTargetConfiguration(ctx context.Context, input CreateVehicleTargetConfigurationInput) (*VehicleTargetConfiguration, error) {
 	authorization := auth.GetAuthorizationContext(ctx)
 	vehicleTarget, err := vehicleService.Create(CreateVehicleTargetConfigurationData{
+		StationLocationId: uuid.MustParse(string(input.StationLocationId)),
 		ProjectId:         uuid.MustParse(authorization.ProjectId),
 		CreatedBy:         authorization.AccountId,
 		Prefix:            input.Prefix,
 		Number:            input.Number,
 		Province:          input.Province,
 		Type:              input.Type,
+		Brand:             input.Brand,
+		Color:             input.Color,
 		Country:           input.Country,
 		PermittedLabel:    model.DevicePermittedLabel(input.PermittedLabel.String()),
 		BlacklistPriority: model.BlacklistPriority(input.BlacklistPriority.String()),
@@ -49,6 +52,8 @@ func (VehicleTargetConfigurationResolver) UpdateVehicleTargetConfiguration(ctx c
 		Number:    input.Number,
 		Province:  input.Province,
 		Type:      input.Type,
+		Brand:     input.Brand,
+		Color:     input.Color,
 		Country:   input.Country,
 		Tags:      input.Tags,
 	}
@@ -121,6 +126,11 @@ func (VehicleTargetConfigurationResolver) GetVehicleTargetConfigurations(ctx con
 		Tags:      input.Tags,
 		Limit:     int64(input.Limit),
 		Skip:      int64(input.Skip),
+	}
+
+	if input.StationLocationId != nil {
+		stationLocationId := uuid.MustParse(string(*input.StationLocationId))
+		filter.StationLocationId = &stationLocationId
 	}
 
 	if input.BlacklistPriority != nil {
