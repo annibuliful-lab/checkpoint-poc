@@ -1,0 +1,3 @@
+package stationdashboardactivity
+
+type StationDashboardActivityService struct{}

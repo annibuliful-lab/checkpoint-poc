@@ -1,0 +1,44 @@
+type StationDashboardActivityTag {
+  type: ActivityTagType!
+  tag: String!
+}
+type StationDashboardActivityVehicleInfo {
+  licensePlate: String!
+  licensePlateType: String!
+  vehicleType: String!
+  stationSiteName: String!
+  status: DevicePermittedLabel!
+  band: String!
+  colorName: String!
+  colorCode: String!
+}
+
+type StationDashboardActivityPicture {
+  driver: String!
+  licensePlate: String!
+  front: String!
+  back: String!
+  side: String!
+}
+
+type StationDashboardActivity {
+  id: ID!
+  projectId: ID!
+  stationLocationId: ID!
+  arrivalTime: String!
+  imei: String!
+  imsi: String!
+  phoneModel: String!
+  tags: [StationDashboardActivityTag!]
+  vehicleInfo: StationDashboardActivityVehicleInfo
+  pictures: StationDashboardActivityPicture
+}
+type Query {
+  getStationDashboardActivities(
+    limit: Int!
+    skip: Int!
+    stationId: ID!
+  ): [StationDashboardActivity!] @access(requiredProjectId: true)
+  getStationDashboardActivityById(id: ID!): StationDashboardActivity
+    @access(requiredProjectId: true)
+}
