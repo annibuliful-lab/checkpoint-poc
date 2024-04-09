@@ -2,6 +2,8 @@ package stationimeiimsiactivity
 
 import (
 	"checkpoint/gql/enum"
+	imeiconfiguration "checkpoint/modules/imei-configuration"
+	imsiconfiguration "checkpoint/modules/imsi-configuration"
 	"context"
 	"time"
 
@@ -20,8 +22,6 @@ func (StationImeiImsiActivityResolver) GetStationImeiImsiActivities(ctx context.
 			StationLocationId: "Mock-StationLocationId",
 			ArrivalTime:       isoTimeString,
 			LicensePlate:      "Mock-LicensePlate",
-			Imei:              "Mock-Imei",
-			Imsi:              "Mock-Imsi",
 			PhoneModel:        "Mock-PhoneModel",
 			StationSiteName:   "Mock-StationSiteName",
 		},
@@ -31,8 +31,6 @@ func (StationImeiImsiActivityResolver) GetStationImeiImsiActivities(ctx context.
 			StationLocationId: "Mock-StationLocationId",
 			ArrivalTime:       isoTimeString,
 			LicensePlate:      "Mock-LicensePlate",
-			Imei:              "Mock-Imei",
-			Imsi:              "Mock-Imsi",
 			PhoneModel:        "Mock-PhoneModel",
 			StationSiteName:   "Mock-StationSiteName",
 		},
@@ -48,8 +46,6 @@ func (StationImeiImsiActivityResolver) GetStationImeiImsiActivityById(ctx contex
 		StationLocationId: "Mock-StationLocationId",
 		ArrivalTime:       isoTimeString,
 		LicensePlate:      "Mock-LicensePlate",
-		Imei:              "Mock-Imei",
-		Imsi:              "Mock-Imsi",
 		PhoneModel:        "Mock-PhoneModel",
 		StationSiteName:   "Mock-StationSiteName",
 	}, nil
@@ -59,4 +55,34 @@ func (parent StationImeiImsiActivity) Tags(ctx context.Context) (*[]StationImeiI
 	tags := []StationImeiImsiActivityTag{{Tag: "Mock-Tag License", Type: enum.GetActivityTagType("LICENSE_PLATE")}}
 
 	return &tags, nil
+}
+
+func (parent StationImeiImsiActivity) Imsi(ctx context.Context) (*imsiconfiguration.ImsiConfiguration, error) {
+	graphqlTime := graphql.Time{Time: time.Now()}
+	imsi := imsiconfiguration.ImsiConfiguration{
+		ID:                "Mock-ID",
+		ProjectId:         "Mock-ProjectId",
+		Imsi:              "Mock-Imsi",
+		CreatedBy:         "Mock-CreatedBy",
+		CreatedAt:         graphqlTime,
+		BlacklistPriority: enum.GetBlacklistPriority("NORMAL"),
+		StationLocationId: "Mock-StationLocationId",
+		PermittedLabel:    enum.GetDevicePermittedLabel("NONE"),
+	}
+	return &imsi, nil
+}
+
+func (parent StationImeiImsiActivity) Imei(ctx context.Context) (*imeiconfiguration.ImeiConfiguration, error) {
+	graphqlTime := graphql.Time{Time: time.Now()}
+	imei := imeiconfiguration.ImeiConfiguration{
+		ID:                "Mock-ID",
+		ProjectId:         "Mock-ProjectId",
+		Imei:              "Mock-Imei",
+		CreatedBy:         "Mock-CreatedBy",
+		CreatedAt:         graphqlTime,
+		BlacklistPriority: enum.GetBlacklistPriority("NORMAL"),
+		StationLocationId: "Mock-StationLocationId",
+		PermittedLabel:    enum.GetDevicePermittedLabel("NONE"),
+	}
+	return &imei, nil
 }

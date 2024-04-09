@@ -26,8 +26,8 @@ type StationDashboardActivity {
   projectId: ID!
   stationLocationId: ID!
   arrivalTime: String!
-  imei: String!
-  imsi: String!
+  imei: ImeiConfiguration
+  imsi: ImsiConfiguration
   phoneModel: String!
   tags: [StationDashboardActivityTag!]
   vehicleInfo: StationDashboardActivityVehicleInfo

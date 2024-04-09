@@ -8,8 +8,8 @@ type StationImeiImsiActivity {
   projectId: ID!
   stationLocationId: ID!
   arrivalTime: String!
-  imei: String!
-  imsi: String!
+  imei: ImeiConfiguration
+  imsi: ImsiConfiguration
   phoneModel: String!
   licensePlate: String!
   stationSiteName: String!

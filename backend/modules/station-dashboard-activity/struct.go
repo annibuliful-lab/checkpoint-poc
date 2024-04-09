@@ -18,8 +18,6 @@ type StationDashboardActivity struct {
 	ProjectId         graphql.ID `json:"projectId"`
 	StationLocationId graphql.ID `json:"stationLocationId"`
 	ArrivalTime       string     `json:"arrivalTime"`
-	Imei              string     `json:"imei"`
-	Imsi              string     `json:"imsi"`
 	PhoneModel        string     `json:"phoneModel"`
 	LicensePlate      string     `json:"licensePlate"`
 	StationSiteName   string     `json:"stationSiteName"`
