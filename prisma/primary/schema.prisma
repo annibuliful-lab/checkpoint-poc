@@ -25,6 +25,8 @@ enum ImageType {
   REAR
   DRIVER
   LICENSE_PLATE
+  NONE
+  CONFIG
 }
 
 enum DeviceStatus {
@@ -523,7 +525,7 @@ model VehicleTargetConfigurationImage {
   id                           String                     @id @db.Uuid
   vehicleTargetConfigurationId String                     @db.Uuid
   vehicleTargetConfiguration   VehicleTargetConfiguration @relation(fields: [vehicleTargetConfigurationId], references: [id])
-  type                         ImageType
+  type                         ImageType                  @default(CONFIG)
   s3Key                        String
   createdBy                    String
   updatedBy                    String?

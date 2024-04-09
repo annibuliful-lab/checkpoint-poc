@@ -3,6 +3,7 @@ package vehicletargetconfiguration
 import (
 	"checkpoint/.gen/checkpoint/public/model"
 	"checkpoint/auth"
+	"checkpoint/gql/enum"
 	"checkpoint/modules/tag"
 	"checkpoint/modules/upload"
 	vehicletargetconfigurationimage "checkpoint/modules/vehicle-target-configuration-image"
@@ -48,6 +49,34 @@ func (VehicleTargetConfigurationResolver) CreateVehicleTargetConfiguration(ctx c
 		}
 	}
 
+	if input.ImageS3Keys != nil && len(*input.ImageS3Keys) != 0 {
+		for _, image := range *input.ImageS3Keys {
+
+			if image.Id != nil {
+				_, err := vehicleTargetImageService.Update(ctx, vehicletargetconfigurationimage.UpdateVehicleTargetConfigurationImageData{
+					Id:        uuid.MustParse(string(*image.Id)),
+					S3Key:     image.S3Key,
+					Type:      image.Type,
+					UpdatedBy: authorization.AccountId,
+				})
+
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				_, err := vehicleTargetImageService.Create(ctx, vehicletargetconfigurationimage.CreateVehicleTargetConfigurationImageData{
+					S3Key:                        image.S3Key,
+					Type:                         image.Type,
+					VehicleTargetConfigurationId: uuid.MustParse(string(vehicleTarget.ID)),
+				})
+
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+
 	return vehicleTarget, nil
 }
 
@@ -83,6 +112,34 @@ func (VehicleTargetConfigurationResolver) UpdateVehicleTargetConfiguration(ctx c
 		return nil, utils.GraphqlError{
 			Code:    err.Error(),
 			Message: err.Error(),
+		}
+	}
+
+	if input.ImageS3Keys != nil && len(*input.ImageS3Keys) != 0 {
+		for _, image := range *input.ImageS3Keys {
+
+			if image.Id != nil {
+				_, err := vehicleTargetImageService.Update(ctx, vehicletargetconfigurationimage.UpdateVehicleTargetConfigurationImageData{
+					Id:        uuid.MustParse(string(*image.Id)),
+					S3Key:     image.S3Key,
+					Type:      image.Type,
+					UpdatedBy: authorization.AccountId,
+				})
+
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				_, err := vehicleTargetImageService.Create(ctx, vehicletargetconfigurationimage.CreateVehicleTargetConfigurationImageData{
+					S3Key:                        image.S3Key,
+					Type:                         image.Type,
+					VehicleTargetConfigurationId: uuid.MustParse(string(vehicleTarget.ID)),
+				})
+
+				if err != nil {
+					return nil, err
+				}
+			}
 		}
 	}
 
@@ -200,6 +257,7 @@ func (parent VehicleTargetConfiguration) Images(ctx context.Context) (*[]vehicle
 		return vehicletargetconfigurationimage.VehicleTargetConfigurationImage{
 			Id:                           graphql.ID(item.ID.String()),
 			VehicleTargetConfigurationId: graphql.ID(item.VehicleTargetConfigurationId.String()),
+			Type:                         enum.GetImageType(item.Type.String()),
 			Url:                          *url,
 			S3Key:                        item.S3key,
 		}

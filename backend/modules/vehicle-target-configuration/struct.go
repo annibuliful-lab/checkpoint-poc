@@ -23,6 +23,12 @@ type VehicleTargetConfiguration struct {
 	BlacklistPriority enum.BlacklistPriority
 }
 
+type UpsertImageS3KeyInput struct {
+	Id    *graphql.ID
+	S3Key string
+	Type  enum.ImageType
+}
+
 type CreateVehicleTargetConfigurationInput struct {
 	StationLocationId graphql.ID
 	Color             string
@@ -36,6 +42,7 @@ type CreateVehicleTargetConfigurationInput struct {
 	PermittedLabel    enum.DevicePermittedLabel
 	BlacklistPriority enum.BlacklistPriority
 	Tags              *[]string
+	ImageS3Keys       *[]UpsertImageS3KeyInput
 }
 
 type CreateVehicleTargetConfigurationData struct {
@@ -68,6 +75,7 @@ type UpdateVehicleTargetConfigurationInput struct {
 	PermittedLabel    *enum.DevicePermittedLabel
 	BlacklistPriority *enum.BlacklistPriority
 	Tags              *[]string
+	ImageS3Keys       *[]UpsertImageS3KeyInput
 }
 
 type UpdateVehicleTargetConfigurationData struct {

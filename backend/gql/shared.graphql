@@ -20,6 +20,8 @@ enum ImageType {
   REAR
   DRIVER
   LICENSE_PLATE
+  NONE
+  CONFIG
 }
 
 enum DeviceStatus {

@@ -15,6 +15,12 @@ type VehicleTargetConfiguration {
   images: [VehicleTargetConfigurationImage!]
 }
 
+input upsertImageS3KeyInput {
+  id: ID
+  s3Key: String!
+  type: ImageType!
+}
+
 type Mutation {
   createVehicleTargetConfiguration(
     stationLocationId: ID!
@@ -28,6 +34,7 @@ type Mutation {
     permittedLabel: DevicePermittedLabel!
     blacklistPriority: BlacklistPriority!
     tags: [String!]
+    imageS3Keys: [upsertImageS3KeyInput!]
   ): VehicleTargetConfiguration! @access(requiredProjectId: true)
 
   updateVehicleTargetConfiguration(
@@ -42,6 +49,7 @@ type Mutation {
     permittedLabel: DevicePermittedLabel
     blacklistPriority: BlacklistPriority
     tags: [String!]
+    imageS3Keys: [upsertImageS3KeyInput!]
   ): VehicleTargetConfiguration! @access(requiredProjectId: true)
 
   deleteVehicleTargetConfiguration(id: ID!): DeleteOperation!
