@@ -1,13 +1,11 @@
-query getStationDashboardActivities(
-  $limit: Int!
-  $skip: Int!
-  $stationId: ID!
-) {
-  getStationDashboardActivities(
-    limit: $limit
-    skip: $skip
-    stationId: $stationId
-  ) {
+query getStationDashboardActivityById($id: ID!) {
+  getStationDashboardActivityById(id: $id) {
+    imei {
+      ...ImeiConfigurationFields
+    }
+    imsi {
+      ...ImsiConfigurationFields
+    }
     tags {
       ...StationDashboardActivityTagFields
     }
@@ -21,8 +19,22 @@ query getStationDashboardActivities(
   }
 }
 
-query getStationDashboardActivityById($id: ID!) {
-  getStationDashboardActivityById(id: $id) {
+query getStationDashboardActivities(
+  $limit: Int!
+  $skip: Int!
+  $stationId: ID!
+) {
+  getStationDashboardActivities(
+    limit: $limit
+    skip: $skip
+    stationId: $stationId
+  ) {
+    imei {
+      ...ImeiConfigurationFields
+    }
+    imsi {
+      ...ImsiConfigurationFields
+    }
     tags {
       ...StationDashboardActivityTagFields
     }
@@ -41,8 +53,6 @@ fragment StationDashboardActivityFields on StationDashboardActivity {
   projectId
   stationLocationId
   arrivalTime
-  imei
-  imsi
   phoneModel
 }
 

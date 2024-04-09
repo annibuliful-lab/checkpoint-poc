@@ -1,7 +1,12 @@
 import { Stack, Typography, Button, Divider, Box } from "@mui/material";
+import { useAtomValue } from "jotai";
 import React from "react";
+import { stationDashboardActivityAtom } from "./store";
+import { fDateTime } from "@/utils/format-time";
 
 export default function VehicleInfo() {
+  const dashboardActivity = useAtomValue(stationDashboardActivityAtom);
+
   return (
     <Box
       width={342}
@@ -20,39 +25,43 @@ export default function VehicleInfo() {
         {[
           {
             label: "License Plate",
-            value: "1กฮ 1234 กรุงเทพมหานคร",
+            value: dashboardActivity?.vehicleInfo?.licensePlate,
           },
           {
             label: "Station Site",
-            value: "ภ.9 ยะลา",
+            value: dashboardActivity?.vehicleInfo?.stationSiteName,
           },
           {
             label: "Status",
-            value: "BLACKLIST",
+            value: dashboardActivity?.vehicleInfo?.status,
           },
           {
             label: "Arrival Time",
-            value: "12/02/2024 12:00:22",
+            value: fDateTime(dashboardActivity?.arrivalTime),
           },
           {
             label: "License Plate Type",
-            value: "Private Car",
+            value: dashboardActivity?.vehicleInfo?.licensePlateType,
           },
           {
             label: "Vehicle Type",
-            value: "Standard Sedan",
+            value: dashboardActivity?.vehicleInfo?.vehicleType,
           },
           {
             label: "Brand",
-            value: "Honda",
+            value: dashboardActivity?.vehicleInfo?.band,
           },
           {
             label: "Color",
-            value: "Black",
+            value: dashboardActivity?.vehicleInfo?.colorName,
+            type: "COLOR",
           },
           {
             label: "Tag",
-            value: "-",
+            value: dashboardActivity?.tags
+              ?.map((tag) => `${tag.tag}`)
+              .join(", "),
+            type: "TAGS",
           },
         ].map((info, i) => (
           <Stack

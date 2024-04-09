@@ -1,5 +1,11 @@
 query getStationImeiImsiActivityById($id: ID!) {
   getStationImeiImsiActivityById(id: $id) {
+    imei {
+      ...ImeiConfigurationFields
+    }
+    imsi {
+      ...ImsiConfigurationFields
+    }
     tags {
       ...StationImeiImsiActivityTagFields
     }
@@ -13,6 +19,12 @@ query getStationImeiImsiActivities($limit: Int!, $skip: Int!, $stationId: ID!) {
     skip: $skip
     stationId: $stationId
   ) {
+    imei {
+      ...ImeiConfigurationFields
+    }
+    imsi {
+      ...ImsiConfigurationFields
+    }
     tags {
       ...StationImeiImsiActivityTagFields
     }
@@ -25,8 +37,6 @@ fragment StationImeiImsiActivityFields on StationImeiImsiActivity {
   projectId
   stationLocationId
   arrivalTime
-  imei
-  imsi
   phoneModel
   licensePlate
   stationSiteName
