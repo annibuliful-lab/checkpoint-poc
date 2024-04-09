@@ -7,24 +7,40 @@ import {
   useTable,
 } from "@/components/table";
 import { Card, Table, TableBody, TableContainer } from "@mui/material";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Scrollbar from "@/components/scrollbar";
 import VehicleTableRow from "./table-row";
-import { DATA, TABLE_HEAD } from "./const";
+import { TABLE_HEAD } from "./const";
 import { useBoolean } from "@/hooks/use-boolean";
 import _ from "lodash";
+import { useGetStationDashboardActivitiesQuery } from "@/apollo-client";
+import { PropWithStationLocationId } from "../../types";
+import { useSetAtom } from "jotai";
+import { stationDashboardActivityAtom } from "../store";
 
 const defaultFilters = {
   name: "",
 };
-export default function VehicleTransectionTable() {
+export default function VehicleTransectionTable({
+  stationLocationId,
+}: PropWithStationLocationId) {
   const table = useTable({
     defaultOrderBy: "createdAt",
     defaultOrder: "desc",
     defaultRowsPerPage: 10,
   });
   const [filters, setFilters] = useState(defaultFilters);
-  const dataInTable = useMemo(() => DATA, []);
+  const { data, loading } = useGetStationDashboardActivitiesQuery({
+    variables: {
+      limit: 1000,
+      skip: 0,
+      stationId: stationLocationId,
+    },
+  });
+  const dataInTable = useMemo(
+    () => data?.getStationDashboardActivities ?? [],
+    [data?.getStationDashboardActivities]
+  );
   const handleDeleteRow = useCallback((id: string) => {
     //
   }, []);
@@ -37,6 +53,17 @@ export default function VehicleTransectionTable() {
     },
     [openVehicleForm]
   );
+  const setDashboardActivity = useSetAtom(stationDashboardActivityAtom);
+  useEffect(() => {
+    const recent = data?.getStationDashboardActivities?.[0];
+    if (recent) {
+      setDashboardActivity(recent);
+    }
+    return () => {
+      //
+    };
+  }, [data?.getStationDashboardActivities, setDashboardActivity]);
+
   return (
     <Card>
       <TableContainer sx={{ position: "relative", overflow: "unset" }}>
@@ -50,7 +77,7 @@ export default function VehicleTransectionTable() {
               numSelected={table.selected.length}
               onSort={table.onSort}
             />
-            {false ? (
+            {loading ? (
               <TableSkeleton />
             ) : (
               <TableBody>

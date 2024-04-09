@@ -16,6 +16,9 @@ export const vehicleFormDefaultValues: CreateVehicleTargetConfigurationMutationV
     permittedLabel: DevicePermittedLabel.None,
     blacklistPriority: BlacklistPriority.Normal,
     tags: [],
+    stationLocationId: "",
+    color: "",
+    brand: "",
   };
 export type VehicleFormInput = typeof vehicleFormDefaultValues;
 export const VehicleFormSchema = Yup.object().shape({
