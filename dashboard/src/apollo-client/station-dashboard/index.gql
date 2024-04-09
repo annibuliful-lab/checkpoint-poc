@@ -1,0 +1,71 @@
+query getStationDashboardActivities(
+  $limit: Int!
+  $skip: Int!
+  $stationId: ID!
+) {
+  getStationDashboardActivities(
+    limit: $limit
+    skip: $skip
+    stationId: $stationId
+  ) {
+    tags {
+      ...StationDashboardActivityTagFields
+    }
+    vehicleInfo {
+      ...StationDashboardActivityVehicleInfoFields
+    }
+    pictures {
+      ...StationDashboardActivityPictureFields
+    }
+    ...StationDashboardActivityFields
+  }
+}
+
+query getStationDashboardActivityById($id: ID!) {
+  getStationDashboardActivityById(id: $id) {
+    tags {
+      ...StationDashboardActivityTagFields
+    }
+    vehicleInfo {
+      ...StationDashboardActivityVehicleInfoFields
+    }
+    pictures {
+      ...StationDashboardActivityPictureFields
+    }
+    ...StationDashboardActivityFields
+  }
+}
+
+fragment StationDashboardActivityFields on StationDashboardActivity {
+  id
+  projectId
+  stationLocationId
+  arrivalTime
+  imei
+  imsi
+  phoneModel
+}
+
+fragment StationDashboardActivityTagFields on StationDashboardActivityTag {
+  type
+  tag
+}
+
+fragment StationDashboardActivityVehicleInfoFields on StationDashboardActivityVehicleInfo {
+  licensePlate
+  licensePlateType
+  vehicleType
+  stationSiteName
+  status
+  band
+  colorName
+  colorCode
+}
+
+fragment StationDashboardActivityPictureFields on StationDashboardActivityPicture {
+  driver
+  licensePlate
+  front
+  back
+  side
+}

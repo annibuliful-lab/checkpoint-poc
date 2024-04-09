@@ -1,13 +1,5 @@
-query getVehicleTargetConfigurationById($id: ID!) {
-  getVehicleTargetConfigurationById(id: $id) {
-    tags {
-      ...TagFields
-    }
-    ...VehicleTargetConfigurationFields
-  }
-}
-
 query getVehicleTargetConfigurations(
+  $stationLocationId: ID
   $search: String
   $permittedLabel: DevicePermittedLabel
   $blacklistPriority: BlacklistPriority
@@ -17,6 +9,7 @@ query getVehicleTargetConfigurations(
   $skip: Int!
 ) {
   getVehicleTargetConfigurations(
+    stationLocationId: $stationLocationId
     search: $search
     permittedLabel: $permittedLabel
     blacklistPriority: $blacklistPriority
@@ -28,11 +21,29 @@ query getVehicleTargetConfigurations(
     tags {
       ...TagFields
     }
+    images {
+      ...VehicleTargetConfigurationImageFields
+    }
+    ...VehicleTargetConfigurationFields
+  }
+}
+
+query getVehicleTargetConfigurationById($id: ID!) {
+  getVehicleTargetConfigurationById(id: $id) {
+    tags {
+      ...TagFields
+    }
+    images {
+      ...VehicleTargetConfigurationImageFields
+    }
     ...VehicleTargetConfigurationFields
   }
 }
 
 mutation createVehicleTargetConfiguration(
+  $stationLocationId: ID!
+  $color: String!
+  $brand: String!
   $prefix: String!
   $number: String!
   $province: String!
@@ -43,6 +54,9 @@ mutation createVehicleTargetConfiguration(
   $tags: [String!]
 ) {
   createVehicleTargetConfiguration(
+    stationLocationId: $stationLocationId
+    color: $color
+    brand: $brand
     prefix: $prefix
     number: $number
     province: $province
@@ -55,34 +69,8 @@ mutation createVehicleTargetConfiguration(
     tags {
       ...TagFields
     }
-    ...VehicleTargetConfigurationFields
-  }
-}
-
-mutation updateVehicleTargetConfiguration(
-  $id: ID!
-  $prefix: String
-  $number: String
-  $province: String
-  $type: String
-  $country: String
-  $permittedLabel: DevicePermittedLabel
-  $blacklistPriority: BlacklistPriority
-  $tags: [String!]
-) {
-  updateVehicleTargetConfiguration(
-    id: $id
-    prefix: $prefix
-    number: $number
-    province: $province
-    type: $type
-    country: $country
-    permittedLabel: $permittedLabel
-    blacklistPriority: $blacklistPriority
-    tags: $tags
-  ) {
-    tags {
-      ...TagFields
+    images {
+      ...VehicleTargetConfigurationImageFields
     }
     ...VehicleTargetConfigurationFields
   }
@@ -96,6 +84,9 @@ mutation deleteVehicleTargetConfiguration($id: ID!) {
 
 fragment VehicleTargetConfigurationFields on VehicleTargetConfiguration {
   id
+  stationLocationId
+  color
+  brand
   projectId
   prefix
   number
@@ -110,4 +101,11 @@ fragment TagFields on Tag {
   id
   projectId
   title
+}
+
+fragment VehicleTargetConfigurationImageFields on VehicleTargetConfigurationImage {
+  id
+  vehicleTargetConfigurationId
+  type
+  url
 }
