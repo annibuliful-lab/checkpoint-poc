@@ -4,13 +4,22 @@ import (
 	"checkpoint/.gen/checkpoint/public/model"
 	"checkpoint/auth"
 	"checkpoint/modules/tag"
+	"checkpoint/modules/upload"
+	vehicletargetconfigurationimage "checkpoint/modules/vehicle-target-configuration-image"
 	"checkpoint/utils"
 	"context"
+	"log"
 
 	"github.com/google/uuid"
+	"github.com/graph-gophers/dataloader"
+	"github.com/graph-gophers/graphql-go"
+	"github.com/samber/lo"
 )
 
 var vehicleService = VehicleTargetConfigurationService{}
+var tagDataloader = tag.TagService{}.VehicleTargetConfigurationTags()
+var vehicleTargetImageService = vehicletargetconfigurationimage.VehicleTargetConfigurationImageService{}
+var imageDatalaoder = vehicleTargetImageService.Dataloader()
 
 type VehicleTargetConfigurationResolver struct{}
 
@@ -156,5 +165,45 @@ func (VehicleTargetConfigurationResolver) GetVehicleTargetConfigurations(ctx con
 }
 
 func (parent VehicleTargetConfiguration) Tags(ctx context.Context) (*[]tag.Tag, error) {
-	return &[]tag.Tag{}, nil
+	thunk := tagDataloader.Load(ctx, dataloader.StringKey(parent.ID))
+	tagsLoaderResult, err := thunk()
+	if err != nil {
+		log.Println(err.Error())
+		return nil, nil
+	}
+
+	tags := lo.Map(tagsLoaderResult.([]tag.VehicleTargetConfigurationTag), func(item tag.VehicleTargetConfigurationTag, index int) tag.Tag {
+		return tag.Tag{
+			Id:        graphql.ID(item.Tag.ID.String()),
+			Title:     item.Tag.Title,
+			ProjectId: graphql.ID(item.Tag.ProjectId.String()),
+		}
+	})
+
+	return &tags, nil
+}
+
+func (parent VehicleTargetConfiguration) Images(ctx context.Context) (*[]vehicletargetconfigurationimage.VehicleTargetConfigurationImage, error) {
+	thunk := imageDatalaoder.Load(ctx, dataloader.StringKey(parent.ID))
+	tagsLoaderResult, err := thunk()
+	if err != nil {
+		log.Println(err.Error())
+		return nil, nil
+	}
+
+	images := lo.Map(tagsLoaderResult.([]model.VehicleTargetConfigurationImage), func(item model.VehicleTargetConfigurationImage, index int) vehicletargetconfigurationimage.VehicleTargetConfigurationImage {
+		url, err := upload.SignedUrl(ctx, item.S3key)
+		if err != nil {
+			log.Println("get-signed-url-error", err.Error())
+		}
+
+		return vehicletargetconfigurationimage.VehicleTargetConfigurationImage{
+			Id:                           graphql.ID(item.ID.String()),
+			VehicleTargetConfigurationId: graphql.ID(item.VehicleTargetConfigurationId.String()),
+			Url:                          *url,
+			S3Key:                        item.S3key,
+		}
+	})
+
+	return &images, nil
 }

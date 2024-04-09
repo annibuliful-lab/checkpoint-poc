@@ -255,3 +255,42 @@ func (TagService) MobileDeviceConfigurationTagDataloader() *dataloader.Loader {
 		return results
 	}, dataloader.WithClearCacheOnBatch())
 }
+
+func (TagService) VehicleTargetConfigurationTags() *dataloader.Loader {
+
+	return dataloader.NewBatchedLoader(func(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
+		dbClient := db.GetPrimaryClient()
+		var ids []pg.Expression
+
+		for _, id := range keys {
+			ids = append(ids, pg.UUID(uuid.MustParse(id.String())))
+		}
+
+		vehicleTargetTags := []VehicleTargetConfigurationTag{}
+
+		getVehicleTargetTagsStmt := table.Tag.
+			SELECT(table.Tag.AllColumns, table.VehicleTargetConfigurationTag.AllColumns).
+			FROM(table.Tag.
+				INNER_JOIN(table.VehicleTargetConfigurationTag, table.VehicleTargetConfigurationTag.TagId.EQ(table.Tag.ID))).
+			WHERE(table.VehicleTargetConfigurationTag.VehicleTargetConfigurationId.IN(ids...))
+
+		err := getVehicleTargetTagsStmt.Query(dbClient, &vehicleTargetTags)
+
+		if err != nil {
+			log.Println("dataloader-vehicle-target-configuration-tag-error", err.Error())
+			return nil
+		}
+
+		var results []*dataloader.Result
+
+		for _, key := range keys {
+			filtered := lo.Filter(vehicleTargetTags, func(item VehicleTargetConfigurationTag, index int) bool {
+				return item.VehicleTargetConfigurationId == uuid.MustParse(key.String())
+			})
+
+			results = append(results, &dataloader.Result{Data: filtered})
+		}
+
+		return results
+	}, dataloader.WithClearCacheOnBatch())
+}

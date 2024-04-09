@@ -43,3 +43,8 @@ type StationLocationTag struct {
 	model.StationLocationTag
 	model.Tag
 }
+
+type VehicleTargetConfigurationTag struct {
+	model.VehicleTargetConfigurationTag
+	model.Tag
+}

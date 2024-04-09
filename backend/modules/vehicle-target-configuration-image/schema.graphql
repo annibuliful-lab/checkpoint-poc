@@ -1,0 +1,6 @@
+type VehicleTargetConfigurationImage {
+  id: ID!
+  vehicleTargetConfigurationId: ID!
+  type: ImageType!
+  url: String!
+}

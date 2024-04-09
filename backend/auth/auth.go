@@ -115,7 +115,11 @@ func GraphqlContext(next http.Handler) http.Handler {
 		}
 
 		ctx := context.WithValue(r.Context(), "token", headers.Token)
-		ctx = context.WithValue(ctx, "projectId", headers.ProjectId)
+
+		if headers.ProjectId != "" {
+			ctx = context.WithValue(ctx, "projectId", headers.ProjectId)
+		}
+
 		ctx = context.WithValue(ctx, "accountId", payload.AccountId.String())
 		ctx = context.WithValue(ctx, "stationId", headers.StationId)
 

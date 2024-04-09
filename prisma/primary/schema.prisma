@@ -422,7 +422,7 @@ model StationOfficer {
   projectAccount    ProjectAccount? @relation(fields: [projectAccountId], references: [id])
   firstname         String
   lastname          String
-  msisdn            String          @db.VarChar(10)
+  msisdn            String          @db.VarChar(16)
   createdBy         String
   updatedBy         String?
   deletedBy         String?
@@ -430,6 +430,7 @@ model StationOfficer {
   createdAt         DateTime        @default(now()) @db.Timestamptz(3)
   updatedAt         DateTime?       @db.Timestamptz(3)
 
+  @@unique([stationLocationId, firstname])
   @@index([firstname, lastname])
   @@map("station_officer")
 }
@@ -531,7 +532,7 @@ model VehicleTargetConfigurationImage {
   createdAt                    DateTime                   @default(now()) @db.Timestamptz(3)
   updatedAt                    DateTime?                  @db.Timestamptz(3)
 
-  @@map("vehicle_target_configurationimage")
+  @@map("vehicle_target_configuration_image")
 }
 
 model VehicleProperty {

@@ -9,17 +9,22 @@ import (
 	"github.com/minio/minio-go/v7"
 )
 
-func UploadFile(ctx context.Context, objectName string, file io.Reader, size int64) (*string, error) {
+func UploadFile(ctx context.Context, objectName string, file io.Reader) (*string, *string, error) {
 	minioClient, err := s3.GetClient()
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	minioClient.Client.PutObject(ctx, minioClient.BucketName, objectName, file, size, minio.PutObjectOptions{})
+	info, err := minioClient.Client.PutObject(ctx, minioClient.BucketName, objectName, file, -1, minio.PutObjectOptions{})
+
+	if err != nil {
+		return nil, nil, err
+	}
+
 	url, err := SignedUrl(ctx, objectName)
 
-	return url, err
+	return &info.Key, url, err
 }
 
 func SignedUrl(ctx context.Context, objectName string) (*string, error) {
