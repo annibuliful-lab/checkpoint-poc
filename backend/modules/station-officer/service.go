@@ -84,6 +84,46 @@ func (StationOfficerService) FindById(data GetStationOfficerData) (*StationOffic
 	return transformToGraphql(stationOfficer), nil
 }
 
+func (StationOfficerService) Upsert(data CreateStationOfficerData) (*StationOfficer, error) {
+	dbClient := db.GetPrimaryClient()
+
+	modelToUpsert := model.StationOfficer{
+		ID:                uuid.New(),
+		StationLocationId: data.StationLocationId,
+		Firstname:         data.Firstname,
+		Lastname:          "",
+		Msisdn:            data.Msisdn,
+		CreatedBy:         data.CreatedBy,
+	}
+
+	var columnToUpsert pg.ColumnList
+	columnToUpsert = append(columnToUpsert,
+		table.StationOfficer.ID,
+		table.StationOfficer.StationLocationId,
+		table.StationOfficer.Firstname,
+		table.StationOfficer.Lastname,
+		table.StationOfficer.Msisdn,
+		table.StationOfficer.CreatedBy,
+	)
+
+	upsertStationOfficerStmt := table.StationOfficer.
+		INSERT(columnToUpsert).
+		MODEL(modelToUpsert).
+		ON_CONFLICT(table.StationOfficer.StationLocationId, table.StationOfficer.Firstname).
+		DO_UPDATE(pg.SET(table.StationOfficer.Firstname.SET(pg.String(data.Firstname)))).
+		RETURNING(table.StationOfficer.AllColumns)
+
+	stationOfficer := model.StationOfficer{}
+
+	err := upsertStationOfficerStmt.Query(dbClient, &stationOfficer)
+	if err != nil {
+		log.Println("upsert-station-officer-error", err.Error())
+		return nil, utils.InternalServerError
+	}
+
+	return transformToGraphql(stationOfficer), nil
+}
+
 func (StationOfficerService) Delete(data DeleteStationOfficerData) (*utils.DeleteOperation, error) {
 	dbClient := db.GetPrimaryClient()
 	now := time.Now()

@@ -12,6 +12,7 @@ type VehicleTargetConfiguration {
   permittedLabel: DevicePermittedLabel!
   blacklistPriority: BlacklistPriority!
   tags: [Tag!]
+  images: [VehicleTargetConfigurationImage!]
 }
 
 type Mutation {

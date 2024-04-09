@@ -12,6 +12,11 @@ type StationLocation {
   tags: [Tag!]
 }
 
+input UpserStationOfficerInput {
+  firstname: String!
+  msisdn: String!
+}
+
 type Mutation {
   createStationLocation(
     title: String!
@@ -21,6 +26,7 @@ type Mutation {
     longitude: Float!
     tags: [String!]
     remark: String
+    officers: [UpserStationOfficerInput!]
   ): StationLocation! @access(requiredProjectId: true)
 
   updateStationLocation(
@@ -31,6 +37,7 @@ type Mutation {
     longitude: Float
     remark: String
     tags: [String!]
+    officers: [UpserStationOfficerInput!]
   ): StationLocation! @access(requiredProjectId: true)
 
   deleteStationLocation(id: ID!): DeleteOperation!

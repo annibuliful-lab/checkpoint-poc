@@ -14,6 +14,47 @@ describe('Vehicle target configuration', () => {
     client = await getAuthenticatedClient({ includeProjectId: true });
   });
 
+  it('creates with tags', async () => {
+    const tags = [nanoid()];
+    const prefix = nanoid(2);
+    const number = nanoid(6);
+    const province = nanoid(6);
+    const vehicleTargetResponse = await client.mutation({
+      createVehicleTargetConfiguration: {
+        __scalar: true,
+        tags: {
+          __scalar: true,
+        },
+        __args: {
+          stationLocationId: STATION_LOCATION_ID,
+          color: 'BLACK',
+          brand: 'TOYOTA',
+          prefix,
+          number,
+          province,
+          type: 'VIP',
+          permittedLabel: 'WHITELIST',
+          blacklistPriority: 'WARNING',
+          tags,
+        },
+      },
+    });
+
+    const vehicleTarget =
+      vehicleTargetResponse.createVehicleTargetConfiguration;
+
+    const vehicleTargetTags = vehicleTarget.tags;
+
+    expect(vehicleTargetTags?.length).toEqual(1);
+    expect(vehicleTargetTags?.[0].title).toEqual(tags[0]);
+
+    expect(vehicleTarget.number).toEqual(number);
+    expect(vehicleTarget.color).toEqual('BLACK');
+    expect(vehicleTarget.prefix).toEqual(prefix);
+    expect(vehicleTarget.province).toEqual(province);
+    expect(vehicleTarget.type).toEqual('VIP');
+  });
+
   it('creates', async () => {
     const prefix = nanoid(2);
     const number = nanoid(6);
@@ -43,6 +84,42 @@ describe('Vehicle target configuration', () => {
     expect(vehicleTarget.prefix).toEqual(prefix);
     expect(vehicleTarget.province).toEqual(province);
     expect(vehicleTarget.type).toEqual('VIP');
+  });
+
+  it('updates with tags', async () => {
+    const vehicleTarget = await createVehicleTargetConfiguration();
+    const prefix = nanoid(2);
+    const number = nanoid(6);
+    const province = nanoid(6);
+    const type = nanoid(3);
+    const tag = nanoid();
+    const updatedResponse = await client.mutation({
+      updateVehicleTargetConfiguration: {
+        __scalar: true,
+        tags: { __scalar: true },
+        __args: {
+          id: vehicleTarget.id,
+          prefix,
+          number,
+          province,
+          type,
+          color: 'WHITE',
+          tags: [tag],
+        },
+      },
+    });
+
+    const updated = updatedResponse.updateVehicleTargetConfiguration;
+    const vehicleTargetTags = updated.tags;
+
+    expect(vehicleTargetTags?.length).toEqual(1);
+    expect(vehicleTargetTags?.[0].title).toEqual(tag);
+
+    expect(updated.number).toEqual(number);
+    expect(updated.color).toEqual('WHITE');
+    expect(updated.prefix).toEqual(prefix);
+    expect(updated.province).toEqual(province);
+    expect(updated.type).toEqual(type);
   });
 
   it('updates an existing', async () => {

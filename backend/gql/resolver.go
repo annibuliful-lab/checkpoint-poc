@@ -18,6 +18,7 @@ import (
 	stationOfficer "checkpoint/modules/station-officer"
 	vehicleActivity "checkpoint/modules/station-vehicle-activity"
 	"checkpoint/modules/tag"
+	"checkpoint/modules/upload"
 	vehicleLicensePlate "checkpoint/modules/vehicle-license-plate"
 	vehicleproperty "checkpoint/modules/vehicle-property"
 	vehicleTarget "checkpoint/modules/vehicle-target-configuration"
@@ -47,6 +48,7 @@ type Resolver struct {
 	vehicleActivity.StationVehicleActivityResolver
 	vehicleproperty.VehiclePropertyResolver
 	vehicleLicensePlate.VehiclelicensePlateResolver
+	upload.UploadResolver
 	stationimeiimsiactivity.StationImeiImsiActivityResolver
 	stationdashboardactivity.StationDashboardActivityResolver
 }

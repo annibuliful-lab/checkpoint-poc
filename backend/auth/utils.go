@@ -401,20 +401,39 @@ func cacheAuthorization(ctx context.Context, key string, accountID uuid.UUID, pr
 }
 
 func GetStationAuthorizationContext(ctx context.Context) StationAuthorizationContext {
+	auth := StationAuthorizationContext{}
 
-	return StationAuthorizationContext{
-		StationId: ctx.Value("stationId").(string),
-		ApiKey:    ctx.Value("apiKey").(string),
-		DeviceId:  ctx.Value("deviceId").(string),
-		ProjectId: ctx.Value("projectId").(string),
+	if ctx.Value("stationId") != nil {
+		auth.StationId = ctx.Value("stationId").(string)
 	}
+
+	if ctx.Value("apiKey") != nil {
+		auth.ApiKey = ctx.Value("apiKey").(string)
+	}
+
+	if ctx.Value("deviceId") != nil {
+		auth.DeviceId = ctx.Value("deviceId").(string)
+	}
+
+	if ctx.Value("projectId") != nil {
+		auth.ProjectId = ctx.Value("projectId").(string)
+	}
+
+	return auth
 }
 
 func GetAuthorizationContext(ctx context.Context) AuthorizationContext {
-	auth := AuthorizationContext{
-		Token:     ctx.Value("token").(string),
-		ProjectId: ctx.Value("projectId").(string),
-		AccountId: ctx.Value("accountId").(string),
+	auth := AuthorizationContext{}
+
+	if ctx.Value("accountId") != nil {
+		auth.AccountId = ctx.Value("accountId").(string)
+	}
+
+	if ctx.Value("projectId") != nil {
+		auth.ProjectId = ctx.Value("projectId").(string)
+	}
+	if ctx.Value("token") != nil {
+		auth.Token = ctx.Value("token").(string)
 	}
 
 	if ctx.Value("stationId") != nil {

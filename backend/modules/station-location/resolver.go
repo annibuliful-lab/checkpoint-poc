@@ -120,6 +120,29 @@ func (StationLocationResolver) UpdateStationLocation(ctx context.Context, input 
 		}
 	}
 
+	if input.Officers != nil && len(*input.Officers) != 0 {
+		for _, officerInput := range *input.Officers {
+			input := stationofficer.CreateStationOfficerData{
+				ProjectId:         uuid.MustParse(authorization.ProjectId),
+				StationLocationId: uuid.MustParse(string(input.Id)),
+				Firstname:         officerInput.Firstname,
+				Msisdn:            officerInput.Msisdn,
+				CreatedBy:         authorization.AccountId,
+			}
+			if officerInput.Lastname != nil {
+				input.Lastname = *officerInput.Lastname
+			}
+			_, err := stationOfficerService.Upsert(input)
+			if err != nil {
+				return nil, utils.GraphqlError{
+					Code:    err.Error(),
+					Message: err.Error(),
+				}
+			}
+		}
+
+	}
+
 	stationLocation, err := stationLocationService.Update(UpdateStationLocationData{
 		UpdatedBy:   authorization.AccountId,
 		Id:          uuid.MustParse(string(input.Id)),
@@ -157,7 +180,6 @@ func (StationLocationResolver) CreateStationLocation(ctx context.Context, input 
 			Message: utils.ForbiddenOperation.Error(),
 		}
 	}
-
 	stationLocation, err := stationLocationService.Create(CreateStationLocationData{
 		ProjectId:   authorization.ProjectId,
 		Department:  input.Department,
@@ -174,6 +196,29 @@ func (StationLocationResolver) CreateStationLocation(ctx context.Context, input 
 			Code:    err.Error(),
 			Message: err.Error(),
 		}
+	}
+
+	if input.Officers != nil && len(*input.Officers) != 0 {
+		for _, officerInput := range *input.Officers {
+			input := stationofficer.CreateStationOfficerData{
+				ProjectId:         uuid.MustParse(authorization.ProjectId),
+				StationLocationId: uuid.MustParse(string(stationLocation.ID)),
+				Firstname:         officerInput.Firstname,
+				Msisdn:            officerInput.Msisdn,
+				CreatedBy:         authorization.AccountId,
+			}
+			if officerInput.Lastname != nil {
+				input.Lastname = *officerInput.Lastname
+			}
+			_, err := stationOfficerService.Upsert(input)
+			if err != nil {
+				return nil, utils.GraphqlError{
+					Code:    err.Error(),
+					Message: err.Error(),
+				}
+			}
+		}
+
 	}
 
 	return stationLocation, nil

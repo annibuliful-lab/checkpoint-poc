@@ -32,6 +32,7 @@ type CreateVehicleTargetConfigurationInput struct {
 	Number            string
 	Province          string
 	Country           *string
+	Images            *[]string
 	PermittedLabel    enum.DevicePermittedLabel
 	BlacklistPriority enum.BlacklistPriority
 	Tags              *[]string
@@ -48,6 +49,7 @@ type CreateVehicleTargetConfigurationData struct {
 	Number            string
 	Province          string
 	Country           *string
+	Images            *[]string
 	PermittedLabel    model.DevicePermittedLabel
 	BlacklistPriority model.BlacklistPriority
 	Tags              *[]string
@@ -62,6 +64,7 @@ type UpdateVehicleTargetConfigurationInput struct {
 	Province          *string
 	Type              *string
 	Country           *string
+	Images            *[]string
 	PermittedLabel    *enum.DevicePermittedLabel
 	BlacklistPriority *enum.BlacklistPriority
 	Tags              *[]string
@@ -79,6 +82,7 @@ type UpdateVehicleTargetConfigurationData struct {
 	Province          *string
 	Type              *string
 	Country           *string
+	Images            *[]string
 	PermittedLabel    *model.DevicePermittedLabel
 	BlacklistPriority *model.BlacklistPriority
 	Tags              *[]string
