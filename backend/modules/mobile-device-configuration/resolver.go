@@ -140,7 +140,6 @@ func (MobileDeviceConfigurationResolver) DeleteMobileDeviceConfiguration(ctx con
 
 func (MobileDeviceConfigurationResolver) CreateMobileDeviceConfiguration(ctx context.Context, args CreateMobileDeviceConfigurationInput) (*MobileDeviceConfiguration, error) {
 	authorization := auth.GetAuthorizationContext(ctx)
-
 	mobileDeviceConfiguration, _, err := mobileDeviceService.Create(CreateMobileDeviceConfigurationData{
 		ProjectId:         uuid.MustParse(authorization.ProjectId),
 		CreatedBy:         authorization.AccountId,

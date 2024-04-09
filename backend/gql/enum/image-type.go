@@ -11,9 +11,11 @@ const (
 	REAR
 	DRIVER
 	LICENSE_PLATE
+	NONE
+	CONFIG
 )
 
-var ImageTypeStates = [...]string{"FRONT", "REAR", "DRIVER", "LICENSE_PLATE"}
+var ImageTypeStates = [...]string{"FRONT", "REAR", "DRIVER", "LICENSE_PLATE", "NONE", "CONFIG"}
 
 func GetImageType(str string) ImageType {
 

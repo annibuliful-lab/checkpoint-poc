@@ -9,36 +9,54 @@ import (
 )
 
 type VehicleTargetConfiguration struct {
+	StationLocationId graphql.ID
 	ID                graphql.ID
 	ProjectId         graphql.ID
+	Color             string
+	Brand             string
+	Type              string
 	Prefix            string
 	Number            string
 	Province          string
-	Type              string
 	Country           *string
 	PermittedLabel    enum.DevicePermittedLabel
 	BlacklistPriority enum.BlacklistPriority
+}
+
+type UpsertImageS3KeyInput struct {
+	Id    *graphql.ID
+	S3Key string
+	Type  enum.ImageType
 }
 
 type CreateVehicleTargetConfigurationInput struct {
+	StationLocationId graphql.ID
+	Color             string
+	Brand             string
+	Type              string
 	Prefix            string
 	Number            string
 	Province          string
-	Type              string
 	Country           *string
+	Images            *[]string
 	PermittedLabel    enum.DevicePermittedLabel
 	BlacklistPriority enum.BlacklistPriority
 	Tags              *[]string
+	ImageS3Keys       *[]UpsertImageS3KeyInput
 }
 
 type CreateVehicleTargetConfigurationData struct {
+	StationLocationId uuid.UUID
 	ProjectId         uuid.UUID
+	Color             string
+	Brand             string
+	Type              string
 	CreatedBy         string
 	Prefix            string
 	Number            string
 	Province          string
-	Type              string
 	Country           *string
+	Images            *[]string
 	PermittedLabel    model.DevicePermittedLabel
 	BlacklistPriority model.BlacklistPriority
 	Tags              *[]string
@@ -46,25 +64,33 @@ type CreateVehicleTargetConfigurationData struct {
 
 type UpdateVehicleTargetConfigurationInput struct {
 	ID                graphql.ID
+	Color             *string
+	Brand             *string
 	Prefix            *string
 	Number            *string
 	Province          *string
 	Type              *string
 	Country           *string
+	Images            *[]string
 	PermittedLabel    *enum.DevicePermittedLabel
 	BlacklistPriority *enum.BlacklistPriority
 	Tags              *[]string
+	ImageS3Keys       *[]UpsertImageS3KeyInput
 }
 
 type UpdateVehicleTargetConfigurationData struct {
 	ID                uuid.UUID
 	ProjectId         uuid.UUID
 	UpdatedBy         string
+	Color             *string
+	Brand             *string
+	Model             *string
 	Prefix            *string
 	Number            *string
 	Province          *string
 	Type              *string
 	Country           *string
+	Images            *[]string
 	PermittedLabel    *model.DevicePermittedLabel
 	BlacklistPriority *model.BlacklistPriority
 	Tags              *[]string
@@ -90,6 +116,7 @@ type GetVehicleTargetConfigurationData struct {
 }
 
 type GetVehicleTargetsConfigurationInput struct {
+	StationLocationId *graphql.ID
 	Search            *string
 	Type              *string
 	PermittedLabel    *enum.DevicePermittedLabel
@@ -100,6 +127,7 @@ type GetVehicleTargetsConfigurationInput struct {
 }
 
 type GetVehicleTargetsConfigurationData struct {
+	StationLocationId *uuid.UUID
 	ProjectId         uuid.UUID
 	Type              *string
 	Search            *string

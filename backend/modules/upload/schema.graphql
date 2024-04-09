@@ -1,0 +1,9 @@
+type UploadResult {
+  s3Key: String!
+  url: String!
+}
+
+type Mutation {
+  uploadFile(file: Upload!): UploadResult!
+  uploadFiles(files: [Upload!]!): [UploadResult!]!
+}

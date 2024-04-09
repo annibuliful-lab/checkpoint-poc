@@ -16,6 +16,58 @@ describe('Station location', () => {
     client = await getAuthenticatedClient({ includeProjectId: true });
   });
 
+  it('creates with officer', async () => {
+    const title = nanoid();
+    const department = nanoid();
+    const latitude = Number(Math.random().toFixed(6));
+    const longitude = Number(Math.random().toFixed(6));
+    const tag = nanoid();
+    const officerFirstname = nanoid();
+    const officerMsisdn = nanoid(10);
+
+    const stationLocation = await client.mutation({
+      createStationLocation: {
+        __scalar: true,
+        tags: {
+          __scalar: true,
+        },
+        officers: {
+          __scalar: true,
+        },
+        __args: {
+          title,
+          department,
+          latitude,
+          longitude,
+          tags: [tag],
+          officers: [
+            {
+              firstname: officerFirstname,
+              msisdn: officerMsisdn,
+            },
+          ],
+        },
+      },
+    });
+
+    expect(
+      stationLocation.createStationLocation.tags?.length
+    ).toEqual(1);
+    expect(
+      stationLocation.createStationLocation.tags?.[0].title
+    ).toEqual(tag);
+
+    expect(
+      stationLocation.createStationLocation.officers?.length
+    ).toEqual(1);
+    expect(
+      stationLocation.createStationLocation.officers?.[0].firstname
+    ).toEqual(officerFirstname);
+    expect(
+      stationLocation.createStationLocation.officers?.[0].msisdn
+    ).toEqual(officerMsisdn);
+  });
+
   it('gets health check activities by dates', async () => {
     const createdStationLocation = await createStationLocation();
 

@@ -9,19 +9,42 @@ import (
 	"github.com/graph-gophers/graphql-go"
 )
 
+type StationVehicleActivityData struct {
+	ProjectId graphql.ID `json:"projectId"`
+	StationId graphql.ID `json:"stationId"`
+	Limit     int32      `json:"limit"`
+	Skip      int32      `json:"skip"`
+}
+
+type StationVehicleActivityTag struct {
+	Status enum.StationVehicleActivityTagStatus
+	Tag    string
+}
+type StationVehicleActivityImei struct {
+	Status enum.RemarkState
+	Imei   string
+}
+type StationVehicleActivityImsi struct {
+	Status enum.RemarkState
+	Imsi   string
+}
 type StationVehicleActivity struct {
-	ID                graphql.ID
-	ProjectId         graphql.ID
-	StationLocationId graphql.ID
-	Brand             string
-	Color             string
-	Model             string
-	Status            enum.RemarkState
+	ID                graphql.ID `json:"id"`
+	ProjectId         graphql.ID `json:"projectId"`
+	StationLocationId graphql.ID `json:"stationLocationId"`
+	ArrivalTime       string     `json:"arrivalTime"`
+	LicensePlate      string     `json:"licensePlate"`
+	LicensePlateType  string     `json:"licensePlateType"`
+	Brand             string     `json:"brand"`
+	VehicleType       string     `json:"vehicleType"`
+	Color             string     `json:"color"`
+	ColorName         string     `json:"colorName"`
+	Remark            *string    `json:"remark"`
 }
 
 type StationVehicleActivityConnection struct {
-	PageInfo graphql_utils.PageInfo
-	Edges    []StationVehicleActivity
+	PageInfo graphql_utils.PageInfo   `json:"pageInfo"`
+	Edges    []StationVehicleActivity `json:"edges"`
 }
 
 type UpdateStationVehicleActivityInput struct {

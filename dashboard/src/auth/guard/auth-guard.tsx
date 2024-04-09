@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 
-import { useAuthContext } from "../hooks";
 import { SplashScreen } from "@/components/loading-screen";
 import { useRouter } from "@/routes/hooks/use-router";
 import { paths } from "@/routes/paths";
@@ -51,8 +50,7 @@ function Container({ children }: Props) {
 
   useEffect(() => {
     check();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [check]);
 
   if (!checked) {
     return null;

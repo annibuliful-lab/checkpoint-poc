@@ -51,14 +51,15 @@ type GetStationLocationByIdData struct {
 }
 
 type UpdateStationLocationInput struct {
-	Id          graphql.ID `json:"id"`
-	Title       *string    `json:"title"`
-	Description *string    `json:"description"`
-	Department  *string    `json:"department"`
-	Latitude    *float64   `json:"latitude"`
-	Longitude   *float64   `json:"longitude"`
-	Remark      *string    `json:"remark"`
-	Tags        *[]string  `json:"tags"`
+	Id          graphql.ID                  `json:"id"`
+	Title       *string                     `json:"title"`
+	Description *string                     `json:"description"`
+	Department  *string                     `json:"department"`
+	Latitude    *float64                    `json:"latitude"`
+	Longitude   *float64                    `json:"longitude"`
+	Remark      *string                     `json:"remark"`
+	Tags        *[]string                   `json:"tags"`
+	Officers    *[]UpserStationOfficerInput `json:"officerInputs"`
 }
 
 type UpdateStationLocationData struct {
@@ -74,14 +75,21 @@ type UpdateStationLocationData struct {
 	UpdatedBy   string    `json:"updatedBy"`
 }
 
+type UpserStationOfficerInput struct {
+	Firstname string
+	Lastname  *string
+	Msisdn    string
+}
+
 type CreateStationLocationInput struct {
-	Title       string    `json:"title"`
-	Description *string   `json:"description"`
-	Department  string    `json:"department"`
-	Latitude    float64   `json:"latitude"`
-	Longitude   float64   `json:"longitude"`
-	Remark      *string   `json:"remark"`
-	Tags        *[]string `json:"tags"`
+	Title       string                      `json:"title"`
+	Description *string                     `json:"description"`
+	Department  string                      `json:"department"`
+	Latitude    float64                     `json:"latitude"`
+	Longitude   float64                     `json:"longitude"`
+	Remark      *string                     `json:"remark"`
+	Tags        *[]string                   `json:"tags"`
+	Officers    *[]UpserStationOfficerInput `json:"officerInputs"`
 }
 
 type CreateStationLocationData struct {

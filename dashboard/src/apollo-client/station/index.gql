@@ -1,0 +1,140 @@
+query getStationLocations(
+  $limit: Int!
+  $skip: Int!
+  $search: String
+  $tags: [String!]
+) # $status: DeviceStatus!
+# $startDate: Time
+# $endDate: Time
+# $limitHealth: Int!
+# $skipHealth: Int!
+{
+  getStationLocations(
+    limit: $limit
+    skip: $skip
+    search: $search
+    tags: $tags
+  ) {
+    officers {
+      ...StationOfficerFields
+    }
+    devices {
+      ...StationDeviceFields
+      # healthActivities(
+      #   status: $status
+      #   startDate: $startDate
+      #   endDate: $endDate
+      #   limit: $limit
+      #   skip: $skip
+      # ) {
+      #   id
+      #   stationDeviceId
+      # }
+    }
+    tags {
+      ...TagFields
+    }
+    ...StationLocationFields
+  }
+}
+
+mutation deleteStationLocation($id: ID!) {
+  deleteStationLocation(id: $id) {
+    success
+  }
+}
+
+mutation updateStationLocation(
+  $id: ID!
+  $title: String
+  $description: String
+  $latitude: Float
+  $longitude: Float
+  $remark: String
+  $tags: [String!]
+) {
+  updateStationLocation(
+    id: $id
+    title: $title
+    description: $description
+    latitude: $latitude
+    longitude: $longitude
+    remark: $remark
+    tags: $tags
+  ) {
+    officers {
+      ...StationOfficerFields
+    }
+    devices {
+      ...StationDeviceFields
+    }
+    tags {
+      ...TagFields
+    }
+    ...StationLocationFields
+  }
+}
+
+mutation createStationLocation(
+  $title: String!
+  $description: String
+  $department: String!
+  $latitude: Float!
+  $longitude: Float!
+  $tags: [String!]
+  $remark: String
+) {
+  createStationLocation(
+    title: $title
+    description: $description
+    department: $department
+    latitude: $latitude
+    longitude: $longitude
+    tags: $tags
+    remark: $remark
+  ) {
+    officers {
+      ...StationOfficerFields
+    }
+    devices {
+      ...StationDeviceFields
+    }
+    tags {
+      ...TagFields
+    }
+    ...StationLocationFields
+  }
+}
+
+fragment StationLocationFields on StationLocation {
+  id
+  projectId
+  title
+  description
+  department
+  latitude
+  longitude
+  remark
+}
+
+fragment StationOfficerFields on StationOfficer {
+  id
+  stationLocationId
+  firstname
+  lastname
+  msisdn
+}
+
+fragment StationDeviceFields on StationDevice {
+  id
+  stationLocationId
+  title
+  softwareVersion
+  hardwareVersion
+}
+
+fragment TagFields on Tag {
+  id
+  projectId
+  title
+}

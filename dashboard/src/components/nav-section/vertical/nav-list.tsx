@@ -14,7 +14,6 @@ export default function NavList({ data, depth, slotProps }: NavListProps) {
   const pathname = usePathname();
 
   const active = useActiveLink(data.path, !!data.children);
-  console.log(data);
 
   const [openMenu, setOpenMenu] = useState(active);
 
@@ -80,13 +79,8 @@ export default function NavList({ data, depth, slotProps }: NavListProps) {
 function NavSubList({ data, depth, slotProps }: NavSubListProps) {
   return (
     <>
-      {data.map((list) => (
-        <NavList
-          key={list.title}
-          data={list}
-          depth={depth + 1}
-          slotProps={slotProps}
-        />
+      {data.map((list, i) => (
+        <NavList key={i} data={list} depth={depth + 1} slotProps={slotProps} />
       ))}
     </>
   );

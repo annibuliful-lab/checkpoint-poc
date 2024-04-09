@@ -17,7 +17,7 @@ import PresetsOptions from "./presets-options";
 import StretchOptions from "./stretch-options";
 import { useSettingsContext } from "../context";
 import FullScreenOption from "./fullscreen-option";
-import { paper } from "@/app/theme/css";
+import { paper } from "@/theme/css";
 
 // ----------------------------------------------------------------------
 

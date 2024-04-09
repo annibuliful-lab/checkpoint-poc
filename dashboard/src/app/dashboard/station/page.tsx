@@ -1,11 +1,9 @@
+import StationView from "./view";
 // ----------------------------------------------------------------------
-
-import { Box } from "@mui/material";
-
 export const metadata = {
-  title: "Dashboard: One",
+  title: "Station management",
 };
 
 export default function Page() {
-  return <Box>Dashboard</Box>;
+  return <StationView />;
 }

@@ -141,9 +141,6 @@ func (MobileDeviceConfigurationService) Update(data UpdateMobileDeviceConfigurat
 	}
 
 	if data.Imsi != nil {
-		if !utils.ValidateIMSI(*data.Imsi) {
-			return nil, utils.ErrInvalidIMSI
-		}
 
 		imsiConfiguration, err := imsiService.Upsert(imsiconfiguration.UpsertImsiConfigurationData{
 			UpdatedBy:         data.UpdatedBy,
@@ -161,9 +158,6 @@ func (MobileDeviceConfigurationService) Update(data UpdateMobileDeviceConfigurat
 	}
 
 	if data.Imei != nil {
-		if !utils.ValidateIMEI(*data.Imei) {
-			return nil, utils.ErrInvalidIMEI
-		}
 
 		imsiConfiguration, err := imeiService.Upsert(imeiconfiguration.UpsertImeiConfigurationData{
 			UpdatedBy:         data.UpdatedBy,
@@ -326,10 +320,10 @@ func (MobileDeviceConfigurationService) Create(data CreateMobileDeviceConfigurat
 	imsiConfiguration, err := imsiService.Upsert(imsiconfiguration.UpsertImsiConfigurationData{
 		UpdatedBy:         data.CreatedBy,
 		ProjectId:         data.ProjectId,
-		StationLocationId: data.StationId,
+		StationLocationId: data.StationLocationId,
 		Imsi:              data.Imsi,
-		BlacklistPriority: data.BlacklistPriority,
-		PermittedLabel:    data.PermittedLabel,
+		BlacklistPriority: &data.BlacklistPriority,
+		PermittedLabel:    &data.PermittedLabel,
 		Tags:              data.Tags,
 	})
 
@@ -339,11 +333,11 @@ func (MobileDeviceConfigurationService) Create(data CreateMobileDeviceConfigurat
 
 	imeiConfiguration, err := imeiService.Upsert(imeiconfiguration.UpsertImeiConfigurationData{
 		Imei:              data.Imei,
-		StationLocationId: data.StationId,
+		StationLocationId: data.StationLocationId,
 		UpdatedBy:         data.CreatedBy,
 		ProjectId:         data.ProjectId,
-		BlacklistPriority: data.BlacklistPriority,
-		PermittedLabel:    data.PermittedLabel,
+		BlacklistPriority: &data.BlacklistPriority,
+		PermittedLabel:    &data.PermittedLabel,
 		Tags:              data.Tags,
 	})
 

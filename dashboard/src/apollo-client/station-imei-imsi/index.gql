@@ -1,0 +1,48 @@
+query getStationImeiImsiActivityById($id: ID!) {
+  getStationImeiImsiActivityById(id: $id) {
+    imei {
+      ...ImeiConfigurationFields
+    }
+    imsi {
+      ...ImsiConfigurationFields
+    }
+    tags {
+      ...StationImeiImsiActivityTagFields
+    }
+    ...StationImeiImsiActivityFields
+  }
+}
+
+query getStationImeiImsiActivities($limit: Int!, $skip: Int!, $stationId: ID!) {
+  getStationImeiImsiActivities(
+    limit: $limit
+    skip: $skip
+    stationId: $stationId
+  ) {
+    imei {
+      ...ImeiConfigurationFields
+    }
+    imsi {
+      ...ImsiConfigurationFields
+    }
+    tags {
+      ...StationImeiImsiActivityTagFields
+    }
+    ...StationImeiImsiActivityFields
+  }
+}
+
+fragment StationImeiImsiActivityFields on StationImeiImsiActivity {
+  id
+  projectId
+  stationLocationId
+  arrivalTime
+  phoneModel
+  licensePlate
+  stationSiteName
+}
+
+fragment StationImeiImsiActivityTagFields on StationImeiImsiActivityTag {
+  type
+  tag
+}

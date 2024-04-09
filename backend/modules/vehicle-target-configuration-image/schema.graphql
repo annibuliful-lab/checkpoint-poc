@@ -1,0 +1,12 @@
+type VehicleTargetConfigurationImage {
+  id: ID!
+  vehicleTargetConfigurationId: ID!
+  type: ImageType!
+  s3Key: String!
+  url: String!
+}
+
+type Mutation {
+  deleteVehicleTargetConfigurationImage(id: ID!): DeleteOperation!
+    @access(requiredProjectId: true)
+}

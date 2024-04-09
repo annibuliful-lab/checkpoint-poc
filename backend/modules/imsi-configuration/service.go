@@ -43,19 +43,40 @@ func (ImsiConfigurationService) Upsert(data UpsertImsiConfigurationData) (*ImsiC
 		return nil, utils.InternalServerError
 	}
 
+	modelToUpsert := model.ImsiConfiguration{
+		ID:                uuid.New(),
+		Imsi:              data.Imsi,
+		StationLocationId: data.StationLocationId,
+		CreatedBy:         data.UpdatedBy,
+		ProjectId:         data.ProjectId,
+		Mcc:               mcc,
+		Mnc:               mnc,
+	}
+
+	var columnToUpsert pg.ColumnList
+	columnToUpsert = append(columnToUpsert,
+		table.ImsiConfiguration.ID,
+		table.ImsiConfiguration.Imsi,
+		table.ImsiConfiguration.StationLocationId,
+		table.ImsiConfiguration.CreatedBy,
+		table.ImsiConfiguration.ProjectId,
+		table.ImsiConfiguration.Mcc,
+		table.ImsiConfiguration.Mnc,
+	)
+
+	if data.BlacklistPriority != nil {
+		columnToUpsert = append(columnToUpsert, table.ImsiConfiguration.BlacklistPriority)
+		modelToUpsert.BlacklistPriority = model.BlacklistPriority(*data.BlacklistPriority)
+	}
+
+	if data.PermittedLabel != nil {
+		columnToUpsert = append(columnToUpsert, table.ImsiConfiguration.PermittedLabel)
+		modelToUpsert.PermittedLabel = model.DevicePermittedLabel(*data.PermittedLabel)
+	}
+
 	upsertImsiConfigurationStmt := table.ImsiConfiguration.
-		INSERT(table.ImsiConfiguration.ID, table.ImsiConfiguration.Imsi, table.ImsiConfiguration.BlacklistPriority, table.ImsiConfiguration.StationLocationId, table.ImsiConfiguration.PermittedLabel, table.ImsiConfiguration.CreatedBy, table.ImsiConfiguration.ProjectId, table.ImsiConfiguration.Mcc, table.ImsiConfiguration.Mnc).
-		MODEL(model.ImsiConfiguration{
-			ID:                uuid.New(),
-			Imsi:              data.Imsi,
-			BlacklistPriority: model.BlacklistPriority(data.BlacklistPriority),
-			StationLocationId: data.StationLocationId,
-			PermittedLabel:    model.DevicePermittedLabel(data.PermittedLabel),
-			CreatedBy:         data.UpdatedBy,
-			ProjectId:         data.ProjectId,
-			Mcc:               mcc,
-			Mnc:               mnc,
-		}).
+		INSERT(columnToUpsert).
+		MODEL(modelToUpsert).
 		ON_CONFLICT(table.ImsiConfiguration.Imsi, table.ImsiConfiguration.ProjectId).
 		DO_UPDATE(pg.SET(table.ImsiConfiguration.Imsi.SET(pg.String(data.Imsi)))).
 		RETURNING(table.ImsiConfiguration.AllColumns)

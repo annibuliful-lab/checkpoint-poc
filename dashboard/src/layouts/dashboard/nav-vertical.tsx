@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -11,6 +11,13 @@ import { NAV } from "../config-layout";
 import { NavSectionVertical } from "@/components/nav-section";
 import Scrollbar from "@/components/scrollbar";
 import Logo from "@/components/logo";
+import { IconButton } from "@mui/material";
+import { Logout, Notifications } from "@mui/icons-material";
+import { useSetAtom } from "jotai";
+import { authAtom } from "@/auth/store";
+import { apolloCache } from "@/apollo-client/apollo-wrapper";
+import NavItem from "@/components/nav-section/vertical/nav-item";
+import { paths } from "@/routes/paths";
 
 // ----------------------------------------------------------------------
 
@@ -29,6 +36,12 @@ export default function NavVertical({ openNav, onCloseNav }: Props) {
   const lgUp = useResponsive("up", "lg");
 
   const navData = useNavData();
+  const setAuth = useSetAtom(authAtom);
+  const handleLogout = useCallback(async () => {
+    setAuth(undefined);
+    await apolloCache.reset();
+    window.localStorage.clear();
+  }, [setAuth]);
 
   useEffect(() => {
     if (openNav) {
@@ -48,7 +61,7 @@ export default function NavVertical({ openNav, onCloseNav }: Props) {
         },
       }}
     >
-      <Logo sx={{ mt: 3, ml: 3, mb: 1 }} />
+      <Logo sx={{ mx: "auto", mt: 1 }} />
 
       <NavSectionVertical
         data={navData}
@@ -58,6 +71,17 @@ export default function NavVertical({ openNav, onCloseNav }: Props) {
       />
 
       <Box sx={{ flexGrow: 1 }} />
+      <Stack mb={4} px={2}>
+        <NavItem
+          path={paths.dashboard.notification.root}
+          icon={<Notifications />}
+        />
+        <Box sx={{ mx: "auto" }}>
+          <IconButton onClick={handleLogout}>
+            <Logout />
+          </IconButton>
+        </Box>
+      </Stack>
     </Scrollbar>
   );
 

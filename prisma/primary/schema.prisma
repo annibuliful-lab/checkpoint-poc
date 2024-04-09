@@ -25,6 +25,8 @@ enum ImageType {
   REAR
   DRIVER
   LICENSE_PLATE
+  NONE
+  CONFIG
 }
 
 enum DeviceStatus {
@@ -399,6 +401,7 @@ model StationLocation {
   MobileDeviceConfiguration  MobileDeviceConfiguration[]
   StationVehicleActivity     StationVehicleActivity[]
   configuration              StationLocationConfiguration[]
+  VehicleTargetConfiguration VehicleTargetConfiguration[]
 
   @@index([title(ops: raw("gin_trgm_ops"))], type: Gin)
   @@map("station_location")
@@ -421,7 +424,7 @@ model StationOfficer {
   projectAccount    ProjectAccount? @relation(fields: [projectAccountId], references: [id])
   firstname         String
   lastname          String
-  msisdn            String          @db.VarChar(10)
+  msisdn            String          @db.VarChar(16)
   createdBy         String
   updatedBy         String?
   deletedBy         String?
@@ -429,6 +432,7 @@ model StationOfficer {
   createdAt         DateTime        @default(now()) @db.Timestamptz(3)
   updatedAt         DateTime?       @db.Timestamptz(3)
 
+  @@unique([stationLocationId, firstname])
   @@index([firstname, lastname])
   @@map("station_officer")
 }
@@ -482,23 +486,34 @@ model StationLocationHealthCheckActivity {
 }
 
 model VehicleTargetConfiguration {
-  id                            String                          @id @db.Uuid
-  projectId                     String                          @db.Uuid
-  project                       Project                         @relation(fields: [projectId], references: [id])
-  prefix                        String                          @db.VarChar(4)
-  number                        String                          @db.VarChar(24)
-  province                      String
-  type                          String // รถส่วนบุคคล
-  country                       String?
-  permittedLabel                DevicePermittedLabel            @default(NONE)
-  blacklistPriority             BlacklistPriority               @default(NONE)
-  createdBy                     String
-  updatedBy                     String?
-  deletedBy                     String?
-  deletedAt                     DateTime?                       @db.Timestamptz(3)
-  createdAt                     DateTime                        @default(now()) @db.Timestamptz(3)
-  updatedAt                     DateTime?                       @db.Timestamptz(3)
-  VehicleTargetConfigurationTag VehicleTargetConfigurationTag[]
+  id                              String                            @id @db.Uuid
+  stationLocationId               String                            @db.Uuid
+  stationLocation                 StationLocation                   @relation(fields: [stationLocationId], references: [id])
+  projectId                       String                            @db.Uuid
+  project                         Project                           @relation(fields: [projectId], references: [id])
+  color                           String
+  colorType                       PropertyType                      @default(VEHICLE_COLOR)
+  brand                           String
+  brandType                       PropertyType                      @default(VEHICLE_BRAND)
+  type                            String
+  typeType                        PropertyType                      @default(VEHICLE_TYPE)
+  brandProperty                   VehicleProperty                   @relation(name: "vehicle-target-brand", fields: [brand, brandType, projectId], references: [property, type, projectId])
+  colorProperty                   VehicleProperty                   @relation(name: "vehicle-target-color", fields: [color, colorType, projectId], references: [property, type, projectId])
+  modelProperty                   VehicleProperty                   @relation(name: "vehicle-target-model", fields: [type, typeType, projectId], references: [property, type, projectId])
+  prefix                          String                            @db.VarChar(4)
+  number                          String                            @db.VarChar(24)
+  province                        String
+  country                         String?
+  permittedLabel                  DevicePermittedLabel              @default(NONE)
+  blacklistPriority               BlacklistPriority                 @default(NONE)
+  createdBy                       String
+  updatedBy                       String?
+  deletedBy                       String?
+  deletedAt                       DateTime?                         @db.Timestamptz(3)
+  createdAt                       DateTime                          @default(now()) @db.Timestamptz(3)
+  updatedAt                       DateTime?                         @db.Timestamptz(3)
+  VehicleTargetConfigurationTag   VehicleTargetConfigurationTag[]
+  VehicleTargetConfigurationImage VehicleTargetConfigurationImage[]
 
   @@index([prefix])
   @@index([number, prefix])
@@ -506,14 +521,33 @@ model VehicleTargetConfiguration {
   @@map("vehicle_target_configuration")
 }
 
+model VehicleTargetConfigurationImage {
+  id                           String                     @id @db.Uuid
+  vehicleTargetConfigurationId String                     @db.Uuid
+  vehicleTargetConfiguration   VehicleTargetConfiguration @relation(fields: [vehicleTargetConfigurationId], references: [id])
+  type                         ImageType                  @default(CONFIG)
+  s3Key                        String
+  createdBy                    String
+  updatedBy                    String?
+  deletedBy                    String?
+  deletedAt                    DateTime?                  @db.Timestamptz(3)
+  createdAt                    DateTime                   @default(now()) @db.Timestamptz(3)
+  updatedAt                    DateTime?                  @db.Timestamptz(3)
+
+  @@map("vehicle_target_configuration_image")
+}
+
 model VehicleProperty {
-  projectId String                   @db.Uuid
-  project   Project                  @relation(fields: [projectId], references: [id])
-  property  String
-  type      PropertyType
-  brands    StationVehicleActivity[] @relation(name: "brand")
-  colors    StationVehicleActivity[] @relation(name: "color")
-  models    StationVehicleActivity[] @relation(name: "model")
+  projectId                 String                       @db.Uuid
+  project                   Project                      @relation(fields: [projectId], references: [id])
+  property                  String
+  type                      PropertyType
+  vehicleActivityBrands     StationVehicleActivity[]     @relation(name: "vehicle-activity-brand")
+  vehicleActivitycolors     StationVehicleActivity[]     @relation(name: "vehicle-activity-color")
+  vehicleActivitymodels     StationVehicleActivity[]     @relation(name: "vehicle-activity-model")
+  VehicleTargetTargetBrands VehicleTargetConfiguration[] @relation(name: "vehicle-target-brand")
+  VehicleTargetTargetColors VehicleTargetConfiguration[] @relation(name: "vehicle-target-color")
+  VehicleTargetTargetModels VehicleTargetConfiguration[] @relation(name: "vehicle-target-model")
 
   @@id([property, type, projectId])
   @@map("vehicle_property")
@@ -525,9 +559,9 @@ model StationVehicleActivity {
   project             Project               @relation(fields: [projectId], references: [id])
   stationLocationId   String                @db.Uuid
   stationLocation     StationLocation       @relation(fields: [stationLocationId], references: [id])
-  brandProperty       VehicleProperty       @relation(name: "brand", fields: [brand, brandType, projectId], references: [property, type, projectId])
-  colorProperty       VehicleProperty       @relation(name: "color", fields: [color, colorType, projectId], references: [property, type, projectId])
-  modelProperty       VehicleProperty       @relation(name: "model", fields: [model, modelType, projectId], references: [property, type, projectId])
+  brandProperty       VehicleProperty       @relation(name: "vehicle-activity-brand", fields: [brand, brandType, projectId], references: [property, type, projectId])
+  colorProperty       VehicleProperty       @relation(name: "vehicle-activity-color", fields: [color, colorType, projectId], references: [property, type, projectId])
+  modelProperty       VehicleProperty       @relation(name: "vehicle-activity-model", fields: [model, modelType, projectId], references: [property, type, projectId])
   status              RemarkState           @default(IN_QUEUE)
   issue               String?
   reportIssueBy       String?

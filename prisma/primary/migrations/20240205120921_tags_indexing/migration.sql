@@ -5,7 +5,7 @@
 
 */
 -- CreateEnum
-CREATE TYPE "ImageType" AS ENUM ('FRONT', 'REAR', 'DRIVER', 'LICENSE_PLATE');
+CREATE TYPE "ImageType" AS ENUM ('FRONT', 'REAR', 'DRIVER', 'LICENSE_PLATE','NONE','CONFIG');
 
 -- AlterTable
 ALTER TABLE "vehicle_image" DROP COLUMN "type",

@@ -9,16 +9,20 @@ import (
 	"checkpoint/modules/notification"
 	"checkpoint/modules/project"
 	projectRole "checkpoint/modules/project-role"
+	stationdashboardactivity "checkpoint/modules/station-dashboard-activity"
 	stationDevice "checkpoint/modules/station-device"
 	stationDeviceHealthCheck "checkpoint/modules/station-device-health-check"
 	stationHealthCheck "checkpoint/modules/station-health-check"
+	stationimeiimsiactivity "checkpoint/modules/station-imei-imsi-activity"
 	stationlocation "checkpoint/modules/station-location"
 	stationOfficer "checkpoint/modules/station-officer"
 	vehicleActivity "checkpoint/modules/station-vehicle-activity"
 	"checkpoint/modules/tag"
+	"checkpoint/modules/upload"
 	vehicleLicensePlate "checkpoint/modules/vehicle-license-plate"
 	vehicleproperty "checkpoint/modules/vehicle-property"
 	vehicleTarget "checkpoint/modules/vehicle-target-configuration"
+	vehicletargetconfigurationimage "checkpoint/modules/vehicle-target-configuration-image"
 )
 
 type Resolver struct {
@@ -45,6 +49,10 @@ type Resolver struct {
 	vehicleActivity.StationVehicleActivityResolver
 	vehicleproperty.VehiclePropertyResolver
 	vehicleLicensePlate.VehiclelicensePlateResolver
+	upload.UploadResolver
+	stationimeiimsiactivity.StationImeiImsiActivityResolver
+	stationdashboardactivity.StationDashboardActivityResolver
+	vehicletargetconfigurationimage.VehicleTargetConfigurationImageResolver
 }
 
 func GraphqlResolver() *Resolver {
