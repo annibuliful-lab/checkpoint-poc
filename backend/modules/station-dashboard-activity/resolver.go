@@ -61,7 +61,7 @@ func (parent StationDashboardActivity) Imsi(ctx context.Context) (*imsiconfigura
 		CreatedAt:         graphqlTime,
 		BlacklistPriority: enum.GetBlacklistPriority("NORMAL"),
 		StationLocationId: "Mock-StationLocationId",
-		PermittedLabel:    enum.GetDevicePermittedLabel("NONE"),
+		PermittedLabel:    enum.GetDevicePermittedLabel("BLACKLIST"),
 	}
 	return &imsi, nil
 }
@@ -82,18 +82,18 @@ func (parent StationDashboardActivity) Imei(ctx context.Context) (*imeiconfigura
 }
 
 func (parent StationDashboardActivity) Tags(ctx context.Context) (*[]StationDashboardActivityTag, error) {
-	tags := []StationDashboardActivityTag{{Tag: "Mock-Tag License", Type: enum.GetActivityTagType("LICENSE_PLATE")}}
+	tags := []StationDashboardActivityTag{{Tag: "tag", Type: enum.GetActivityTagType("LICENSE_PLATE")}}
 
 	return &tags, nil
 }
 
 func (parent StationDashboardActivity) Pictures(ctx context.Context) (*StationDashboardActivityPicture, error) {
 	pictures := StationDashboardActivityPicture{
-		Driver:       "",
-		LicensePlate: "",
-		Front:        "",
-		Back:         "",
-		Side:         "",
+		Driver:       "Mock-Driver",
+		LicensePlate: "Mock-LicensePlate",
+		Front:        "Mock-Front",
+		Back:         "Mock-Back",
+		Side:         "Mock-Side",
 	}
 
 	return &pictures, nil
@@ -102,13 +102,13 @@ func (parent StationDashboardActivity) Pictures(ctx context.Context) (*StationDa
 func (parent StationDashboardActivity) VehicleInfo(ctx context.Context) (*StationDashboardActivityVehicleInfo, error) {
 	vehicleInfo := StationDashboardActivityVehicleInfo{
 		Status:           enum.GetDevicePermittedLabel("NONE"),
-		LicensePlate:     "",
-		LicensePlateType: "",
-		VehicleType:      "",
-		StationSiteName:  "",
-		Band:             "",
-		ColorName:        "",
-		ColorCode:        "",
+		LicensePlate:     "Mock-LicensePlate",
+		LicensePlateType: "Mock-LicensePlateType",
+		VehicleType:      "Mock-VehicleType",
+		StationSiteName:  "Mock-StationSiteName",
+		Band:             "Mock-Band",
+		ColorName:        "Mock-ColorName",
+		ColorCode:        "Mock-ColorCode",
 	}
 
 	return &vehicleInfo, nil
