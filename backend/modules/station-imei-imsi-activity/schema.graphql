@@ -1,0 +1,27 @@
+type StationImeiImsiActivityTag {
+  type: ActivityTagType!
+  tag: String!
+}
+
+type StationImeiImsiActivity {
+  id: ID!
+  projectId: ID!
+  stationLocationId: ID!
+  arrivalTime: String!
+  imei: String!
+  imsi: String!
+  phoneModel: String!
+  licensePlate: String!
+  stationSiteName: String!
+  tags: [StationImeiImsiActivityTag!]
+}
+
+type Query {
+  getStationImeiImsiActivities(
+    limit: Int!
+    skip: Int!
+    stationId: ID!
+  ): [StationImeiImsiActivity!] @access(requiredProjectId: true)
+  getStationImeiImsiActivityById(id: ID!): StationImeiImsiActivity
+    @access(requiredProjectId: true)
+}

@@ -4,15 +4,16 @@ import (
 	"checkpoint/gql/enum"
 	"checkpoint/modules/authentication"
 	imeiconfiguration "checkpoint/modules/imei-configuration"
-	imeiimsiactivity "checkpoint/modules/imei-imsi-activity"
 	imsiconfiguration "checkpoint/modules/imsi-configuration"
 	mobiledeviceconfiguration "checkpoint/modules/mobile-device-configuration"
 	"checkpoint/modules/notification"
 	"checkpoint/modules/project"
 	projectRole "checkpoint/modules/project-role"
+	stationdashboardactivity "checkpoint/modules/station-dashboard-activity"
 	stationDevice "checkpoint/modules/station-device"
 	stationDeviceHealthCheck "checkpoint/modules/station-device-health-check"
 	stationHealthCheck "checkpoint/modules/station-health-check"
+	stationimeiimsiactivity "checkpoint/modules/station-imei-imsi-activity"
 	stationlocation "checkpoint/modules/station-location"
 	stationOfficer "checkpoint/modules/station-officer"
 	vehicleActivity "checkpoint/modules/station-vehicle-activity"
@@ -46,7 +47,8 @@ type Resolver struct {
 	vehicleActivity.StationVehicleActivityResolver
 	vehicleproperty.VehiclePropertyResolver
 	vehicleLicensePlate.VehiclelicensePlateResolver
-	imeiimsiactivity.ImeiImsiActivityResolver
+	stationimeiimsiactivity.StationImeiImsiActivityResolver
+	stationdashboardactivity.StationDashboardActivityResolver
 }
 
 func GraphqlResolver() *Resolver {
