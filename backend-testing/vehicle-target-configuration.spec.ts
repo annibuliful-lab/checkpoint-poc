@@ -55,6 +55,110 @@ describe('Vehicle target configuration', () => {
     expect(vehicleTarget.type).toEqual('VIP');
   });
 
+  it('deletes an image existing', async () => {
+    const prefix = nanoid(2);
+    const number = nanoid(6);
+    const province = nanoid(6);
+    const image = nanoid();
+    const vehicleTargetResponse = await client.mutation({
+      createVehicleTargetConfiguration: {
+        __scalar: true,
+        images: {
+          __scalar: true,
+        },
+        __args: {
+          stationLocationId: STATION_LOCATION_ID,
+          color: 'BLACK',
+          brand: 'TOYOTA',
+          prefix,
+          number,
+          province,
+          type: 'VIP',
+          permittedLabel: 'WHITELIST',
+          blacklistPriority: 'WARNING',
+          imageS3Keys: [
+            {
+              s3Key: image,
+              type: 'CONFIG',
+            },
+          ],
+        },
+      },
+    });
+
+    const vehicleTarget =
+      vehicleTargetResponse.createVehicleTargetConfiguration;
+
+    const deleteVehicleTargetImage = await client.mutation({
+      deleteVehicleTargetConfigurationImage: {
+        __scalar: true,
+        __args: {
+          id: vehicleTarget.images?.[0].id as string,
+        },
+      },
+    });
+
+    expect(
+      deleteVehicleTargetImage.deleteVehicleTargetConfigurationImage
+        .success
+    ).toBeTruthy();
+
+    const getVehicleTargetResponse = await client.query({
+      getVehicleTargetConfigurationById: {
+        images: {
+          __scalar: true,
+        },
+        __args: {
+          id: vehicleTarget.id,
+        },
+      },
+    });
+
+    expect(
+      getVehicleTargetResponse.getVehicleTargetConfigurationById
+        .images?.length
+    ).toEqual(0);
+  });
+
+  it('creates with images', async () => {
+    const prefix = nanoid(2);
+    const number = nanoid(6);
+    const province = nanoid(6);
+    const image = nanoid();
+    const vehicleTargetResponse = await client.mutation({
+      createVehicleTargetConfiguration: {
+        __scalar: true,
+        images: {
+          __scalar: true,
+        },
+        __args: {
+          stationLocationId: STATION_LOCATION_ID,
+          color: 'BLACK',
+          brand: 'TOYOTA',
+          prefix,
+          number,
+          province,
+          type: 'VIP',
+          permittedLabel: 'WHITELIST',
+          blacklistPriority: 'WARNING',
+          imageS3Keys: [
+            {
+              s3Key: image,
+              type: 'CONFIG',
+            },
+          ],
+        },
+      },
+    });
+
+    const vehicleTarget =
+      vehicleTargetResponse.createVehicleTargetConfiguration;
+
+    expect(vehicleTarget.images?.length).toEqual(1);
+    expect(vehicleTarget.images?.[0].s3Key).toEqual(image);
+    expect(vehicleTarget.images?.[0].type).toEqual('CONFIG');
+  });
+
   it('creates', async () => {
     const prefix = nanoid(2);
     const number = nanoid(6);

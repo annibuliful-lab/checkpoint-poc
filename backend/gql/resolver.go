@@ -22,6 +22,7 @@ import (
 	vehicleLicensePlate "checkpoint/modules/vehicle-license-plate"
 	vehicleproperty "checkpoint/modules/vehicle-property"
 	vehicleTarget "checkpoint/modules/vehicle-target-configuration"
+	vehicletargetconfigurationimage "checkpoint/modules/vehicle-target-configuration-image"
 )
 
 type Resolver struct {
@@ -51,6 +52,7 @@ type Resolver struct {
 	upload.UploadResolver
 	stationimeiimsiactivity.StationImeiImsiActivityResolver
 	stationdashboardactivity.StationDashboardActivityResolver
+	vehicletargetconfigurationimage.VehicleTargetConfigurationImageResolver
 }
 
 func GraphqlResolver() *Resolver {
