@@ -1,5 +1,9 @@
 import VehicleView from "./view";
 
-export default function Page() {
-  return <VehicleView />;
+type Props = {
+  params: { stationId: string };
+};
+
+export default function Page({ params }: Props) {
+  return <VehicleView stationLocationId={params.stationId} />;
 }

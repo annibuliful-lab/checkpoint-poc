@@ -3,7 +3,6 @@ package stationvehicleactivity
 import (
 	"checkpoint/.gen/checkpoint/public/model"
 	"checkpoint/auth"
-	"checkpoint/gql/enum"
 	"checkpoint/utils"
 	"context"
 
@@ -16,56 +15,15 @@ var stationVehicleActivityService = StationVehicleActivityService{}
 type StationVehicleActivityResolver struct{}
 
 func (StationVehicleActivityResolver) GetStationVehicleActivities(ctx context.Context, args StationVehicleActivityData) (*[]StationVehicleActivity, error) {
-	remark := `Mock-Remark`
-	return &[]StationVehicleActivity{
-		{
-			ID:                "Mock-ID",
-			ProjectId:         "Mock-ProjectId",
-			StationLocationId: "Mock-StationLocationId",
-			ArrivalTime:       "Mock-ArrivalTime",
-			LicensePlate:      "Mock-licensePlate",
-			LicensePlateType:  "Mock-licensePlateType",
-			Brand:             "Mock-brand",
-			VehicleType:       "Mock-vehicleType",
-			Color:             "Mock-color",
-			ColorName:         "Mock-colorName",
-			Remark:            &remark,
-		},
-		{
-			ID:                "Mock-ID-02",
-			ProjectId:         "Mock-ProjectId",
-			StationLocationId: "Mock-StationLocationId",
-			ArrivalTime:       "Mock-ArrivalTime",
-			LicensePlate:      "Mock-licensePlate",
-			LicensePlateType:  "Mock-licensePlateType",
-			Brand:             "Mock-brand",
-			VehicleType:       "Mock-vehicleType",
-			Color:             "Mock-color",
-			ColorName:         "Mock-colorName",
-			Remark:            &remark,
-		},
-	}, nil
+
+	return &[]StationVehicleActivity{}, nil
 }
 
 func (StationVehicleActivityResolver) GetStationVehicleActivityById(ctx context.Context, input struct{ ID graphql.ID }) (*StationVehicleActivity, error) {
-	remark := `Mock-Remark`
-	return &StationVehicleActivity{
-		ID:                "Mock-ID",
-		ProjectId:         "Mock-ProjectId",
-		StationLocationId: "Mock-StationLocationId",
-		ArrivalTime:       "Mock-ArrivalTime",
-		LicensePlate:      "Mock-licensePlate",
-		LicensePlateType:  "Mock-licensePlateType",
-		Brand:             "Mock-brand",
-		VehicleType:       "Mock-vehicleType",
-		Color:             "Mock-color",
-		ColorName:         "Mock-colorName",
-		Remark:            &remark,
-	}, nil
+	return &StationVehicleActivity{}, nil
 }
 
 func (StationVehicleActivityResolver) UpdateStationVehicleActivity(ctx context.Context, input UpdateStationVehicleActivityInput) (*StationVehicleActivity, error) {
-	// authorization := auth.GetAuthorizationContext(ctx)
 
 	return &StationVehicleActivity{}, nil
 }
@@ -100,59 +58,38 @@ func (StationVehicleActivityResolver) CreateStationVehicleActivity(ctx context.C
 	return vehicleActivity, nil
 }
 
+func (parent StationVehicleActivity) LicensePlate(ctx context.Context) (*StationVehicleActivityLicensePlate, error) {
+	licensePlate := StationVehicleActivityLicensePlate{}
+
+	return &licensePlate, nil
+}
+
+func (parent StationVehicleActivity) Vehicle(ctx context.Context) (*StationVehicleActivityVehicle, error) {
+	vehicle := StationVehicleActivityVehicle{}
+
+	return &vehicle, nil
+}
+
+func (parent StationVehicleActivity) Color(ctx context.Context) (*StationVehicleActivityColor, error) {
+	color := StationVehicleActivityColor{}
+
+	return &color, nil
+}
+
 func (parent StationVehicleActivity) Tags(ctx context.Context) (*[]StationVehicleActivityTag, error) {
-	tags := []StationVehicleActivityTag{
-		{
-			Status: enum.GetStationVehicleActivityTagStatus("IMSI"),
-			Tag:    "Mock-Tag Imsi",
-		},
-		{
-			Status: enum.GetStationVehicleActivityTagStatus("IMEI"),
-			Tag:    "Mock-Tag Imei",
-		},
-		{
-			Status: enum.GetStationVehicleActivityTagStatus("LICENSE_PLATE"),
-			Tag:    "Mock-Tag License plate",
-		},
-	}
+	color := []StationVehicleActivityTag{}
 
-	return &tags, nil
+	return &color, nil
 }
 
-func (parent StationVehicleActivity) Imeis(ctx context.Context) (*[]StationVehicleActivityImei, error) {
-	imeis := []StationVehicleActivityImei{
-		{
-			Status: enum.GetRemarkState("WHITELIST"),
-			Imei:   "Mock-Imei Danger",
-		},
-		{
-			Status: enum.GetRemarkState("BLACKLIST"),
-			Imei:   "Mock-Imei Warning",
-		},
-		{
-			Status: enum.GetRemarkState("PASSED"),
-			Imei:   "Mock-Imei",
-		},
-	}
+func (parent StationVehicleActivity) Imei(ctx context.Context) (*StationVehicleActivityImei, error) {
+	imei := StationVehicleActivityImei{}
 
-	return &imeis, nil
+	return &imei, nil
 }
 
-func (parent StationVehicleActivity) Imsis(ctx context.Context) (*[]StationVehicleActivityImsi, error) {
-	imsis := []StationVehicleActivityImsi{
-		{
-			Status: enum.GetRemarkState("WHITELIST"),
-			Imsi:   "Mock-Imsi Danger",
-		},
-		{
-			Status: enum.GetRemarkState("BLACKLIST"),
-			Imsi:   "Mock-Imsi Warning",
-		},
-		{
-			Status: enum.GetRemarkState("PASSED"),
-			Imsi:   "Mock-Imsi",
-		},
-	}
+func (parent StationVehicleActivity) Imsi(ctx context.Context) (*StationVehicleActivityImsi, error) {
+	imsi := StationVehicleActivityImsi{}
 
-	return &imsis, nil
+	return &imsi, nil
 }
