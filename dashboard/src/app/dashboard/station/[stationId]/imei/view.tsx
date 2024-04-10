@@ -17,7 +17,7 @@ export default function ImeiView({
     [MENU_TABS[0]]: (
       <Stack spacing={1}>
         <ImeiChart />
-        <Transection />
+        <Transection stationLocationId={stationLocationId} />
       </Stack>
     ),
     [MENU_TABS[1]]: <ImeiManageView stationLocationId={stationLocationId} />,
