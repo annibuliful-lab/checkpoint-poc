@@ -13,7 +13,6 @@ import (
 
 	pg "github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
-	"github.com/graph-gophers/graphql-go"
 )
 
 type StationVehicleActivityService struct{}
@@ -128,18 +127,5 @@ func (StationVehicleActivityService) Create(data CreateStationVehicleActivityDat
 }
 
 func transformToGraphql(data model.StationVehicleActivity) *StationVehicleActivity {
-	remark := `Mock-Remark`
-	return &StationVehicleActivity{
-		ID:                graphql.ID(data.ID.String()),
-		ProjectId:         graphql.ID(data.ProjectId.String()),
-		StationLocationId: graphql.ID(data.StationLocationId.String()),
-		ArrivalTime:       "Mock-ArrivalTime",
-		LicensePlate:      "Mock-licensePlate",
-		LicensePlateType:  "Mock-licensePlateType",
-		Brand:             "Mock-brand",
-		VehicleType:       "Mock-vehicleType",
-		Color:             "Mock-color",
-		ColorName:         "Mock-colorName",
-		Remark:            &remark,
-	}
+	return &StationVehicleActivity{}
 }

@@ -75,6 +75,41 @@ mutation createVehicleTargetConfiguration(
     ...VehicleTargetConfigurationFields
   }
 }
+mutation updateVehicleTargetConfiguration(
+  $id: ID!
+  $color: String
+  $brand: String
+  $prefix: String
+  $number: String
+  $province: String
+  $type: String
+  $country: String
+  $permittedLabel: DevicePermittedLabel
+  $blacklistPriority: BlacklistPriority
+  $tags: [String!]
+) {
+  updateVehicleTargetConfiguration(
+    id: $id
+    color: $color
+    brand: $brand
+    prefix: $prefix
+    number: $number
+    province: $province
+    type: $type
+    country: $country
+    permittedLabel: $permittedLabel
+    blacklistPriority: $blacklistPriority
+    tags: $tags
+  ) {
+    tags {
+      ...TagFields
+    }
+    images {
+      ...VehicleTargetConfigurationImageFields
+    }
+    ...VehicleTargetConfigurationFields
+  }
+}
 
 mutation deleteVehicleTargetConfiguration($id: ID!) {
   deleteVehicleTargetConfiguration(id: $id) {

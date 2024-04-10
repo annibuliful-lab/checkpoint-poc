@@ -1,35 +1,3 @@
-# type VehicleMobile {
-#   stationVehicleActivityId: ID!
-#   remarkStatus: RemarkState!
-#   imsi: String!
-#   mnc: String!
-#   mcc: String!
-#   imei: String
-#   permittedLabel: DevicePermittedLabel!
-#   signalStrength: Float!
-#   registerDateTime: Time!
-# }
-
-# type VahicleImage {
-#   stationVehicleActivityId: ID!
-#   type: ImageType!
-#   s3Key: String!
-#   imageUrl: String!
-# }
-
-# type VehicleLicensePlate {
-#   stationVehicleActivityId: ID!
-#   prefix: String!
-#   number: String!
-#   province: String!
-#   type: String!
-#   country: String
-#   accuracy: Float!
-#   permittedLabel: DevicePermittedLabel!
-#   blacklistPriority: BlacklistPriority!
-#   s3Key: String!
-#   imageUrl: String!
-# }
 type StationVehicleActivityImsi {
   status: RemarkState!
   imsi: String!
@@ -43,25 +11,50 @@ enum StationVehicleActivityTagStatus {
   IMEI
   IMSI
 }
+
+type StationVehicleActivityLicensePlate {
+  image: String
+  license: String!
+  type: String!
+  status: DevicePermittedLabel!
+}
+
+type StationVehicleActivityVehicle {
+  type: String!
+}
+
+type StationVehicleActivityColor {
+  name: String!
+  code: String!
+}
+
+type IMEI {
+  list: [String!]
+  total: Int!
+}
+
+type IMSI {
+  list: [String!]
+  total: Int!
+}
+
 type StationVehicleActivityTag {
-  status: StationVehicleActivityTagStatus!
+  type: ActivityTagType!
   tag: String!
 }
+
 type StationVehicleActivity {
-  id: ID!
-  projectId: ID!
-  stationLocationId: ID!
+  id: String!
   arrivalTime: String!
-  licensePlate: String!
-  licensePlateType: String!
+  licensePlate: StationVehicleActivityLicensePlate!
   brand: String!
-  vehicleType: String!
-  color: String!
-  colorName: String!
-  remark: String
+  vehicle: StationVehicleActivityVehicle!
+  color: StationVehicleActivityColor!
+  stationSite: String!
+  imei: IMEI!
+  imsi: IMSI!
   tags: [StationVehicleActivityTag!]
-  imeis: [StationVehicleActivityImei!]
-  imsis: [StationVehicleActivityImsi!]
+  remark: String!
 }
 
 type StationVehicleActivityConnection {

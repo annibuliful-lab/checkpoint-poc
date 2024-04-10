@@ -4,28 +4,43 @@ import {
   TableNoData,
   TablePaginationCustom,
   TableSkeleton,
-  emptyRows,
   useTable,
 } from "@/components/table";
 import { Card, Table, TableBody, TableContainer } from "@mui/material";
 import React, { useCallback, useMemo, useState } from "react";
 import Scrollbar from "@/components/scrollbar";
 import VehicleTableRow from "./table-row";
-import { TABLE_HEAD, VEHICLR_TRANSECTIONS } from "./const";
+import { TABLE_HEAD } from "./const";
 import { useBoolean } from "@/hooks/use-boolean";
 import _ from "lodash";
+import { PropWithStationLocationId } from "../../types";
+import { useGetStationVehicleActivitiesQuery } from "@/apollo-client";
+import { transformData } from "./types";
 
 const defaultFilters = {
   name: "",
 };
-export default function VehicleTransectionTable() {
+export default function VehicleTransectionTable({
+  stationLocationId,
+}: PropWithStationLocationId) {
   const table = useTable({
     defaultOrderBy: "createdAt",
     defaultOrder: "desc",
     defaultRowsPerPage: 10,
   });
+  const { data, loading } = useGetStationVehicleActivitiesQuery({
+    variables: {
+      limit: 0,
+      skip: 0,
+      stationId: stationLocationId,
+    },
+  });
   const [filters, setFilters] = useState(defaultFilters);
-  const dataInTable = useMemo(() => VEHICLR_TRANSECTIONS, []);
+  const dataInTable = useMemo(
+    () =>
+      data?.getStationVehicleActivities?.map((row) => transformData(row)) ?? [],
+    [data?.getStationVehicleActivities]
+  );
   const handleDeleteRow = useCallback((id: string) => {
     //
   }, []);
@@ -51,7 +66,7 @@ export default function VehicleTransectionTable() {
               numSelected={table.selected.length}
               onSort={table.onSort}
             />
-            {false ? (
+            {loading ? (
               <TableSkeleton />
             ) : (
               <TableBody>

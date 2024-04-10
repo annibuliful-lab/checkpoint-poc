@@ -37,7 +37,7 @@ import {
   useGetTagsQuery,
   useUpdateVehicleTargetConfigurationMutation,
 } from "@/apollo-client";
-import { IMEI_PRIORITY_OPTIONS, IMEI_STATUS_OPTIONS } from "./const";
+
 type Props = {
   opened: boolean;
   onClose: () => void;
