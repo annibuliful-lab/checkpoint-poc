@@ -17,29 +17,37 @@ type StationVehicleActivityData struct {
 }
 
 type StationVehicleActivityTag struct {
-	Status enum.StationVehicleActivityTagStatus
-	Tag    string
+	Type enum.StationVehicleActivityTagStatus
+	Tag  string
 }
 type StationVehicleActivityImei struct {
-	Status enum.RemarkState
-	Imei   string
+	Total int32
+	List  *[]string
 }
 type StationVehicleActivityImsi struct {
-	Status enum.RemarkState
-	Imsi   string
+	Total int32
+	List  *[]string
+}
+
+type StationVehicleActivityColor struct {
+	Name string `json:"name"`
+	Code string `json:"code"`
+}
+type StationVehicleActivityVehicle struct {
+	Type string `json:"type"`
 }
 type StationVehicleActivity struct {
-	ID                graphql.ID `json:"id"`
-	ProjectId         graphql.ID `json:"projectId"`
-	StationLocationId graphql.ID `json:"stationLocationId"`
-	ArrivalTime       string     `json:"arrivalTime"`
-	LicensePlate      string     `json:"licensePlate"`
-	LicensePlateType  string     `json:"licensePlateType"`
-	Brand             string     `json:"brand"`
-	VehicleType       string     `json:"vehicleType"`
-	Color             string     `json:"color"`
-	ColorName         string     `json:"colorName"`
-	Remark            *string    `json:"remark"`
+	ID          string `json:"id"`
+	ArrivalTime string `json:"arrivalTime"`
+	Brand       string `json:"brand"`
+	StationSite string `json:"stationSite"`
+	Remark      string `json:"remark"`
+}
+type StationVehicleActivityLicensePlate struct {
+	Image   *string                   `json:"image"`
+	License string                    `json:"license"`
+	Type    string                    `json:"type"`
+	Status  enum.DevicePermittedLabel `json:"status"`
 }
 
 type StationVehicleActivityConnection struct {

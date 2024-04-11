@@ -14,18 +14,35 @@ import ImeiTableRow from "./table-row";
 import { IMEI_IMSI_TRANSECTIONS, TABLE_HEAD } from "./const";
 import { useBoolean } from "@/hooks/use-boolean";
 import _ from "lodash";
+import { PropWithStationLocationId } from "../../types";
+import { useGetStationImeiImsiActivitiesQuery } from "@/apollo-client";
+import { transformData } from "./types";
 
 const defaultFilters = {
   name: "",
 };
-export default function ImeiTransectionTable() {
+export default function ImeiTransectionTable({
+  stationLocationId,
+}: PropWithStationLocationId) {
   const table = useTable({
     defaultOrderBy: "createdAt",
     defaultOrder: "desc",
     defaultRowsPerPage: 10,
   });
+  const { data, loading } = useGetStationImeiImsiActivitiesQuery({
+    variables: {
+      limit: 1000,
+      skip: 0,
+      stationId: stationLocationId,
+    },
+  });
   const [filters, setFilters] = useState(defaultFilters);
-  const dataInTable = useMemo(() => IMEI_IMSI_TRANSECTIONS, []);
+  const dataInTable = useMemo(
+    () =>
+      data?.getStationImeiImsiActivities?.map((row) => transformData(row)) ??
+      [],
+    [data?.getStationImeiImsiActivities]
+  );
   const handleDeleteRow = useCallback((id: string) => {
     //
   }, []);

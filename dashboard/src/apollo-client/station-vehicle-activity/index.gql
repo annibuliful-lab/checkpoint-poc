@@ -1,0 +1,90 @@
+query getStationVehicleActivityById($id: ID!) {
+  getStationVehicleActivityById(id: $id) {
+    licensePlate {
+      ...StationVehicleActivityLicensePlateFields
+    }
+    vehicle {
+      ...StationVehicleActivityVehicleFields
+    }
+    color {
+      ...StationVehicleActivityColorFields
+    }
+    imei {
+      ...IMEIFields
+    }
+    imsi {
+      ...IMSIFields
+    }
+    tags {
+      ...StationVehicleActivityTagFields
+    }
+    ...StationVehicleActivityFields
+  }
+}
+
+query getStationVehicleActivities($limit: Int!, $skip: Int!, $stationId: ID!) {
+  getStationVehicleActivities(
+    limit: $limit
+    skip: $skip
+    stationId: $stationId
+  ) {
+    licensePlate {
+      ...StationVehicleActivityLicensePlateFields
+    }
+    vehicle {
+      ...StationVehicleActivityVehicleFields
+    }
+    color {
+      ...StationVehicleActivityColorFields
+    }
+    imei {
+      ...IMEIFields
+    }
+    imsi {
+      ...IMSIFields
+    }
+    tags {
+      ...StationVehicleActivityTagFields
+    }
+    ...StationVehicleActivityFields
+  }
+}
+
+fragment StationVehicleActivityFields on StationVehicleActivity {
+  id
+  arrivalTime
+  brand
+  stationSite
+  remark
+}
+
+fragment StationVehicleActivityLicensePlateFields on StationVehicleActivityLicensePlate {
+  image
+  license
+  type
+  status
+}
+
+fragment StationVehicleActivityVehicleFields on StationVehicleActivityVehicle {
+  type
+}
+
+fragment StationVehicleActivityColorFields on StationVehicleActivityColor {
+  name
+  code
+}
+
+fragment IMEIFields on IMEI {
+  list
+  total
+}
+
+fragment IMSIFields on IMSI {
+  list
+  total
+}
+
+fragment StationVehicleActivityTagFields on StationVehicleActivityTag {
+  type
+  tag
+}

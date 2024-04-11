@@ -243,11 +243,11 @@ export default function VehicleTableRow({ row, onDeleteRow, onEdit }: Props) {
           >
             {tags?.map((tag) => (
               <Label
-                key={tag}
+                key={tag.tag}
                 variant={isBlackList || isWhiteList ? "filled" : "soft"}
                 color="warning"
               >
-                {tag}
+                {tag.tag}
               </Label>
             ))}
           </Stack>
