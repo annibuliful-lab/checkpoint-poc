@@ -40,54 +40,7 @@ query getVehicleTargetConfigurationById($id: ID!) {
   }
 }
 
-mutation createVehicleTargetConfiguration(
-  $stationLocationId: ID!
-  $color: String!
-  $brand: String!
-  $prefix: String!
-  $number: String!
-  $province: String!
-  $type: String!
-  $country: String
-  $permittedLabel: DevicePermittedLabel!
-  $blacklistPriority: BlacklistPriority!
-  $tags: [String!]
-) {
-  createVehicleTargetConfiguration(
-    stationLocationId: $stationLocationId
-    color: $color
-    brand: $brand
-    prefix: $prefix
-    number: $number
-    province: $province
-    type: $type
-    country: $country
-    permittedLabel: $permittedLabel
-    blacklistPriority: $blacklistPriority
-    tags: $tags
-  ) {
-    tags {
-      ...TagFields
-    }
-    images {
-      ...VehicleTargetConfigurationImageFields
-    }
-    ...VehicleTargetConfigurationFields
-  }
-}
-mutation updateVehicleTargetConfiguration(
-  $id: ID!
-  $color: String
-  $brand: String
-  $prefix: String
-  $number: String
-  $province: String
-  $type: String
-  $country: String
-  $permittedLabel: DevicePermittedLabel
-  $blacklistPriority: BlacklistPriority
-  $tags: [String!]
-) {
+mutation updateVehicleTargetConfiguration($id: ID!, $color: String, $brand: String, $prefix: String, $number: String, $province: String, $type: String, $country: String, $permittedLabel: DevicePermittedLabel, $blacklistPriority: BlacklistPriority, $tags: [String!], $imageS3Keys: [upsertImageS3KeyInput!]) {
   updateVehicleTargetConfiguration(
     id: $id
     color: $color
@@ -100,6 +53,7 @@ mutation updateVehicleTargetConfiguration(
     permittedLabel: $permittedLabel
     blacklistPriority: $blacklistPriority
     tags: $tags
+    imageS3Keys: $imageS3Keys
   ) {
     tags {
       ...TagFields
@@ -111,9 +65,28 @@ mutation updateVehicleTargetConfiguration(
   }
 }
 
-mutation deleteVehicleTargetConfiguration($id: ID!) {
-  deleteVehicleTargetConfiguration(id: $id) {
-    success
+mutation createVehicleTargetConfiguration($stationLocationId: ID!, $color: String!, $brand: String!, $prefix: String!, $number: String!, $province: String!, $type: String!, $country: String, $permittedLabel: DevicePermittedLabel!, $blacklistPriority: BlacklistPriority!, $tags: [String!], $imageS3Keys: [upsertImageS3KeyInput!]) {
+  createVehicleTargetConfiguration(
+    stationLocationId: $stationLocationId
+    color: $color
+    brand: $brand
+    prefix: $prefix
+    number: $number
+    province: $province
+    type: $type
+    country: $country
+    permittedLabel: $permittedLabel
+    blacklistPriority: $blacklistPriority
+    tags: $tags
+    imageS3Keys: $imageS3Keys
+  ) {
+    tags {
+      ...TagFields
+    }
+    images {
+      ...VehicleTargetConfigurationImageFields
+    }
+    ...VehicleTargetConfigurationFields
   }
 }
 
@@ -142,5 +115,34 @@ fragment VehicleTargetConfigurationImageFields on VehicleTargetConfigurationImag
   id
   vehicleTargetConfigurationId
   type
+  s3Key
   url
+}
+
+
+mutation deleteVehicleTargetConfiguration($id: ID!) {
+  deleteVehicleTargetConfiguration(id: $id) {
+    success
+  }
+}
+
+fragment VehicleTargetConfigurationFields on VehicleTargetConfiguration {
+  id
+  stationLocationId
+  color
+  brand
+  projectId
+  prefix
+  number
+  province
+  type
+  country
+  permittedLabel
+  blacklistPriority
+}
+
+fragment TagFields on Tag {
+  id
+  projectId
+  title
 }

@@ -6,8 +6,11 @@ import React from "react";
 import VehicleFilter from "./filter";
 import VehicleTable from "./table";
 import VehicleForm from "./vehicle-form";
+import { PropWithStationLocationId } from "../../types";
 
-export default function VehicleManageView() {
+export default function VehicleManageView({
+  stationLocationId,
+}: PropWithStationLocationId) {
   const openVehicleManageForm = useBoolean();
   return (
     <Stack spacing={1}>
@@ -27,6 +30,7 @@ export default function VehicleManageView() {
       <VehicleForm
         opened={openVehicleManageForm.value}
         onClose={openVehicleManageForm.onFalse}
+        vehicle={{ stationLocationId: stationLocationId}}
       />
       <Box sx={{ flex: 1 }}>
         <VehicleTable />
