@@ -1,0 +1,6 @@
+mutation uploadFile($file: Upload!) {
+  uploadFile(file: $file) {
+    s3Key
+    url
+  }
+}

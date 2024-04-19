@@ -11,7 +11,7 @@ import {
 } from "@apollo/experimental-nextjs-app-support/ssr";
 import { Authentication } from ".";
 import { getStorage } from "@/utils/storage-available";
-
+import createUploadLink from "apollo-upload-client/createUploadLink.mjs"
 export const authLink = setContext((operation, { headers }) => {
   const auth = getStorage("auth") as
     | (Authentication & { projectId: string })
@@ -25,7 +25,7 @@ export const authLink = setContext((operation, { headers }) => {
     },
   };
 });
-export const httpLink = new HttpLink({
+export const httpLink = createUploadLink({
   uri: GRAPHQL.endpoint,
   credentials: "omit",
 });
