@@ -17,6 +17,7 @@ import { useBoolean } from "@/hooks/use-boolean";
 import _ from "lodash";
 import {
   GetVehicleTargetConfigurationsDocument,
+  VehicleTargetConfiguration,
   useDeleteVehicleTargetConfigurationMutation,
   useGetVehicleTargetConfigurationsQuery,
 } from "@/apollo-client";
@@ -64,9 +65,9 @@ export default function VehicleTable() {
     [callDelete]
   );
   const openVehicleForm = useBoolean();
-  const [editVehicle, setEditVehicle] = useState(undefined);
+  const [editVehicle, setEditVehicle] = useState<VehicleTargetConfiguration|undefined>(undefined);
   const handleEdit = useCallback(
-    (item: any) => {
+    (item:VehicleTargetConfiguration) => {
       setEditVehicle(item);
       openVehicleForm.onTrue();
     },

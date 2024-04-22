@@ -20,7 +20,7 @@ export default function VehicleView({
         <Transection stationLocationId={stationLocationId} />
       </Stack>
     ),
-    [MENU_TABS[1]]: <VehicleManageView />,
+    [MENU_TABS[1]]: <VehicleManageView  stationLocationId={stationLocationId} />,
   };
   if (!content[menuParams.get("menu") as ""]) {
     return content[MENU_TABS[0]];
