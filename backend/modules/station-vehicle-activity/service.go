@@ -127,5 +127,11 @@ func (StationVehicleActivityService) Create(data CreateStationVehicleActivityDat
 }
 
 func transformToGraphql(data model.StationVehicleActivity) *StationVehicleActivity {
-	return &StationVehicleActivity{}
+	return &StationVehicleActivity{
+		ID:          data.ID.String(),
+		ArrivalTime: data.CreatedAt.String(),
+		Brand:       data.Brand,
+		StationSite: data.StationLocationId.String(),
+		Remark:      *data.Issue,
+	}
 }

@@ -3,26 +3,17 @@
 import Chart, { useChart } from "@/components/chart";
 
 type Props = {
+  categories: string[];
   series: {
     name: string;
     data: number[];
   }[];
 };
 
-export default function VehicleChartLine({ series }: Props) {
+export default function VehicleChartLine({ series, categories }: Props) {
   const chartOptions = useChart({
     xaxis: {
-      categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-      ],
+      categories,
     },
     tooltip: {
       x: {

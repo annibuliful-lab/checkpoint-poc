@@ -36,10 +36,25 @@ export default function VehicleChart({ actions }: Props) {
         </Stack>
 
         <VehicleChartLine
+          categories={[
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+          ]}
           series={[
             {
-              name: "Total",
+              name: "Imei",
               data: [10, 41, 35, 51, 49, 62, 69, 91, 148],
+            },
+            {
+              name: "Imsi",
+              data: [3, 4, 5, 6, 7, 62, 3, 91, 2],
             },
           ]}
         />

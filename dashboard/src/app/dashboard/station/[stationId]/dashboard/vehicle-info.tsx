@@ -32,7 +32,7 @@ export default function VehicleInfo() {
             value: dashboardActivity?.vehicleInfo?.stationSiteName,
           },
           {
-            label: "Status",
+            label: "Vehicle Status",
             value: dashboardActivity?.vehicleInfo?.status,
           },
           {
