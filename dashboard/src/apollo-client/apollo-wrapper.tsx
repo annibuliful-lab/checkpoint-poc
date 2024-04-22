@@ -1,7 +1,7 @@
 "use client";
 
 import { GRAPHQL } from "@/config-global";
-import { ApolloLink, HttpLink } from "@apollo/client";
+import { ApolloLink } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import {
   ApolloNextAppProvider,
@@ -11,7 +11,7 @@ import {
 } from "@apollo/experimental-nextjs-app-support/ssr";
 import { Authentication } from ".";
 import { getStorage } from "@/utils/storage-available";
-import createUploadLink from "apollo-upload-client/createUploadLink.mjs"
+import createUploadLink from "apollo-upload-client/createUploadLink.mjs";
 export const authLink = setContext((operation, { headers }) => {
   const auth = getStorage("auth") as
     | (Authentication & { projectId: string })
@@ -28,7 +28,7 @@ export const authLink = setContext((operation, { headers }) => {
 export const httpLink = createUploadLink({
   uri: GRAPHQL.endpoint,
   credentials: "omit",
-});
+}) as unknown as ApolloLink;
 export const apolloCache = new NextSSRInMemoryCache();
 function makeClient() {
   return new NextSSRApolloClient({
