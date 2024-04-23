@@ -25,7 +25,7 @@ export default function VehicleChartLine({ series, categories }: Props) {
     <Chart
       dir="ltr"
       type="line"
-      series={series}
+      series={series.map((s) => ({ name: s.label, data: s.data }))}
       options={chartOptions}
       width="100%"
       height={240}

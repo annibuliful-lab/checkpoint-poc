@@ -16,7 +16,7 @@ export default function ImeiView({
   const content = {
     [MENU_TABS[0]]: (
       <Stack spacing={1}>
-        <ImeiChart />
+        <ImeiChart stationLocationId={stationLocationId} />
         <Transection stationLocationId={stationLocationId} />
       </Stack>
     ),
