@@ -33,11 +33,8 @@ func (StationVehicleActivityResolver) GetStationVehicleActivitySummary(ctx conte
 func (StationVehicleActivitySummary) Series(ctx context.Context) (*[]StationVehicleActivitySummarySerie, error) {
 
 	return &[]StationVehicleActivitySummarySerie{{
-		Label: "IMEI",
+		Label: "Vehicle count",
 		Data:  []int32{10, 41, 35, 51, 49, 62, 69, 91, 148},
-	}, {
-		Label: "IMSI",
-		Data:  []int32{3, 4, 5, 6, 7, 62, 3, 91, 2},
 	}}, nil
 }
 
