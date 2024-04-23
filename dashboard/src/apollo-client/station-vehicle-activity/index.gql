@@ -49,6 +49,23 @@ query getStationVehicleActivities($limit: Int!, $skip: Int!, $stationId: ID!) {
     ...StationVehicleActivityFields
   }
 }
+query getStationVehicleActivitySummary(
+  $stationId: ID!
+  $groupBy: GetStationVehicleActivitySummaryCategory!
+  $customDate: Time
+) {
+  getStationVehicleActivitySummary(
+    stationId: $stationId
+    groupBy: $groupBy
+    customDate: $customDate
+  ) {
+    categories
+    series {
+      label
+      data
+    }
+  }
+}
 
 fragment StationVehicleActivityFields on StationVehicleActivity {
   id

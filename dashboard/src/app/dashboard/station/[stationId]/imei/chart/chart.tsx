@@ -3,11 +3,21 @@ import { Box, Button, Card, Stack, Typography } from "@mui/material";
 import Chart from "chart.js/auto";
 import ImeiHeader from "../filter";
 import ImeiChartLine from "./chart-line";
+import {
+  GetStationImeiImsiActivitySummaryCategory,
+  useGetStationImeiImsiActivitySummaryQuery,
+} from "@/apollo-client";
 Chart.register();
 type Props = {
-  actions?: JSX.Element[];
+  stationLocationId: string;
 };
-export default function ImeiChart({ actions }: Props) {
+export default function ImeiChart({ stationLocationId }: Props) {
+  const { loading, data } = useGetStationImeiImsiActivitySummaryQuery({
+    variables: {
+      stationId: stationLocationId,
+      groupBy: GetStationImeiImsiActivitySummaryCategory.Day,
+    },
+  });
   return (
     <Stack spacing={1}>
       <ImeiHeader />
@@ -36,12 +46,8 @@ export default function ImeiChart({ actions }: Props) {
         </Stack>
 
         <ImeiChartLine
-          series={[
-            {
-              name: "Total",
-              data: [10, 41, 35, 51, 49, 62, 69, 91, 148],
-            },
-          ]}
+          categories={data?.getStationImeiImsiActivitySummary.categories ?? []}
+          series={data?.getStationImeiImsiActivitySummary.series ?? []}
         />
       </Card>
     </Stack>

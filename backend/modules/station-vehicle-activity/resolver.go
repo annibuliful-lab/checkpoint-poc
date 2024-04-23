@@ -14,6 +14,30 @@ var stationVehicleActivityService = StationVehicleActivityService{}
 
 type StationVehicleActivityResolver struct{}
 
+func (StationVehicleActivityResolver) GetStationVehicleActivitySummary(ctx context.Context, args StationVehicleActivitySummaryData) (*StationVehicleActivitySummary, error) {
+
+	return &StationVehicleActivitySummary{
+		Categories: []string{
+			"Jan",
+			"Feb",
+			"Mar",
+			"Apr",
+			"May",
+			"Jun",
+			"Jul",
+			"Aug",
+			"Sep"},
+	}, nil
+}
+
+func (StationVehicleActivitySummary) Series(ctx context.Context) (*[]StationVehicleActivitySummarySerie, error) {
+
+	return &[]StationVehicleActivitySummarySerie{{
+		Label: "Vehicle count",
+		Data:  []int32{10, 41, 35, 51, 49, 62, 69, 91, 148},
+	}}, nil
+}
+
 func (StationVehicleActivityResolver) GetStationVehicleActivities(ctx context.Context, args StationVehicleActivityData) (*[]StationVehicleActivity, error) {
 
 	return &[]StationVehicleActivity{}, nil

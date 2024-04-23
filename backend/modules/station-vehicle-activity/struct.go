@@ -16,6 +16,12 @@ type StationVehicleActivityData struct {
 	Skip      int32      `json:"skip"`
 }
 
+type StationVehicleActivitySummaryData struct {
+	StationId  graphql.ID
+	GroupBy    string
+	CustomDate *graphql.NullTime
+}
+
 type StationVehicleActivityTag struct {
 	Type enum.StationVehicleActivityTagStatus
 	Tag  string
@@ -33,9 +39,11 @@ type StationVehicleActivityColor struct {
 	Name string `json:"name"`
 	Code string `json:"code"`
 }
+
 type StationVehicleActivityVehicle struct {
 	Type string `json:"type"`
 }
+
 type StationVehicleActivity struct {
 	ID          string `json:"id"`
 	ArrivalTime string `json:"arrivalTime"`
@@ -43,6 +51,16 @@ type StationVehicleActivity struct {
 	StationSite string `json:"stationSite"`
 	Remark      string `json:"remark"`
 }
+
+type StationVehicleActivitySummarySerie struct {
+	Label string
+	Data  []int32
+}
+
+type StationVehicleActivitySummary struct {
+	Categories []string
+}
+
 type StationVehicleActivityLicensePlate struct {
 	Image   *string                   `json:"image"`
 	License string                    `json:"license"`

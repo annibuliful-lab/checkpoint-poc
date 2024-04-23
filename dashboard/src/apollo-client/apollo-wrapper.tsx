@@ -116,7 +116,7 @@ const errorLink = onError((response) => {
 export const httpLink = createUploadLink({
   uri: GRAPHQL.endpoint,
   credentials: "omit",
-});
+}) as unknown as ApolloLink;
 export const apolloCache = new NextSSRInMemoryCache();
 function makeClient() {
   return new NextSSRApolloClient({

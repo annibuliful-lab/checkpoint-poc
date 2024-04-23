@@ -62,6 +62,16 @@ type StationVehicleActivityConnection {
   edges: [StationVehicleActivity!]!
 }
 
+type StationVehicleActivitySummarySerie {
+  label: String!
+  data: [Int!]!
+}
+
+type StationVehicleActivitySummary {
+  categories: [String!]!
+  series: [StationVehicleActivitySummarySerie!]
+}
+
 type Mutation {
   createStationVehicleActivity(
     brand: String!
@@ -78,13 +88,24 @@ type Mutation {
     status: RemarkState
   ): StationVehicleActivity! @access(requiredProjectId: true)
 }
-
+enum GetStationVehicleActivitySummaryCategory {
+  DAY
+  WEEK
+  MONTH
+  YEAR
+  CUSTOM_DATE
+}
 type Query {
   getStationVehicleActivities(
     limit: Int!
     skip: Int!
     stationId: ID!
   ): [StationVehicleActivity!] @access(requiredProjectId: true)
+  getStationVehicleActivitySummary(
+    stationId: ID!
+    groupBy: GetStationVehicleActivitySummaryCategory!
+    customDate: Time
+  ): StationVehicleActivitySummary @access(requiredProjectId: true)
   getStationVehicleActivityById(id: ID!): StationVehicleActivity!
     @access(requiredProjectId: true)
 }
