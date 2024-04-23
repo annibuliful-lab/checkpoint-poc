@@ -12,6 +12,30 @@ import (
 
 type StationImeiImsiActivityResolver struct{}
 
+func (StationImeiImsiActivityResolver) GetStationImeiImsiActivitySummary(ctx context.Context, args StationImeiImsiActivitySummaryData) (*StationImeiImsiActivitySummary, error) {
+
+	return &StationImeiImsiActivitySummary{
+		Categories: []string{
+			"Jan",
+			"Feb",
+			"Mar",
+			"Apr",
+			"May",
+			"Jun",
+			"Jul",
+			"Aug",
+			"Sep"},
+	}, nil
+}
+
+func (StationImeiImsiActivitySummary) Series(ctx context.Context) (*[]StationImeiImsiActivitySummarySerie, error) {
+
+	return &[]StationImeiImsiActivitySummarySerie{{
+		Label: "IMEI",
+		Data:  []int32{10, 41, 35, 51, 49, 62, 69, 91, 148},
+	}}, nil
+}
+
 func (StationImeiImsiActivityResolver) GetStationImeiImsiActivities(ctx context.Context, args StationImeiImsiActivityData) (*[]StationImeiImsiActivity, error) {
 	currentTime := time.Now()
 	isoTimeString := currentTime.Format(time.RFC3339)
