@@ -33,6 +33,9 @@ func (StationImeiImsiActivitySummary) Series(ctx context.Context) (*[]StationIme
 	return &[]StationImeiImsiActivitySummarySerie{{
 		Label: "IMEI",
 		Data:  []int32{10, 41, 35, 51, 49, 62, 69, 91, 148},
+	}, {
+		Label: "IMSI",
+		Data:  []int32{10, 8, 35, 7, 49, 6, 69, 8, 148},
 	}}, nil
 }
 
