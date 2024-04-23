@@ -3,11 +3,21 @@ import { Box, Button, Card, Stack, Typography } from "@mui/material";
 import Chart from "chart.js/auto";
 import VehicleHeader from "../filter";
 import VehicleChartLine from "./chart-line";
+import {
+  GetStationVehicleActivitySummaryCategory,
+  useGetStationVehicleActivitySummaryQuery,
+} from "@/apollo-client";
 Chart.register();
 type Props = {
-  actions?: JSX.Element[];
+  stationLocationId: string;
 };
-export default function VehicleChart({ actions }: Props) {
+export default function VehicleChart({ stationLocationId }: Props) {
+  const { loading, data } = useGetStationVehicleActivitySummaryQuery({
+    variables: {
+      stationId: stationLocationId,
+      groupBy: GetStationVehicleActivitySummaryCategory.Day,
+    },
+  });
   return (
     <Stack spacing={1}>
       <VehicleHeader />
@@ -19,11 +29,6 @@ export default function VehicleChart({ actions }: Props) {
               Overview
             </Typography>
             <Box sx={{ width: 10 }} />
-            {["ALL", "IMSI", "IMEI"].map((filterType) => (
-              <Button key={filterType} size="small" variant="outlined">
-                {filterType}
-              </Button>
-            ))}
           </Stack>
 
           <Stack direction={"row"} spacing={1} alignItems={"center"}>
@@ -36,27 +41,8 @@ export default function VehicleChart({ actions }: Props) {
         </Stack>
 
         <VehicleChartLine
-          categories={[
-            "Jan",
-            "Feb",
-            "Mar",
-            "Apr",
-            "May",
-            "Jun",
-            "Jul",
-            "Aug",
-            "Sep",
-          ]}
-          series={[
-            {
-              name: "Imei",
-              data: [10, 41, 35, 51, 49, 62, 69, 91, 148],
-            },
-            {
-              name: "Imsi",
-              data: [3, 4, 5, 6, 7, 62, 3, 91, 2],
-            },
-          ]}
+          categories={data?.getStationVehicleActivitySummary?.categories ?? []}
+          series={data?.getStationVehicleActivitySummary?.series ?? []}
         />
       </Card>
     </Stack>

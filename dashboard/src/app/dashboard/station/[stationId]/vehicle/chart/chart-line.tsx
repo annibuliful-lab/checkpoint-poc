@@ -1,13 +1,11 @@
 // ----------------------------------------------------------------------
 
+import { StationVehicleActivitySummarySerie } from "@/apollo-client";
 import Chart, { useChart } from "@/components/chart";
 
 type Props = {
   categories: string[];
-  series: {
-    name: string;
-    data: number[];
-  }[];
+  series: StationVehicleActivitySummarySerie[];
 };
 
 export default function VehicleChartLine({ series, categories }: Props) {

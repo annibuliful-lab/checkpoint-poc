@@ -16,11 +16,11 @@ export default function VehicleView({
   const content = {
     [MENU_TABS[0]]: (
       <Stack spacing={1}>
-        <VehicleChart />
+        <VehicleChart stationLocationId={stationLocationId} />
         <Transection stationLocationId={stationLocationId} />
       </Stack>
     ),
-    [MENU_TABS[1]]: <VehicleManageView  stationLocationId={stationLocationId} />,
+    [MENU_TABS[1]]: <VehicleManageView stationLocationId={stationLocationId} />,
   };
   if (!content[menuParams.get("menu") as ""]) {
     return content[MENU_TABS[0]];
