@@ -240,7 +240,7 @@ func (AuthenticationService) SignUp(data SignUpData) (model.Account, string, err
 	return accountResult, "Signup", nil
 }
 
-func (AuthenticationService) GetAuthenticationTokenByRefreshToken(data RefreshTokenData) (*SigninResponse, int, error) {
+func (AuthenticationService) GetAuthenticationTokenByRefreshToken(data RefreshTokenData) (*Authentication, string, error) {
 	dbClient := db.GetPrimaryClient()
 	redisClient := db.GetRedisClient()
 
@@ -259,12 +259,12 @@ func (AuthenticationService) GetAuthenticationTokenByRefreshToken(data RefreshTo
 	err := selectSessionTokenStmt.Query(dbClient, &sessionToken)
 
 	if err != nil && db.HasNoRow(err) {
-		return nil, 403, utils.ForbiddenOperation
+		return nil, "403", utils.ForbiddenOperation
 	}
 
 	if err != nil {
 		log.Println(err.Error())
-		return nil, 500, utils.InternalServerError
+		return nil, err.Error(), utils.InternalServerError
 	}
 
 	accountId := sessionToken.AccountId.String()
@@ -282,7 +282,7 @@ func (AuthenticationService) GetAuthenticationTokenByRefreshToken(data RefreshTo
 
 	if err != nil {
 		log.Println("select-account-error: ", err.Error())
-		return nil, 500, utils.InternalServerError
+		return nil, "select-account-error: " + err.Error(), utils.InternalServerError
 	}
 
 	token, err := jwt.SignToken(jwt.SignedTokenParams{
@@ -292,7 +292,7 @@ func (AuthenticationService) GetAuthenticationTokenByRefreshToken(data RefreshTo
 
 	if err != nil {
 		log.Println(err.Error())
-		return nil, 500, utils.SignTokenFailed
+		return nil, err.Error(), utils.SignTokenFailed
 	}
 
 	refreshToken, err := jwt.SignRefreshToken(jwt.SignedTokenParams{
@@ -302,14 +302,14 @@ func (AuthenticationService) GetAuthenticationTokenByRefreshToken(data RefreshTo
 
 	if err != nil {
 		log.Println(err.Error())
-		return nil, 500, utils.SignTokenFailed
+		return nil, err.Error(), utils.SignTokenFailed
 	}
 
 	tx, err := dbClient.Begin()
 
 	if err != nil {
 		log.Println("init-db-tx", err.Error())
-		return nil, 500, utils.InternalServerError
+		return nil, "init-db-tx" + err.Error(), utils.InternalServerError
 	}
 
 	insertSessionTokenStmt := SessionToken.
@@ -330,7 +330,7 @@ func (AuthenticationService) GetAuthenticationTokenByRefreshToken(data RefreshTo
 	if err != nil {
 		log.Println("insert-token: ", err.Error())
 		tx.Rollback()
-		return nil, 500, utils.InternalServerError
+		return nil, "insert-token: " + err.Error(), utils.InternalServerError
 	}
 
 	jsonData, err := json.Marshal(utils.AuthorizationData{
@@ -341,7 +341,7 @@ func (AuthenticationService) GetAuthenticationTokenByRefreshToken(data RefreshTo
 	if err != nil {
 		log.Println("json-error: ", err.Error())
 		tx.Rollback()
-		return nil, 500, utils.InternalServerError
+		return nil, "json-error: "+ err.Error(), utils.InternalServerError
 	}
 
 	err = redisClient.Set(ctx, token, jsonData, time.Minute*15).Err()
@@ -349,18 +349,18 @@ func (AuthenticationService) GetAuthenticationTokenByRefreshToken(data RefreshTo
 	if err != nil {
 		log.Println("redis-error: ", err.Error())
 		tx.Rollback()
-		return nil, 500, utils.InternalServerError
+		return nil, "redis-error: " + err.Error(), utils.InternalServerError
 	}
 
 	err = tx.Commit()
 	if err != nil {
 		log.Println("signin-error", err.Error())
-		return nil, 500, utils.InternalServerError
+		return nil, "signin-error" + err.Error(), utils.InternalServerError
 	}
-
-	return &SigninResponse{
-		UserId:       sessionToken.AccountId.String(),
+	
+	return &Authentication{
+		UserId:        graphql.ID(sessionToken.AccountId.String()),
 		Token:        token,
 		RefreshToken: refreshToken,
-	}, 200, nil
+	}, "Signin", nil
 }

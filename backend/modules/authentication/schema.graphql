@@ -8,4 +8,8 @@ type Mutation {
   signup(username: String!, password: String!): Account!
 
   signin(username: String!, password: String!): Authentication!
+
+  refreshToken(refreshToken: String!): Authentication!
 }
+
+
