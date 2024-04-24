@@ -23,7 +23,7 @@ type StationImeiImsiActivitySummarySerie {
 
 type StationImeiImsiActivitySummary {
   categories: [String!]!
-  series: [StationImeiImsiActivitySummarySerie!]
+  series(filter: String): [StationImeiImsiActivitySummarySerie!]
 }
 
 enum GetStationImeiImsiActivitySummaryCategory {

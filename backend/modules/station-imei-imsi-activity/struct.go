@@ -34,6 +34,10 @@ type StationImeiImsiActivitySummaryData struct {
 	CustomDate *graphql.NullTime
 }
 
+type StationImeiImsiActivitySummarySerieFilter struct {
+	Filter *string
+}
+
 type StationImeiImsiActivitySummarySerie struct {
 	Label string
 	Data  []int32
