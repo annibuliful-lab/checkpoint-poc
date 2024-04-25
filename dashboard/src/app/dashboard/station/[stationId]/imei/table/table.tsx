@@ -11,7 +11,7 @@ import { Card, Table, TableBody, TableContainer } from "@mui/material";
 import React, { useCallback, useMemo, useState } from "react";
 import Scrollbar from "@/components/scrollbar";
 import ImeiTableRow from "./table-row";
-import { IMEI_IMSI_TRANSECTIONS, TABLE_HEAD } from "./const";
+import { TABLE_HEAD } from "./const";
 import { useBoolean } from "@/hooks/use-boolean";
 import _ from "lodash";
 import { PropWithStationLocationId } from "../../types";
