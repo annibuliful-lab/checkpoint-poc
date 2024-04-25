@@ -44,14 +44,12 @@ import {
   useUpdateVehicleTargetConfigurationMutation,
   useUploadFileMutation,
 } from "@/apollo-client";
-import { AddPhotoAlternateOutlined } from "@mui/icons-material";
-import Image from "@/components/image";
 import { RHFUploadImage } from "@/components/hook-form/rhf-upload-image";
 
 type Props = {
   opened: boolean;
   onClose: () => void;
-  vehicle?: VehicleTargetConfiguration;
+  vehicle?: Partial<VehicleTargetConfiguration>;
 };
 export default function VehicleForm({ opened, onClose, vehicle }: Props) {
   const [create, createResponse] =
@@ -129,7 +127,7 @@ export default function VehicleForm({ opened, onClose, vehicle }: Props) {
     Record<string, UploadResult>
   >({});
   const setUploadImageHandle = (result: UploadResult, i: number) => {
-    const tempImagePreview : any[] = [];
+    const tempImagePreview: any[] = [];
     if (vehicle?.images?.length)
       for (let index = 0; index < vehicle?.images.length; index++) {
         const img = vehicle?.images?.[index];

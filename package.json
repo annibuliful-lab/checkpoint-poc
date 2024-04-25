@@ -18,6 +18,7 @@
     "backend:build": "cd backend && go build",
     "backend:test": "cd backend-testing && jest",
     "dashboard:dev": "cd dashboard && pnpm run dev",
+    "dashboard:build": "cd dashboard && pnpm run build",
     "db-primary:migrate": "prisma migrate dev --schema prisma/primary/schema.prisma",
     "db-primary:generate": "prisma generate --schema prisma/primary/schema.prisma",
     "db-primary:seed": "ts-node prisma/primary/seed",
