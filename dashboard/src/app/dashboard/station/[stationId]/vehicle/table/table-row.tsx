@@ -35,8 +35,9 @@ import { paths } from "@/routes/paths";
 
 type Props = {
   row: VehicleTransection;
-  onDeleteRow: VoidFunction;
-  onEdit: VoidFunction;
+  onDeleteRow?: VoidFunction;
+  onEdit?: VoidFunction;
+  onClick?: VoidFunction;
 };
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
@@ -51,7 +52,7 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   },
 }));
 
-export default function VehicleTableRow({ row, onDeleteRow, onEdit }: Props) {
+export default function VehicleTableRow({ row, onDeleteRow, onEdit , onClick }: Props) {
   const {
     id,
     remark,
@@ -79,6 +80,7 @@ export default function VehicleTableRow({ row, onDeleteRow, onEdit }: Props) {
             (isWhiteList && "success.dark") ||
             undefined,
         }}
+        onClick={onClick}
       >
         <TableCell>
           <Typography
@@ -252,7 +254,9 @@ export default function VehicleTableRow({ row, onDeleteRow, onEdit }: Props) {
             ))}
           </Stack>
         </TableCell>
-        <TableCell>
+        <TableCell
+        // onClick={()=> console.log("remark")}
+        >
           <IconButton color="warning">
             <Iconify icon={"tabler:alert-circle"} />
           </IconButton>

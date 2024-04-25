@@ -23,6 +23,7 @@ type StationVehicleActivitySummaryData struct {
 }
 
 type StationVehicleActivityTag struct {
+	StationVehicleActivityId string
 	Type enum.StationVehicleActivityTagStatus
 	Tag  string
 }
