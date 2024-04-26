@@ -41,4 +41,7 @@ type Query {
   ): [StationDashboardActivity!] @access(requiredProjectId: true)
   getStationDashboardActivityById(id: ID!): StationDashboardActivity
     @access(requiredProjectId: true)
+  getStationDashboardActivityByVehicleId(
+    vehicleId: ID!
+  ): StationDashboardActivity @access(requiredProjectId: true)
 }
