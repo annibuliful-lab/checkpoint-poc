@@ -15,7 +15,8 @@ import { useBoolean } from "@/hooks/use-boolean";
 import _ from "lodash";
 import { PropWithStationLocationId } from "../../types";
 import { useGetStationVehicleActivitiesQuery } from "@/apollo-client";
-import { transformData } from "./types";
+import { VehicleTransection, transformData } from "./types";
+import VehicleInfoModal from "./vehicle-info";
 
 const defaultFilters = {
   name: "",
@@ -35,7 +36,8 @@ export default function VehicleTransectionTable({
       stationId: stationLocationId,
     },
   });
-  const [filters, setFilters] = useState(defaultFilters);
+  const [filters] = useState(defaultFilters);
+  const [vehicleInfo,setVehicleInfo] = useState<VehicleTransection | undefined>(undefined)
   const dataInTable = useMemo(
     () =>
       data?.getStationVehicleActivities?.map((row) => transformData(row)) ?? [],
@@ -45,16 +47,21 @@ export default function VehicleTransectionTable({
     //
   }, []);
   const openVehicleForm = useBoolean();
-  const [editVehicle, setEditVehicle] = useState(undefined);
-  const handleEdit = useCallback(
-    (item: any) => {
-      setEditVehicle(item);
-      openVehicleForm.onTrue();
-    },
-    [openVehicleForm]
-  );
+
+  const openModalInfo = (row : VehicleTransection) =>{
+    setVehicleInfo(row)
+    openVehicleForm.onTrue()
+    
+  }
+
   return (
     <Card>
+      <VehicleInfoModal
+        row={vehicleInfo}
+        opened={openVehicleForm.value}
+        onClose={openVehicleForm.onFalse}
+        stationId={stationLocationId}
+      />
       <TableContainer sx={{ position: "relative", overflow: "unset" }}>
         <Scrollbar>
           <Table size={"small"} sx={{ minWidth: 960 }}>
@@ -79,8 +86,9 @@ export default function VehicleTransectionTable({
                     <VehicleTableRow
                       key={row.id}
                       row={row}
-                      onDeleteRow={() => handleDeleteRow(row.id)}
-                      onEdit={() => handleEdit(row)}
+                      onClick={() => openModalInfo(row)}
+                      // onDeleteRow={() => handleDeleteRow(row.id)}
+                      // onEdit={() => console.log(row)}
                     />
                   ))}
                 <TableEmptyRows

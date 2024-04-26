@@ -3,8 +3,13 @@ import { useAtomValue } from "jotai";
 import React from "react";
 import { stationDashboardActivityAtom } from "./store";
 import { fDateTime } from "@/utils/format-time";
+import { StationDashboardActivity } from "@/apollo-client";
 
-export default function VehicleInfo() {
+type Props = {
+  VehicleInfo? : StationDashboardActivity
+}
+
+export default function VehicleInfo({VehicleInfo} : Props) {
   const dashboardActivity = useAtomValue(stationDashboardActivityAtom);
 
   return (
