@@ -52,7 +52,12 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   },
 }));
 
-export default function VehicleTableRow({ row, onDeleteRow, onEdit , onClick }: Props) {
+export default function VehicleTableRow({
+  row,
+  onDeleteRow,
+  onEdit,
+  onClick,
+}: Props) {
   const {
     id,
     remark,
@@ -257,9 +262,25 @@ export default function VehicleTableRow({ row, onDeleteRow, onEdit , onClick }: 
         <TableCell
         // onClick={()=> console.log("remark")}
         >
-          <IconButton color="warning">
-            <Iconify icon={"tabler:alert-circle"} />
-          </IconButton>
+          <Tooltip
+            arrow
+            placement="bottom-end"
+            title={
+              <Box sx={{ width: 120 }}>
+                <Typography
+                  fontSize={14}
+                  sx={{ cursor: "default" }}
+                  align="center"
+                >
+                  {remark}
+                </Typography>
+              </Box>
+            }
+          >
+            <IconButton color="warning">
+              <Iconify icon={"tabler:alert-circle"} />
+            </IconButton>
+          </Tooltip>
         </TableCell>
       </TableRow>
     </>

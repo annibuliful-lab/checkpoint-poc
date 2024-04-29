@@ -14,9 +14,9 @@ import { TABLE_HEAD } from "./const";
 import { useBoolean } from "@/hooks/use-boolean";
 import _ from "lodash";
 import { PropWithStationLocationId } from "../../types";
-import { useGetStationVehicleActivitiesQuery } from "@/apollo-client";
+import { StationDashboardActivity, useGetStationDashboardActivityByIdLazyQuery, useGetStationDashboardActivityByIdQuery, useGetStationVehicleActivitiesQuery, useGetStationVehicleActivityByIdLazyQuery } from "@/apollo-client";
 import { VehicleTransection, transformData } from "./types";
-import VehicleInfoModal from "./vehicle-info";
+import VehicleInfoModal from "./vehicle-info-Modal";
 
 const defaultFilters = {
   name: "",
@@ -24,6 +24,8 @@ const defaultFilters = {
 export default function VehicleTransectionTable({
   stationLocationId,
 }: PropWithStationLocationId) {
+
+  const [getVehicleDashboardInfo] = useGetStationDashboardActivityByIdLazyQuery()
   const table = useTable({
     defaultOrderBy: "createdAt",
     defaultOrder: "desc",
@@ -37,7 +39,7 @@ export default function VehicleTransectionTable({
     },
   });
   const [filters] = useState(defaultFilters);
-  const [vehicleInfo,setVehicleInfo] = useState<VehicleTransection | undefined>(undefined)
+  const [vehicleInfo,setVehicleInfo] = useState<StationDashboardActivity | undefined>(undefined)
   const dataInTable = useMemo(
     () =>
       data?.getStationVehicleActivities?.map((row) => transformData(row)) ?? [],
@@ -48,10 +50,15 @@ export default function VehicleTransectionTable({
   }, []);
   const openVehicleForm = useBoolean();
 
-  const openModalInfo = (row : VehicleTransection) =>{
-    setVehicleInfo(row)
-    openVehicleForm.onTrue()
+  const openModalInfo = async (row : VehicleTransection) =>{
     
+    const result = await getVehicleDashboardInfo({
+      variables: {
+        id: row.id
+      }
+    })
+    setVehicleInfo(result.data?.getStationDashboardActivityById || undefined )
+    openVehicleForm.onTrue()
   }
 
   return (
