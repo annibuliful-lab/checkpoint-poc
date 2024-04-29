@@ -55,13 +55,13 @@ func (StationDashboardActivityResolver) GetStationDashboardActivityByVehicleId(c
 	currentTime := time.Now()
 	isoTimeString := currentTime.Format(time.RFC3339)
 	return &StationDashboardActivity{
-		ID:                "Mock-ID",
-		ProjectId:         "Mock-ProjectId",
-		StationLocationId: "Mock-StationLocationId",
+		ID:                "Mock-ID-1",
+		ProjectId:         "Mock-ProjectId-1",
+		StationLocationId: "Mock-StationLocationId-1",
 		ArrivalTime:       isoTimeString,
-		LicensePlate:      "Mock-LicensePlate",
-		PhoneModel:        "Mock-PhoneModel",
-		StationSiteName:   "Mock-StationSiteName",
+		LicensePlate:      "Mock-LicensePlate-1",
+		PhoneModel:        "Mock-PhoneModel-1",
+		StationSiteName:   "Mock-StationSiteName-1",
 	}, nil
 }
 

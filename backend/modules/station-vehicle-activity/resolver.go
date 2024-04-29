@@ -45,13 +45,13 @@ func (StationVehicleActivityResolver) GetStationVehicleActivities(ctx context.Co
 		ArrivalTime: "Thu Apr 25 2024 13:39:46 GMT+0700 (Indochina Time)",
 		Brand:       "Honda",
 		StationSite: "1",
-		Remark:      "",
+		Remark:      "Remark-note-1",
 	}, {
 		ID:          "Mock-ID-2",
 		ArrivalTime: "Thu Apr 25 2024 13:39:46 GMT+0700 (Indochina Time)",
-		Brand:       "Honda",
+		Brand:       "Yamaha",
 		StationSite: "1",
-		Remark:      "",
+		Remark:      "Remark-note-2",
 	}}, nil
 }
 

@@ -10,6 +10,7 @@ import (
 	"checkpoint/modules/project"
 	projectRole "checkpoint/modules/project-role"
 	stationdashboardactivity "checkpoint/modules/station-dashboard-activity"
+	note "checkpoint/modules/station-dashboard-report"
 	stationDevice "checkpoint/modules/station-device"
 	stationDeviceHealthCheck "checkpoint/modules/station-device-health-check"
 	stationHealthCheck "checkpoint/modules/station-health-check"
@@ -40,6 +41,7 @@ type Resolver struct {
 	mobiledeviceconfiguration.MobileDeviceConfigurationResolver
 	tag.TagResolver
 	notification.NotificationResolver
+	note.NoteResolver
 	stationlocation.StationLocationResolver
 	stationOfficer.StationOfficerResolver
 	stationDevice.StationDeviceResolver

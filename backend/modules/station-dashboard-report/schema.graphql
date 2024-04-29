@@ -1,0 +1,11 @@
+type StationDashboardReport {
+  id: ID!
+  projectId: ID!
+  note: String!
+}
+
+type Mutation {
+  createStationDashboardReport(
+    note: String!
+  ): StationDashboardReport! @access(requiredProjectId: true)
+}
