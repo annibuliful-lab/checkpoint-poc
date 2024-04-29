@@ -3,9 +3,22 @@ import { useAtomValue } from "jotai";
 import React from "react";
 import { stationDashboardActivityAtom } from "./store";
 import { fDateTime } from "@/utils/format-time";
+import { StationDashboardActivity } from "@/apollo-client";
+import CreateReportModal from "./report-modal";
+import { useBoolean } from "@/hooks/use-boolean";
 
-export default function VehicleInfo() {
+type Props = {
+  vehicleInfo? : StationDashboardActivity
+}
+
+export default function VehicleInfo({vehicleInfo} : Props) {
   const dashboardActivity = useAtomValue(stationDashboardActivityAtom);
+
+  const openReportForm = useBoolean();
+
+  const openReportModal = async () =>{
+    openReportForm.onTrue()
+  }
 
   return (
     <Box
@@ -14,51 +27,61 @@ export default function VehicleInfo() {
       sx={{ border: "1px solid #00000014" }}
       p={2}
     >
+            <CreateReportModal
+        // row={vehicleInfo}
+        // stationId={stationLocationId}
+        opened={openReportForm.value}
+        onClose={openReportForm.onFalse}
+   
+      />
+      
       <Stack spacing={1}>
         <Stack direction={"row"} justifyContent={"space-between"}>
           <Typography variant="subtitle2">Vehicle Information</Typography>
-          <Button size="small" variant="outlined">
+          {!vehicleInfo && <Button size="small" variant="outlined" 
+          onClick={openReportModal}
+          >
             Report Issue
-          </Button>
+          </Button>}
         </Stack>
         <Divider />
         {[
           {
             label: "License Plate",
-            value: dashboardActivity?.vehicleInfo?.licensePlate,
+            value: vehicleInfo?.vehicleInfo?.licensePlate ?? dashboardActivity?.vehicleInfo?.licensePlate,
           },
           {
             label: "Station Site",
-            value: dashboardActivity?.vehicleInfo?.stationSiteName,
+            value: vehicleInfo?.vehicleInfo?.stationSiteName ?? dashboardActivity?.vehicleInfo?.stationSiteName,
           },
           {
-            label: "Status",
-            value: dashboardActivity?.vehicleInfo?.status,
+            label: "Vehicle Status",
+            value: vehicleInfo?.vehicleInfo?.status ?? dashboardActivity?.vehicleInfo?.status,
           },
           {
             label: "Arrival Time",
-            value: fDateTime(dashboardActivity?.arrivalTime),
+            value: fDateTime(vehicleInfo?.arrivalTime ?? dashboardActivity?.arrivalTime),
           },
           {
             label: "License Plate Type",
-            value: dashboardActivity?.vehicleInfo?.licensePlateType,
+            value: vehicleInfo?.vehicleInfo?.licensePlateType ?? dashboardActivity?.vehicleInfo?.licensePlateType,
           },
           {
             label: "Vehicle Type",
-            value: dashboardActivity?.vehicleInfo?.vehicleType,
+            value: vehicleInfo?.vehicleInfo?.vehicleType ?? dashboardActivity?.vehicleInfo?.vehicleType,
           },
           {
             label: "Brand",
-            value: dashboardActivity?.vehicleInfo?.band,
+            value: vehicleInfo?.vehicleInfo?.band ?? dashboardActivity?.vehicleInfo?.band,
           },
           {
             label: "Color",
-            value: dashboardActivity?.vehicleInfo?.colorName,
+            value: vehicleInfo?.vehicleInfo?.colorName ?? dashboardActivity?.vehicleInfo?.colorName,
             type: "COLOR",
           },
           {
             label: "Tag",
-            value: dashboardActivity?.tags
+            value: (vehicleInfo?.tags ?? dashboardActivity?.tags)
               ?.map((tag) => `${tag.tag}`)
               .join(", "),
             type: "TAGS",

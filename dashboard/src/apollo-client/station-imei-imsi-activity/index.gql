@@ -32,6 +32,24 @@ query getStationImeiImsiActivities($limit: Int!, $skip: Int!, $stationId: ID!) {
   }
 }
 
+query getStationImeiImsiActivitySummary(
+  $stationId: ID!
+  $groupBy: GetStationImeiImsiActivitySummaryCategory!
+  $customDate: Time
+) {
+  getStationImeiImsiActivitySummary(
+    stationId: $stationId
+    groupBy: $groupBy
+    customDate: $customDate
+  ) {
+    categories
+    series {
+      label
+      data
+    }
+  }
+}
+
 fragment StationImeiImsiActivityFields on StationImeiImsiActivity {
   id
   projectId

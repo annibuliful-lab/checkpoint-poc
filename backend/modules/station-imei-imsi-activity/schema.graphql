@@ -16,12 +16,35 @@ type StationImeiImsiActivity {
   tags: [StationImeiImsiActivityTag!]
 }
 
+type StationImeiImsiActivitySummarySerie {
+  label: String!
+  data: [Int!]!
+}
+
+type StationImeiImsiActivitySummary {
+  categories: [String!]!
+  series(filter: String): [StationImeiImsiActivitySummarySerie!]
+}
+
+enum GetStationImeiImsiActivitySummaryCategory {
+  DAY
+  WEEK
+  MONTH
+  YEAR
+  CUSTOM_DATE
+}
+
 type Query {
   getStationImeiImsiActivities(
     limit: Int!
     skip: Int!
     stationId: ID!
   ): [StationImeiImsiActivity!] @access(requiredProjectId: true)
+  getStationImeiImsiActivitySummary(
+    stationId: ID!
+    groupBy: GetStationImeiImsiActivitySummaryCategory!
+    customDate: Time
+  ): StationImeiImsiActivitySummary! @access(requiredProjectId: true)
   getStationImeiImsiActivityById(id: ID!): StationImeiImsiActivity
     @access(requiredProjectId: true)
 }

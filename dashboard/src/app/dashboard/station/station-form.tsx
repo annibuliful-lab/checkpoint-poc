@@ -10,7 +10,6 @@ import {
   Divider,
   IconButton,
   InputAdornment,
-  Modal,
   Stack,
   Typography,
 } from "@mui/material";

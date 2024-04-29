@@ -27,3 +27,22 @@ type StationImeiImsiActivityTag struct {
 	Type enum.ActivityTagType `json:"type"`
 	Tag  string               `json:"tag"`
 }
+
+type StationImeiImsiActivitySummaryData struct {
+	StationId  graphql.ID
+	GroupBy    string
+	CustomDate *graphql.NullTime
+}
+
+type StationImeiImsiActivitySummarySerieFilter struct {
+	Filter *string
+}
+
+type StationImeiImsiActivitySummarySerie struct {
+	Label string
+	Data  []int32
+}
+
+type StationImeiImsiActivitySummary struct {
+	Categories []string
+}

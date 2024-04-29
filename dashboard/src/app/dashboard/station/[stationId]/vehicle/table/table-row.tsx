@@ -35,8 +35,9 @@ import { paths } from "@/routes/paths";
 
 type Props = {
   row: VehicleTransection;
-  onDeleteRow: VoidFunction;
-  onEdit: VoidFunction;
+  onDeleteRow?: VoidFunction;
+  onEdit?: VoidFunction;
+  onClick?: VoidFunction;
 };
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
@@ -51,7 +52,12 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   },
 }));
 
-export default function VehicleTableRow({ row, onDeleteRow, onEdit }: Props) {
+export default function VehicleTableRow({
+  row,
+  onDeleteRow,
+  onEdit,
+  onClick,
+}: Props) {
   const {
     id,
     remark,
@@ -79,6 +85,7 @@ export default function VehicleTableRow({ row, onDeleteRow, onEdit }: Props) {
             (isWhiteList && "success.dark") ||
             undefined,
         }}
+        onClick={onClick}
       >
         <TableCell>
           <Typography
@@ -252,10 +259,28 @@ export default function VehicleTableRow({ row, onDeleteRow, onEdit }: Props) {
             ))}
           </Stack>
         </TableCell>
-        <TableCell>
-          <IconButton color="warning">
-            <Iconify icon={"tabler:alert-circle"} />
-          </IconButton>
+        <TableCell
+        // onClick={()=> console.log("remark")}
+        >
+          <Tooltip
+            arrow
+            placement="bottom-end"
+            title={
+              <Box sx={{ width: 120 }}>
+                <Typography
+                  fontSize={14}
+                  sx={{ cursor: "default" }}
+                  align="center"
+                >
+                  {remark}
+                </Typography>
+              </Box>
+            }
+          >
+            <IconButton color="warning">
+              <Iconify icon={"tabler:alert-circle"} />
+            </IconButton>
+          </Tooltip>
         </TableCell>
       </TableRow>
     </>

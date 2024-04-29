@@ -51,6 +51,20 @@ func (StationDashboardActivityResolver) GetStationDashboardActivityById(ctx cont
 	}, nil
 }
 
+func (StationDashboardActivityResolver) GetStationDashboardActivityByVehicleId(ctx context.Context, params struct{ VehicleId graphql.ID }) (*StationDashboardActivity, error) {
+	currentTime := time.Now()
+	isoTimeString := currentTime.Format(time.RFC3339)
+	return &StationDashboardActivity{
+		ID:                "Mock-ID-1",
+		ProjectId:         "Mock-ProjectId-1",
+		StationLocationId: "Mock-StationLocationId-1",
+		ArrivalTime:       isoTimeString,
+		LicensePlate:      "Mock-LicensePlate-1",
+		PhoneModel:        "Mock-PhoneModel-1",
+		StationSiteName:   "Mock-StationSiteName-1",
+	}, nil
+}
+
 func (parent StationDashboardActivity) Imsi(ctx context.Context) (*imsiconfiguration.ImsiConfiguration, error) {
 	graphqlTime := graphql.Time{Time: time.Now()}
 	imsi := imsiconfiguration.ImsiConfiguration{

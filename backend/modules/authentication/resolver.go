@@ -46,3 +46,19 @@ func (AuthenticationResolver) Signin(args SignInData) (*Authentication, error) {
 
 	return auth, nil
 }
+
+func (AuthenticationResolver) RefreshToken(args RefreshTokenData) (*Authentication, error) {
+
+	auth, code , err := authenticationService.GetAuthenticationTokenByRefreshToken(RefreshTokenData{
+		RefreshToken: args.RefreshToken,
+	})
+
+	if err != nil {
+		return nil, utils.GraphqlError{
+			Code:    code,
+			Message: utils.ForbiddenOperation.Error(),
+		}
+	}
+
+	return auth, nil
+}

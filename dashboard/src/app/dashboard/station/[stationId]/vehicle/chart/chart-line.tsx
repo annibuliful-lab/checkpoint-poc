@@ -1,28 +1,17 @@
 // ----------------------------------------------------------------------
 
+import { StationVehicleActivitySummarySerie } from "@/apollo-client";
 import Chart, { useChart } from "@/components/chart";
 
 type Props = {
-  series: {
-    name: string;
-    data: number[];
-  }[];
+  categories: string[];
+  series: StationVehicleActivitySummarySerie[];
 };
 
-export default function VehicleChartLine({ series }: Props) {
+export default function VehicleChartLine({ series, categories }: Props) {
   const chartOptions = useChart({
     xaxis: {
-      categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-      ],
+      categories,
     },
     tooltip: {
       x: {
@@ -36,7 +25,7 @@ export default function VehicleChartLine({ series }: Props) {
     <Chart
       dir="ltr"
       type="line"
-      series={series}
+      series={series.map((s) => ({ name: s.label, data: s.data }))}
       options={chartOptions}
       width="100%"
       height={240}

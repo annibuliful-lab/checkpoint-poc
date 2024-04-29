@@ -42,7 +42,6 @@ export default function VehicleTransectionTable({
     [data?.getStationDashboardActivities]
   );
   const handleDeleteRow = useCallback((id: string) => {
-    //
   }, []);
   const openVehicleForm = useBoolean();
   const [editVehicle, setEditVehicle] = useState(undefined);

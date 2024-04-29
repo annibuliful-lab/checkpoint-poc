@@ -5,12 +5,50 @@ import (
 	imeiconfiguration "checkpoint/modules/imei-configuration"
 	imsiconfiguration "checkpoint/modules/imsi-configuration"
 	"context"
+	"strings"
 	"time"
 
 	"github.com/graph-gophers/graphql-go"
 )
 
 type StationImeiImsiActivityResolver struct{}
+
+func (StationImeiImsiActivityResolver) GetStationImeiImsiActivitySummary(ctx context.Context, args StationImeiImsiActivitySummaryData) (*StationImeiImsiActivitySummary, error) {
+
+	return &StationImeiImsiActivitySummary{
+		Categories: []string{
+			"Jan",
+			"Feb",
+			"Mar",
+			"Apr",
+			"May",
+			"Jun",
+			"Jul",
+			"Aug",
+			"Sep"},
+	}, nil
+}
+
+func (parent StationImeiImsiActivitySummary) Series(ctx context.Context, args StationImeiImsiActivitySummarySerieFilter) (*[]StationImeiImsiActivitySummarySerie, error) {
+	var results []StationImeiImsiActivitySummarySerie
+	imeiData := StationImeiImsiActivitySummarySerie{
+		Label: "IMEI",
+		Data:  []int32{10, 41, 35, 51, 49, 62, 69, 91, 148},
+	}
+	imsiData := StationImeiImsiActivitySummarySerie{
+		Label: "IMSI",
+		Data:  []int32{10, 8, 35, 7, 49, 6, 69, 8, 148},
+	}
+	switch {
+	case args.Filter != nil && strings.EqualFold(*args.Filter, "IMEI"):
+		results = append(results, imeiData)
+	case args.Filter != nil && strings.EqualFold(*args.Filter, "IMSI"):
+		results = append(results, imsiData)
+	default:
+		results = append(results, imsiData, imeiData)
+	}
+	return &results, nil
+}
 
 func (StationImeiImsiActivityResolver) GetStationImeiImsiActivities(ctx context.Context, args StationImeiImsiActivityData) (*[]StationImeiImsiActivity, error) {
 	currentTime := time.Now()
