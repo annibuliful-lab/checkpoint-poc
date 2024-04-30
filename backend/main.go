@@ -13,7 +13,6 @@ import (
 	"log"
 	"net/http"
 	"os/signal"
-	"time"
 
 	"os"
 
@@ -69,7 +68,6 @@ func main() {
 			graphqlws.WithContextGenerator(
 				graphqlws.ContextGeneratorFunc(auth.WebsocketGraphqlContext),
 			),
-			graphqlws.WithWriteTimeout(1*time.Minute),
 		),
 	)
 

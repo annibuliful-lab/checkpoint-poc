@@ -6,7 +6,6 @@ import (
 	"checkpoint/gql/enum"
 	"checkpoint/utils"
 	"context"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/graph-gophers/graphql-go"
@@ -69,7 +68,7 @@ func (StationVehicleActivityResolver) UpdateStationVehicleActivity(ctx context.C
 	return &StationVehicleActivity{}, nil
 }
 
-func (r StationVehicleActivityResolver) CreateStationVehicleActivity(ctx context.Context, input CreateStationVehicleActivityInput) (*StationVehicleActivity, error) {
+func (r *StationVehicleActivityResolver) CreateStationVehicleActivity(ctx context.Context, input CreateStationVehicleActivityInput) (*StationVehicleActivity, error) {
 
 	stationApiAccess := auth.GetStationAuthorizationContext(ctx)
 
@@ -97,10 +96,7 @@ func (r StationVehicleActivityResolver) CreateStationVehicleActivity(ctx context
 	}
 
 	go func() {
-		select {
-		case r.stationVehicleActivityEvent <- vehicleActivity:
-		case <-time.After(10 * time.Second):
-		}
+		r.stationVehicleActivityEvent <- vehicleActivity
 	}()
 
 	return vehicleActivity, nil

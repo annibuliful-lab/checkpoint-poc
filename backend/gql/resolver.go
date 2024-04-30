@@ -59,7 +59,8 @@ func GraphqlResolver() *Resolver {
 	r := &Resolver{}
 
 	r.StationVehicleActivityResolver.SetupSubscription()
-	go r.BroadcastStationVehicleActivity()
+
+	go r.StationVehicleActivityResolver.BroadcastStationVehicleActivity()
 
 	return r
 }

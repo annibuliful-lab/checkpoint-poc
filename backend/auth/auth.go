@@ -132,7 +132,8 @@ func WebsocketGraphqlContext(ctx context.Context, r *http.Request) (context.Cont
 	headers := GetAuthenticationParams(r.URL.Query())
 
 	if headers.Authorization == "" {
-		return ctx, errors.New("unauthorized")
+		return ctx, nil
+		// return ctx, errors.New("unauthorized")
 	}
 
 	payload, err := jwt.VerifyToken(headers.Token)

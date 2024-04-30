@@ -2,14 +2,13 @@ package stationvehicleactivity
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/graph-gophers/graphql-go"
 )
 
-func (r StationVehicleActivityResolver) SetupSubscription() StationVehicleActivityResolver {
+func (r *StationVehicleActivityResolver) SetupSubscription() *StationVehicleActivityResolver {
 
 	r.stationVehicleActivityEvent = make(chan *StationVehicleActivity)
 	r.stationVehicleActivitySubscriber = make(chan *StationVehicleActivitySubscriber)
@@ -27,6 +26,7 @@ func (r *StationVehicleActivityResolver) OnStationVehicleActityEvent(ctx context
 		stop:  ctx.Done(),
 		event: c,
 	}
+
 	r.stationVehicleActivitySubscriber <- subscriber
 
 	return c
@@ -42,9 +42,10 @@ func (r *StationVehicleActivityResolver) BroadcastStationVehicleActivity() {
 		case id := <-unsubscribe:
 			delete(subscribers, id)
 		case s := <-r.stationVehicleActivitySubscriber:
-			subscribers[uuid.NewString()] = s
+			id := uuid.NewString()
+			subscribers[id] = s
 		case e := <-r.stationVehicleActivityEvent:
-			log.Println("broadcast-station-vehicle-channel", e.ID)
+
 			for id, s := range subscribers {
 				go func(id string, s *StationVehicleActivitySubscriber) {
 					select {
