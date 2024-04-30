@@ -6,7 +6,6 @@ import (
 	imeiconfiguration "checkpoint/modules/imei-configuration"
 	imsiconfiguration "checkpoint/modules/imsi-configuration"
 	mobiledeviceconfiguration "checkpoint/modules/mobile-device-configuration"
-	"checkpoint/modules/notification"
 	"checkpoint/modules/project"
 	projectRole "checkpoint/modules/project-role"
 	stationdashboardactivity "checkpoint/modules/station-dashboard-activity"
@@ -40,7 +39,6 @@ type Resolver struct {
 	imeiconfiguration.ImeiConfigurationResolver
 	mobiledeviceconfiguration.MobileDeviceConfigurationResolver
 	tag.TagResolver
-	notification.NotificationResolver
 	note.NoteResolver
 	stationlocation.StationLocationResolver
 	stationOfficer.StationOfficerResolver
@@ -59,7 +57,9 @@ type Resolver struct {
 
 func GraphqlResolver() *Resolver {
 	r := &Resolver{}
-	r.NotificationResolver.WsResolver()
+
+	r.StationVehicleActivityResolver.SetupSubscription()
+	go r.BroadcastStationVehicleActivity()
 
 	return r
 }
