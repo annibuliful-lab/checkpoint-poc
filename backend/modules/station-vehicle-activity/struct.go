@@ -9,6 +9,11 @@ import (
 	"github.com/graph-gophers/graphql-go"
 )
 
+type StationVehicleActivitySubscriber struct {
+	stop  <-chan struct{}
+	event chan<- *StationVehicleActivity
+}
+
 type StationVehicleActivityData struct {
 	ProjectId graphql.ID `json:"projectId"`
 	StationId graphql.ID `json:"stationId"`
@@ -24,9 +29,10 @@ type StationVehicleActivitySummaryData struct {
 
 type StationVehicleActivityTag struct {
 	StationVehicleActivityId string
-	Type enum.StationVehicleActivityTagStatus
-	Tag  string
+	Type                     enum.StationVehicleActivityTagStatus
+	Tag                      string
 }
+
 type StationVehicleActivityImei struct {
 	Total int32
 	List  *[]string
@@ -48,6 +54,7 @@ type StationVehicleActivityVehicle struct {
 type StationVehicleActivity struct {
 	ID          string `json:"id"`
 	ArrivalTime string `json:"arrivalTime"`
+	Model       string
 	Brand       string `json:"brand"`
 	StationSite string `json:"stationSite"`
 	Remark      string `json:"remark"`

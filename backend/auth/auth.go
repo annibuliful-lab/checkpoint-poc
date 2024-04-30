@@ -128,6 +128,7 @@ func GraphqlContext(next http.Handler) http.Handler {
 }
 
 func WebsocketGraphqlContext(ctx context.Context, r *http.Request) (context.Context, error) {
+
 	headers := GetAuthenticationParams(r.URL.Query())
 
 	if headers.Authorization == "" {
@@ -194,8 +195,14 @@ func writeJSONResponse(w http.ResponseWriter, data interface{}, statusCode int) 
 }
 
 func GetStationAuthContext(ctx context.Context) StationAuthContext {
-	return StationAuthContext{
-		ApiKey:   ctx.Value("apiKey").(string),
-		DeviceId: ctx.Value("deviceId").(string),
+	context := StationAuthContext{}
+	if ctx.Value("apiKey") != nil {
+		context.ApiKey = ctx.Value("apiKey").(string)
 	}
+
+	if ctx.Value("deviceId") != nil {
+		context.DeviceId = ctx.Value("deviceId").(string)
+	}
+
+	return context
 }

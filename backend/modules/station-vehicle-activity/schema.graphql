@@ -1,3 +1,17 @@
+enum StationVehicleActivityTagStatus {
+  LICENSE_PLATE
+  IMEI
+  IMSI
+}
+
+enum GetStationVehicleActivitySummaryCategory {
+  DAY
+  WEEK
+  MONTH
+  YEAR
+  CUSTOM_DATE
+}
+
 type StationVehicleActivityImsi {
   status: RemarkState!
   imsi: String!
@@ -5,11 +19,6 @@ type StationVehicleActivityImsi {
 type StationVehicleActivityImei {
   status: RemarkState!
   imei: String!
-}
-enum StationVehicleActivityTagStatus {
-  LICENSE_PLATE
-  IMEI
-  IMSI
 }
 
 type StationVehicleActivityLicensePlate {
@@ -50,6 +59,7 @@ type StationVehicleActivity {
   brand: String!
   vehicle: StationVehicleActivityVehicle!
   color: StationVehicleActivityColor!
+  model: String!
   stationSite: String!
   imei: IMEI!
   imsi: IMSI!
@@ -88,24 +98,26 @@ type Mutation {
     status: RemarkState
   ): StationVehicleActivity! @access(requiredProjectId: true)
 }
-enum GetStationVehicleActivitySummaryCategory {
-  DAY
-  WEEK
-  MONTH
-  YEAR
-  CUSTOM_DATE
-}
+
 type Query {
   getStationVehicleActivities(
     limit: Int!
     skip: Int!
     stationId: ID!
   ): [StationVehicleActivity!] @access(requiredProjectId: true)
+
   getStationVehicleActivitySummary(
     stationId: ID!
     groupBy: GetStationVehicleActivitySummaryCategory!
     customDate: Time
   ): StationVehicleActivitySummary @access(requiredProjectId: true)
+
   getStationVehicleActivityById(id: ID!): StationVehicleActivity!
     @access(requiredProjectId: true)
+}
+
+type Subscription {
+  onStationVehicleActityEvent(
+    stationId: ID!
+  ): StationVehicleActivity! @access(requiredProjectId: true)
 }

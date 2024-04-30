@@ -132,6 +132,6 @@ func transformToGraphql(data model.StationVehicleActivity) *StationVehicleActivi
 		ArrivalTime: data.CreatedAt.String(),
 		Brand:       data.Brand,
 		StationSite: data.StationLocationId.String(),
-		Remark:      *data.Issue,
+		// Remark:      *data.Issue,
 	}
 }

@@ -6,13 +6,18 @@ import (
 	"checkpoint/gql/enum"
 	"checkpoint/utils"
 	"context"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/graph-gophers/graphql-go"
 )
 
 var stationVehicleActivityService = StationVehicleActivityService{}
 
-type StationVehicleActivityResolver struct{}
+type StationVehicleActivityResolver struct {
+	stationVehicleActivityEvent      chan *StationVehicleActivity
+	stationVehicleActivitySubscriber chan *StationVehicleActivitySubscriber
+}
 
 func (StationVehicleActivityResolver) GetStationVehicleActivitySummary(ctx context.Context, args StationVehicleActivitySummaryData) (*StationVehicleActivitySummary, error) {
 
@@ -64,7 +69,7 @@ func (StationVehicleActivityResolver) UpdateStationVehicleActivity(ctx context.C
 	return &StationVehicleActivity{}, nil
 }
 
-func (StationVehicleActivityResolver) CreateStationVehicleActivity(ctx context.Context, input CreateStationVehicleActivityInput) (*StationVehicleActivity, error) {
+func (r StationVehicleActivityResolver) CreateStationVehicleActivity(ctx context.Context, input CreateStationVehicleActivityInput) (*StationVehicleActivity, error) {
 
 	stationApiAccess := auth.GetStationAuthorizationContext(ctx)
 
@@ -91,6 +96,13 @@ func (StationVehicleActivityResolver) CreateStationVehicleActivity(ctx context.C
 		}
 	}
 
+	go func() {
+		select {
+		case r.stationVehicleActivityEvent <- vehicleActivity:
+		case <-time.After(10 * time.Second):
+		}
+	}()
+
 	return vehicleActivity, nil
 }
 
@@ -100,7 +112,7 @@ func (parent StationVehicleActivity) LicensePlate(ctx context.Context) (*Station
 		"Mock-ID-1": "https://global.discourse-cdn.com/freecodecamp/original/3X/e/2/e27c45a168d1c6da0630abcb30d1e7f0d49a4bc6.png",
 		"Mock-ID-2": "https://example.com/image2.jpg",
 	}
-	
+
 	findImageByStationVehicleActivityId := imageDB[parent.ID]
 
 	licensePlate := StationVehicleActivityLicensePlate{
