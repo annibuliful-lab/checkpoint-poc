@@ -7,11 +7,13 @@ import (
 	access "checkpoint/gql/directive/access"
 	stationApi "checkpoint/gql/directive/station-api"
 	uploadmiddleware "checkpoint/gql/upload-middleware"
+	"checkpoint/utils/graphql_utils"
 	"context"
 	"flag"
 	"log"
 	"net/http"
 	"os/signal"
+	"time"
 
 	"os"
 
@@ -67,10 +69,12 @@ func main() {
 			graphqlws.WithContextGenerator(
 				graphqlws.ContextGeneratorFunc(auth.WebsocketGraphqlContext),
 			),
+			graphqlws.WithWriteTimeout(1*time.Minute),
 		),
 	)
 
 	http.Handle("/graphql", graphQLHandler)
+	http.HandleFunc("/graphiql", http.HandlerFunc(graphql_utils.Graphiql))
 
 	var listenAddress = flag.String("listen", os.Getenv("BACKEND_PORT"), "Listen address.")
 
@@ -80,9 +84,6 @@ func main() {
 		Addr: *listenAddress,
 	}
 
-	dbClient := db.GetPrimaryClient()
-	redisClient := db.GetRedisClient()
-
 	idleConnectionsClosed := make(chan struct{})
 	go func() {
 		sigint := make(chan os.Signal, 1)
@@ -91,8 +92,9 @@ func main() {
 		if err := httpServer.Shutdown(context.Background()); err != nil {
 			log.Printf("HTTP Server Shutdown Error: %v", err)
 		}
-		dbClient.Close()
-		redisClient.Close()
+		db.GetPrimaryClient().Close()
+		db.GetRedisClient().Close()
+
 		close(idleConnectionsClosed)
 	}()
 

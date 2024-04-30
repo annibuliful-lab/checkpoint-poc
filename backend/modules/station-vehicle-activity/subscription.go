@@ -2,7 +2,10 @@ package stationvehicleactivity
 
 import (
 	"context"
+	"log"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/graph-gophers/graphql-go"
 )
 
@@ -26,30 +29,38 @@ func (r *StationVehicleActivityResolver) OnStationVehicleActityEvent(ctx context
 	}
 	r.stationVehicleActivitySubscriber <- subscriber
 
-	// Ensure we unsubscribe when the context is cancelled
-	go func() {
-		<-ctx.Done()
-		close(c)
-	}()
-
 	return c
 }
 
 func (r *StationVehicleActivityResolver) BroadcastStationVehicleActivity() {
-	subscribers := make(map[*StationVehicleActivitySubscriber]struct{})
+	subscribers := map[string]*StationVehicleActivitySubscriber{}
+	unsubscribe := make(chan string)
 
-	// Handle incoming events and manage subscribers
+	// NOTE: subscribing and sending events are at odds.
 	for {
 		select {
+		case id := <-unsubscribe:
+			delete(subscribers, id)
 		case s := <-r.stationVehicleActivitySubscriber:
-			subscribers[s] = struct{}{}
+			subscribers[uuid.NewString()] = s
 		case e := <-r.stationVehicleActivityEvent:
-			for s := range subscribers {
-				select {
-				case <-s.stop:
-					delete(subscribers, s)
-				case s.event <- e:
-				}
+			log.Println("broadcast-station-vehicle-channel", e.ID)
+			for id, s := range subscribers {
+				go func(id string, s *StationVehicleActivitySubscriber) {
+					select {
+					case <-s.stop:
+						unsubscribe <- id
+						return
+					default:
+					}
+
+					select {
+					case <-s.stop:
+						unsubscribe <- id
+					case s.event <- e:
+					case <-time.After(time.Second):
+					}
+				}(id, s)
 			}
 		}
 	}
